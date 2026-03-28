@@ -87,14 +87,15 @@ export default function OrderResultPage() {
     setPdfLoading(true)
     try {
       const html2pdf = (await import('html2pdf.js')).default
+      const element = previewRef.current
       const opt = {
         margin: 0,
         filename: `상품상세페이지_${order.product_name}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
+        image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, backgroundColor: '#0f0f1a' },
-        jsPDF: { unit: 'px', format: [390, 10000], orientation: 'portrait' },
+        jsPDF: { unit: 'px' as const, format: [390, 10000], orientation: 'portrait' as const },
       }
-      await html2pdf().set(opt).from(previewRef.current).save()
+      await html2pdf().set(opt).from(element).save()
       toast.success('PDF 다운로드 완료!')
     } catch {
       toast.error('PDF 생성 중 오류가 발생했습니다')
