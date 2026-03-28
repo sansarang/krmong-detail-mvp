@@ -266,6 +266,13 @@ export default function OrderResultPage() {
   const [copyDone, setCopyDone] = useState(false)
   const [platform, setPlatform] = useState<Platform>('naver')
 
+  // 채팅 관련 state
+  const [showChat, setShowChat] = useState(false)
+  const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'ai'; text: string; sections?: { id: number; name: string; title: string; body: string }[] }[]>([])
+  const [chatInput, setChatInput] = useState('')
+  const [chatLoading, setChatLoading] = useState(false)
+  const chatBottomRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     async function fetchOrder() {
       const { data, error } = await supabase.from('orders').select('*').eq('id', id).single()
@@ -320,6 +327,52 @@ export default function OrderResultPage() {
       toast.success('PDF 다운로드 완료!')
     } catch { toast.error('PDF 생성 오류') }
     finally { setPdfLoading(false) }
+  }
+
+  async function handleChatSend() {
+    if (!chatInput.trim() || chatLoading || !order) return
+    const userMsg = chatInput.trim()
+    setChatInput('')
+    setChatMessages(prev => [...prev, { role: 'user', text: userMsg }])
+    setChatLoading(true)
+    setTimeout(() => chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userMsg,
+          sections,
+          productName: order.product_name,
+          category: order.category,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+
+      setChatMessages(prev => [...prev, {
+        role: 'ai',
+        text: data.message,
+        sections: data.modified_sections?.length ? data.modified_sections : undefined,
+      }])
+
+      setTimeout(() => chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
+    } catch {
+      setChatMessages(prev => [...prev, { role: 'ai', text: '오류가 발생했습니다. 다시 시도해주세요.' }])
+    } finally {
+      setChatLoading(false)
+    }
+  }
+
+  function applyModifiedSections(modified: { id: number; name: string; title: string; body: string }[]) {
+    setSections(prev =>
+      prev.map(s => {
+        const found = modified.find(m => m.id === s.id)
+        return found ? { ...s, title: found.title, body: found.body, name: found.name } : s
+      })
+    )
+    toast.success(`${modified.length}개 섹션이 수정됐습니다!`)
   }
 
   function getFormatContent(): string {
@@ -400,6 +453,12 @@ export default function OrderResultPage() {
               className="border border-gray-200 text-gray-600 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition-all disabled:opacity-40 flex items-center gap-1.5"
             >
               {regenLoading ? <><span className="w-3 h-3 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />재생성 중...</> : '↺ 다시 생성'}
+            </button>
+            <button
+              onClick={() => setShowChat(true)}
+              className="border border-indigo-200 bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-indigo-100 transition-all flex items-center gap-1.5"
+            >
+              ✦ AI 수정 요청
             </button>
             <button
               onClick={handleDownloadPDF}
@@ -655,6 +714,129 @@ export default function OrderResultPage() {
           </div>
         </div>
       )}
+
+      {/* ── AI 수정 채팅 패널 ──────────────────────────────── */}
+      {/* 오버레이 */}
+      {showChat && (
+        <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm" onClick={() => setShowChat(false)} />
+      )}
+
+      {/* 패널 */}
+      <div className={`fixed top-0 right-0 h-full w-full max-w-sm bg-white shadow-2xl z-50 flex flex-col transition-transform duration-300 ${showChat ? 'translate-x-0' : 'translate-x-full'}`}>
+        {/* 패널 헤더 */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-white">
+          <div>
+            <p className="font-black text-sm text-black flex items-center gap-1.5">
+              <span className="text-indigo-500">✦</span> AI 수정 어시스턴트
+            </p>
+            <p className="text-xs text-gray-400 mt-0.5">{order?.product_name}</p>
+          </div>
+          <button onClick={() => setShowChat(false)} className="text-gray-300 hover:text-black text-xl leading-none">×</button>
+        </div>
+
+        {/* 빠른 명령어 */}
+        {chatMessages.length === 0 && (
+          <div className="px-4 py-4 border-b border-gray-50">
+            <p className="text-xs font-bold text-gray-400 mb-2">빠른 요청</p>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                '첫 번째 섹션 더 강렬하게',
+                'CTA 더 설득력 있게',
+                '전체적으로 더 친근하게',
+                '숫자와 수치 더 추가해줘',
+                '마지막 섹션 할인 내용 추가',
+                '제목들 더 짧고 임팩트 있게',
+              ].map(q => (
+                <button
+                  key={q}
+                  onClick={() => { setChatInput(q) }}
+                  className="text-xs bg-gray-50 border border-gray-200 text-gray-600 px-2.5 py-1.5 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-600 transition-all"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 메시지 목록 */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+          {chatMessages.length === 0 && (
+            <div className="text-center py-12">
+              <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3">✦</div>
+              <p className="text-sm font-bold text-gray-700 mb-1">AI에게 수정을 요청하세요</p>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                "1번 섹션 더 강하게 바꿔줘"<br />
+                "전체 톤을 더 친근하게"<br />
+                "CTA에 기간 한정 혜택 추가해줘"
+              </p>
+            </div>
+          )}
+
+          {chatMessages.map((msg, i) => (
+            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[85%] ${msg.role === 'user' ? 'items-end' : 'items-start'} flex flex-col gap-2`}>
+                <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                  msg.role === 'user'
+                    ? 'bg-black text-white rounded-br-sm'
+                    : 'bg-gray-50 border border-gray-100 text-gray-800 rounded-bl-sm'
+                }`}>
+                  {msg.text}
+                </div>
+
+                {/* 수정된 섹션 적용 버튼 */}
+                {msg.role === 'ai' && msg.sections && msg.sections.length > 0 && (
+                  <button
+                    onClick={() => applyModifiedSections(msg.sections!)}
+                    className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black px-4 py-2 rounded-xl transition-all"
+                  >
+                    ✓ {msg.sections.length}개 섹션 적용하기
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {chatLoading && (
+            <div className="flex justify-start">
+              <div className="bg-gray-50 border border-gray-100 rounded-2xl rounded-bl-sm px-4 py-3">
+                <div className="flex gap-1">
+                  <span className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+              </div>
+            </div>
+          )}
+          <div ref={chatBottomRef} />
+        </div>
+
+        {/* 입력창 */}
+        <div className="px-4 py-4 border-t border-gray-100 bg-white">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={chatInput}
+              onChange={e => setChatInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleChatSend()}
+              placeholder="수정 요청을 입력하세요..."
+              disabled={chatLoading}
+              className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent disabled:opacity-50"
+            />
+            <button
+              onClick={handleChatSend}
+              disabled={chatLoading || !chatInput.trim()}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white w-11 h-11 rounded-xl flex items-center justify-center disabled:opacity-40 transition-all shrink-0"
+            >
+              {chatLoading
+                ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                : <span className="text-lg">↑</span>
+              }
+            </button>
+          </div>
+          <p className="text-xs text-gray-300 mt-2 text-center">Enter로 전송 · 수정 후 섹션에 바로 적용됩니다</p>
+        </div>
+      </div>
 
       {/* 블로그 미리보기 모달 */}
       {showBlogPreview && order && (
