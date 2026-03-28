@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useState } from 'react'
+import DemoAnimation from '@/components/DemoAnimation'
 
 const GOODBYE_ITEMS = [
   '눈치보이는 디자이너와의 소통', '막막한 기획', '값비싼 외주비용', '내 제품을 잘 모르는 AI',
@@ -168,6 +169,19 @@ export default function Home() {
           </Link>
         </div>
         <p className="text-xs text-gray-300 font-medium">신용카드 불필요 · 무료로 시작 · 30초면 충분</p>
+      </section>
+
+      {/* ─── DEMO ANIMATION ──────────────────────────── */}
+      <section className="max-w-5xl mx-auto px-6 pb-8">
+        <div className="text-center mb-10">
+          <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">작동 방식</p>
+          <h2 className="text-5xl font-black text-black tracking-tight leading-tight mb-3">
+            입력하면,<br />
+            <span className="text-gray-300">AI가 알아서 완성합니다.</span>
+          </h2>
+          <p className="text-gray-400 text-sm font-medium">실제 서비스 시뮬레이션 · 자동 반복</p>
+        </div>
+        <DemoAnimation />
       </section>
 
       {/* ─── SAY GOODBYE TO (마키) ─────────────────────── */}
