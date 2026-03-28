@@ -34,7 +34,7 @@ export default function NewsletterForm() {
         카피 공식 1개.
       </h2>
       <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-        스마트스토어·쿠팡 셀러 3,200명이 구독 중.<br />
+        스마트스토어·쿠팡 셀러들이 구독 중.<br />
         스팸 없음 · 언제든 해지 가능
       </p>
 

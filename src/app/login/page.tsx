@@ -20,12 +20,14 @@ export default function LoginPage() {
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
-        toast.success('회원가입 완료!')
+        toast.success('가입 완료! 첫 상세페이지를 만들어보세요.')
+        router.push('/order/new')
+        router.refresh()
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
         toast.success('로그인 성공!')
-        router.push('/dashboard')
+        router.push('/order/new')
         router.refresh()
       }
     } catch (error: unknown) {

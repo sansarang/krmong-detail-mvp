@@ -6,6 +6,7 @@ import CompareSection from '@/components/CompareSection'
 import PricingSection from '@/components/PricingSection'
 import LiveTicker from '@/components/LiveTicker'
 import NewsletterForm from '@/components/NewsletterForm'
+import CountdownBanner from '@/components/CountdownBanner'
 
 const GOODBYE_ITEMS = [
   '눈치보이는 디자이너와의 소통', '막막한 기획', '값비싼 외주비용', '내 제품을 잘 모르는 AI',
@@ -103,15 +104,7 @@ export default function Home() {
     <main className="min-h-screen bg-white overflow-x-hidden">
 
       {/* ─── 얼리버드 배너 ───────────────────────────── */}
-      <div className="bg-black text-white text-center py-3 px-4 text-sm font-medium">
-        <span className="text-yellow-400 font-black">⚡ 얼리버드 특가</span>
-        {' '}프로 플랜 <span className="line-through text-gray-400">₩29,000</span>
-        {' '}<span className="text-white font-black">₩14,500</span> · 종료까지
-        {' '}<span className="bg-white text-black text-xs font-black px-2 py-0.5 rounded-full mx-1">D-3</span>
-        <Link href="/login" className="ml-2 underline underline-offset-2 text-yellow-400 font-bold hover:text-yellow-300 transition-colors">
-          지금 시작 →
-        </Link>
-      </div>
+      <CountdownBanner />
 
       {/* ─── NAV ─────────────────────────────────────── */}
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100">
@@ -147,11 +140,11 @@ export default function Home() {
             ))}
           </div>
           <span className="w-px h-3 bg-gray-300" />
-          <span className="text-green-600 font-bold">1,200+</span>명이 이미 사용 중
-          <span className="flex ml-1">
-            {'★★★★★'.split('').map((s, i) => <span key={i} className="text-yellow-400 text-xs">{s}</span>)}
-          </span>
-          <span className="font-bold text-gray-700">4.9</span>
+               <span className="text-green-600 font-bold">베타</span> 서비스 운영 중
+                 <span className="flex ml-1">
+                   {'★★★★★'.split('').map((s, i) => <span key={i} className="text-yellow-400 text-xs">{s}</span>)}
+                 </span>
+                 <span className="font-bold text-gray-700">베타</span>
         </div>
 
         {/* 헤드라인 */}
@@ -263,16 +256,10 @@ export default function Home() {
           <div className="text-center mb-14">
             <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">실사용자 후기</p>
             <h2 className="text-5xl font-black text-black tracking-tight leading-tight mb-3">
-              먼저 사용해본<br />사용자들의 생생한 후기.
+              먼저 사용해본<br />베타 테스터들의 생생한 후기.
             </h2>
             <div className="flex items-center justify-center gap-2">
-              <div className="flex">
-                {'★★★★★'.split('').map((s, i) => (
-                  <span key={i} className="text-yellow-400 text-xl">★</span>
-                ))}
-              </div>
-              <span className="text-2xl font-black text-black">4.9</span>
-              <span className="text-gray-400 text-sm">(실사용자 평점)</span>
+              <span className="text-xs bg-green-50 text-green-700 border border-green-200 px-3 py-1 rounded-full font-bold">베타 테스터 실제 후기</span>
             </div>
           </div>
 
@@ -435,8 +422,8 @@ export default function Home() {
           <div className="border-t border-gray-100 pt-6 flex flex-col md:flex-row justify-between items-center gap-3">
             <p className="text-xs text-gray-300">© 2026 페이지AI. All rights reserved.</p>
             <div className="flex gap-6 text-xs text-gray-300">
-              <a href="#" className="hover:text-black transition-colors">개인정보처리방침</a>
-              <a href="#" className="hover:text-black transition-colors">이용약관</a>
+              <Link href="/privacy" className="hover:text-black transition-colors">개인정보처리방침</Link>
+              <Link href="/terms" className="hover:text-black transition-colors">이용약관</Link>
             </div>
           </div>
         </div>

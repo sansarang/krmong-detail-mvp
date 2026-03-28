@@ -51,7 +51,7 @@ const STATUS_MAP: Record<string, { text: string; dot: string; badge: string }> =
   error:      { text: '오류',   dot: 'bg-red-400',    badge: 'bg-red-50 text-red-700 border-red-200' },
 }
 
-const FREE_LIMIT = 3
+const FREE_LIMIT = 5
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient()

@@ -3,7 +3,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { createAdminClient, createServerSupabaseClient } from '@/lib/supabase/server'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
-const FREE_LIMIT = 3
+const FREE_LIMIT = 5
 
 export async function POST(req: NextRequest) {
   try {

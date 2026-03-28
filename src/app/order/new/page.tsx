@@ -15,7 +15,7 @@ const CATEGORIES = [
   { value: 'other',       label: '기타' },
 ]
 
-const FREE_LIMIT = 3
+const FREE_LIMIT = 5
 
 export default function NewOrderPage() {
   const router  = useRouter()
