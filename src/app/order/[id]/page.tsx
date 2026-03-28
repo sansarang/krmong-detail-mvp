@@ -104,39 +104,58 @@ function analyzeSeo(sections: Section[], productName: string, category: string):
   return { score, items, tags, metaTitle, metaDesc }
 }
 
-// ── 블로그 HTML 포맷 변환 (네이버 블로그 / 티스토리 최적화) ──
-function toBlogHTML(sections: Section[], productName: string, category: string): string {
-  const SECTION_EMOJIS = ['💡','😔','✨','🔑','📋','🛒']
+// ── 플랫폼별 포맷 ──────────────────────────────────────────
 
-  // 요약 박스
+type Platform = 'naver' | 'tistory' | 'brunch' | 'instagram' | 'wordpress'
+
+const PLATFORMS: { id: Platform; label: string; icon: string; desc: string }[] = [
+  { id: 'naver',     icon: 'N', label: '네이버 블로그', desc: 'HTML 편집 탭에 붙여넣기' },
+  { id: 'tistory',   icon: 'T', label: '티스토리',     desc: 'HTML 모드에 붙여넣기' },
+  { id: 'brunch',    icon: 'B', label: '브런치',       desc: '일반 텍스트 붙여넣기' },
+  { id: 'wordpress', icon: 'W', label: '워드프레스',   desc: 'HTML 블록에 붙여넣기' },
+  { id: 'instagram', icon: '📸', label: '인스타그램',  desc: '캡션에 붙여넣기' },
+]
+
+// 이미지를 섹션 사이에 배치하는 헬퍼
+function imgTag(url: string, alt: string, style = '') {
+  return `<img src="${url}" alt="${alt}" style="width:100%;max-width:680px;display:block;margin:0 auto;border-radius:12px;${style}" />`
+}
+
+// 네이버 블로그 / 티스토리 HTML
+function toBlogHTML(sections: Section[], productName: string, category: string, imageUrls: string[] = []): string {
+  const EMOJIS = ['💡','😔','✨','🔑','📋','🛒']
+
   const summaryRows = sections.slice(0, 3).map(s =>
     `<tr><td style="padding:6px 12px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#555;width:90px;font-weight:600;">${s.name}</td><td style="padding:6px 12px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#333;">${s.title}</td></tr>`
   ).join('')
 
-  // 추천 대상 추출 (5번 섹션 body에서 ✓ 항목 추출)
   const recommendSection = sections.find(s => s.name.includes('사용') || s.name.includes('추천')) ?? sections[4]
   const recommendLines = (recommendSection?.body ?? '').split('\n')
-    .filter(l => l.trim())
-    .slice(0, 4)
+    .filter(l => l.trim()).slice(0, 4)
     .map(l => `<li style="margin-bottom:6px;font-size:14px;color:#333;">${l.replace(/^[✓•·-]\s*/, '')}</li>`)
     .join('')
 
-  // 섹션 HTML (글-구분선-글 교차 구조)
-  const sectionHTML = sections.map((s, i) => {
+  // 이미지를 섹션 [1], [3], [5] 뒤에 삽입 (있을 경우)
+  const IMAGE_AFTER = [1, 3, 5]
+  const sectionBlocks = sections.map((s, i) => {
     const isEven = i % 2 === 0
-    const bg = isEven ? '#ffffff' : '#f9f9f9'
     const bodyLines = s.body.split('\n').map(line =>
-      line.trim()
-        ? `<p style="margin:0 0 10px;font-size:15px;line-height:1.9;color:#333;">${line}</p>`
-        : '<br>'
+      line.trim() ? `<p style="margin:0 0 10px;font-size:15px;line-height:1.9;color:#333;">${line}</p>` : '<br>'
     ).join('')
 
-    return `
-<div style="background:${bg};padding:28px 24px;margin-bottom:4px;border-radius:12px;">
-  <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#999;letter-spacing:2px;text-transform:uppercase;">${SECTION_EMOJIS[i] ?? '📌'} ${s.name}</p>
+    const sectionDiv = `
+<div style="background:${isEven ? '#fff' : '#f9f9f9'};padding:28px 24px;">
+  <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#999;letter-spacing:2px;">${EMOJIS[i] ?? '📌'} ${s.name}</p>
   <h2 style="margin:0 0 16px;font-size:20px;font-weight:900;color:#111;line-height:1.4;">${s.title}</h2>
   <div>${bodyLines}</div>
 </div>`
+
+    const imgIndex = IMAGE_AFTER.indexOf(i)
+    const imageHTML = imgIndex !== -1 && imageUrls[imgIndex]
+      ? `\n<div style="padding:0 0 4px;">${imgTag(imageUrls[imgIndex], `${productName} 제품 이미지 ${imgIndex + 1}`)}</div>`
+      : ''
+
+    return sectionDiv + imageHTML
   }).join('\n<hr style="border:none;border-top:1px solid #eee;margin:0;">\n')
 
   return `<!DOCTYPE html>
@@ -144,41 +163,89 @@ function toBlogHTML(sections: Section[], productName: string, category: string):
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="max-width:680px;margin:0 auto;padding:20px;font-family:'Apple SD Gothic Neo',Malgun Gothic,sans-serif;background:#fff;">
 
-<!-- 제목 영역 -->
-<div style="text-align:center;padding:40px 20px 32px;border-bottom:3px solid #111;margin-bottom:32px;">
-  <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#999;letter-spacing:3px;">PRODUCT REVIEW</p>
-  <h1 style="margin:0 0 12px;font-size:26px;font-weight:900;color:#111;line-height:1.3;">${productName}</h1>
-  <p style="margin:0;font-size:13px;color:#888;">카테고리: ${category} · AI 상세페이지 분석</p>
+<!-- 히어로 이미지 (첫 번째 사진) -->
+${imageUrls[0] ? `<div style="margin-bottom:24px;border-radius:16px;overflow:hidden;">${imgTag(imageUrls[0], productName, 'border-radius:0;')}</div>` : ''}
+
+<!-- 제목 -->
+<div style="text-align:center;padding:32px 20px;border-bottom:3px solid #111;margin-bottom:28px;">
+  <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#999;letter-spacing:3px;">PRODUCT REVIEW</p>
+  <h1 style="margin:0 0 10px;font-size:24px;font-weight:900;color:#111;line-height:1.3;">${productName}</h1>
+  <p style="margin:0;font-size:13px;color:#aaa;">카테고리: ${category}</p>
 </div>
 
 <!-- 요약 박스 -->
-<div style="background:#f5f5f5;border-radius:12px;padding:20px;margin-bottom:32px;">
-  <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:#555;">📋 이 글의 핵심 요약</p>
+<div style="background:#f5f5f5;border-radius:12px;padding:18px;margin-bottom:24px;">
+  <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#555;">📋 핵심 요약</p>
   <table style="width:100%;border-collapse:collapse;">${summaryRows}</table>
 </div>
 
-<!-- 이런 분에게 추천 -->
-<div style="background:#fff9e6;border-left:4px solid #f59e0b;border-radius:0 12px 12px 0;padding:20px;margin-bottom:32px;">
+<!-- 추천 -->
+<div style="background:#fff9e6;border-left:4px solid #f59e0b;padding:18px;margin-bottom:24px;border-radius:0 12px 12px 0;">
   <p style="margin:0 0 10px;font-size:14px;font-weight:900;color:#b45309;">✅ 이런 분에게 추천합니다</p>
   <ul style="margin:0;padding-left:18px;">${recommendLines}</ul>
 </div>
 
-<!-- 본문 섹션들 -->
-<div style="border-radius:12px;overflow:hidden;border:1px solid #eee;margin-bottom:32px;">
-${sectionHTML}
+<!-- 본문 -->
+<div style="border-radius:12px;overflow:hidden;border:1px solid #eee;margin-bottom:28px;">
+${sectionBlocks}
 </div>
 
-<!-- 마무리 CTA -->
-<div style="background:#111;border-radius:16px;padding:32px 24px;text-align:center;margin-bottom:24px;">
-  <p style="margin:0 0 8px;font-size:13px;color:#888;">페이지AI로 생성된 콘텐츠</p>
-  <p style="margin:0 0 20px;font-size:20px;font-weight:900;color:#fff;">지금 바로 구매하러 가기 →</p>
-  <a href="#" style="display:inline-block;background:#fff;color:#111;font-weight:900;font-size:14px;padding:14px 32px;border-radius:50px;text-decoration:none;">구매 링크 바로가기</a>
+<!-- CTA -->
+<div style="background:#111;border-radius:16px;padding:28px 20px;text-align:center;margin-bottom:20px;">
+  <p style="margin:0 0 16px;font-size:19px;font-weight:900;color:#fff;">지금 바로 구매하러 가기 →</p>
+  <a href="#" style="display:inline-block;background:#fff;color:#111;font-weight:900;font-size:14px;padding:12px 28px;border-radius:50px;text-decoration:none;">구매 링크 바로가기</a>
 </div>
+<p style="text-align:center;font-size:11px;color:#ccc;">본 포스팅은 페이지AI로 자동 생성된 콘텐츠입니다.</p>
+</body></html>`
+}
 
-<p style="text-align:center;font-size:11px;color:#ccc;">본 포스팅은 페이지AI(pageai.kr)로 자동 생성된 콘텐츠입니다.</p>
+// 브런치 — 깔끔한 에세이 스타일 텍스트
+function toBrunchText(sections: Section[], productName: string): string {
+  const lines = [`# ${productName}\n`]
+  sections.forEach(s => {
+    lines.push(`## ${s.title}\n`)
+    lines.push(s.body)
+    lines.push('')
+  })
+  lines.push('---\n*본 포스팅은 페이지AI로 자동 생성된 콘텐츠입니다.*')
+  return lines.join('\n')
+}
 
-</body>
-</html>`
+// 워드프레스 — Gutenberg 블록 HTML
+function toWordPressHTML(sections: Section[], productName: string, category: string, imageUrls: string[] = []): string {
+  const IMAGE_AFTER = [1, 3]
+  const blocks = sections.map((s, i) => {
+    const imgBlock = IMAGE_AFTER.includes(i) && imageUrls[IMAGE_AFTER.indexOf(i)]
+      ? `\n<!-- wp:image --><figure class="wp-block-image"><img src="${imageUrls[IMAGE_AFTER.indexOf(i)]}" alt="${productName}" /></figure><!-- /wp:image -->\n`
+      : ''
+    return `<!-- wp:heading {"level":2} --><h2 class="wp-block-heading">${s.title}</h2><!-- /wp:heading -->
+<!-- wp:paragraph --><p>${s.body.replace(/\n/g, '<br>')}</p><!-- /wp:paragraph -->${imgBlock}`
+  }).join('\n')
+
+  return `<!-- wp:heading {"level":1} --><h1 class="wp-block-heading">${productName} — ${category} 완벽 분석</h1><!-- /wp:heading -->
+<!-- wp:separator --><hr class="wp-block-separator"/><!-- /wp:separator -->
+${blocks}
+<!-- wp:buttons --><div class="wp-block-buttons"><div class="wp-block-button"><a class="wp-block-button__link" href="#">지금 구매하기 →</a></div></div><!-- /wp:buttons -->`
+}
+
+// 인스타그램 캡션 — 짧고 임팩트 있게 + 해시태그
+function toInstagramCaption(sections: Section[], productName: string, category: string): string {
+  const hook = sections[0]?.title ?? productName
+  const key1 = sections[2]?.title ?? ''
+  const key2 = sections[3]?.title ?? ''
+  const cta = sections[5]?.body.split('\n')[0] ?? '지금 바로 확인하세요!'
+  const tags = ['#' + productName.replace(/\s/g, ''), '#' + category, '#스마트스토어추천', '#쿠팡', '#상품추천', '#리뷰', '#구매후기', '#AI리뷰'].join(' ')
+
+  return `${hook} 🔥
+
+✅ ${key1}
+✅ ${key2}
+
+${cta}
+
+👇 프로필 링크에서 구매하기
+
+${tags}`
 }
 
 export default function OrderResultPage() {
@@ -197,6 +264,7 @@ export default function OrderResultPage() {
   const [showSeo, setShowSeo] = useState(false)
   const [showBlogPreview, setShowBlogPreview] = useState(false)
   const [copyDone, setCopyDone] = useState(false)
+  const [platform, setPlatform] = useState<Platform>('naver')
 
   useEffect(() => {
     async function fetchOrder() {
@@ -254,12 +322,28 @@ export default function OrderResultPage() {
     finally { setPdfLoading(false) }
   }
 
+  function getFormatContent(): string {
+    if (!order) return ''
+    const imgs = order.image_urls ?? []
+    switch (platform) {
+      case 'naver':
+      case 'tistory':
+        return toBlogHTML(sections, order.product_name, order.category, imgs)
+      case 'wordpress':
+        return toWordPressHTML(sections, order.product_name, order.category, imgs)
+      case 'brunch':
+        return toBrunchText(sections, order.product_name)
+      case 'instagram':
+        return toInstagramCaption(sections, order.product_name, order.category)
+    }
+  }
+
   function handleNaverCopy() {
     if (!order) return
-    const html = toBlogHTML(sections, order.product_name, order.category)
-    navigator.clipboard.writeText(html).then(() => {
+    const content = getFormatContent()
+    navigator.clipboard.writeText(content).then(() => {
       setCopyDone(true)
-      toast.success('블로그 HTML이 복사됐습니다! 에디터에 붙여넣기 하세요.')
+      toast.success(`${PLATFORMS.find(p => p.id === platform)?.label} 형식으로 복사됐습니다!`)
       setTimeout(() => setCopyDone(false), 3000)
     }).catch(() => toast.error('복사 실패. 다시 시도해주세요.'))
   }
@@ -575,62 +659,92 @@ export default function OrderResultPage() {
       {/* 블로그 미리보기 모달 */}
       {showBlogPreview && order && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowBlogPreview(false)}>
-          <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
-            {/* 모달 헤더 */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
+            {/* 헤더 */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
               <div>
-                <p className="text-xs font-black text-gray-400 uppercase tracking-wider">블로그 포스팅 미리보기</p>
-                <p className="text-xs text-gray-400 mt-0.5">네이버 블로그 · 티스토리에서 이렇게 보입니다</p>
+                <p className="text-xs font-black text-gray-400 uppercase tracking-wider">블로그 발행 미리보기</p>
+                <p className="text-xs text-gray-400 mt-0.5">플랫폼을 선택하면 실제 발행 후 모습으로 미리봅니다</p>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleNaverCopy}
-                  className="flex items-center gap-1.5 bg-[#03C75A] hover:bg-[#02b050] text-white px-4 py-2 rounded-xl text-sm font-black transition-all"
+                  className="flex items-center gap-1.5 bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-black transition-all"
                 >
-                  <span className="font-black">N</span>
-                  {copyDone ? '복사됨 ✓' : 'HTML 복사'}
+                  {copyDone ? '복사됨 ✓' : '↗ 복사'}
                 </button>
                 <button onClick={() => setShowBlogPreview(false)} className="text-gray-300 hover:text-black text-2xl leading-none">×</button>
               </div>
             </div>
 
-            {/* 블로그 미리보기 iframe */}
-            <div className="flex-1 overflow-auto p-4">
-              <div className="border border-gray-200 rounded-2xl overflow-hidden">
-                {/* 브라우저 주소창 흉내 */}
-                <div className="bg-gray-100 px-4 py-2.5 flex items-center gap-2 border-b border-gray-200">
-                  <div className="flex gap-1.5">
-                    <span className="w-3 h-3 rounded-full bg-red-400" />
-                    <span className="w-3 h-3 rounded-full bg-yellow-400" />
-                    <span className="w-3 h-3 rounded-full bg-green-400" />
-                  </div>
-                  <div className="flex-1 bg-white rounded-lg px-3 py-1 text-xs text-gray-400 ml-2">
-                    blog.naver.com / tistory.com
-                  </div>
-                </div>
-                {/* 실제 미리보기 */}
-                <iframe
-                  srcDoc={toBlogHTML(sections, order.product_name, order.category)}
-                  className="w-full"
-                  style={{ height: '600px', border: 'none' }}
-                  title="블로그 미리보기"
-                />
-              </div>
+            {/* 플랫폼 탭 */}
+            <div className="flex gap-1.5 px-6 py-3 border-b border-gray-100 shrink-0 overflow-x-auto">
+              {PLATFORMS.map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => setPlatform(p.id)}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                    platform === p.id
+                      ? 'bg-black text-white'
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  }`}
+                >
+                  <span>{p.icon}</span>
+                  {p.label}
+                </button>
+              ))}
             </div>
 
-            {/* 사용 안내 */}
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 rounded-b-3xl">
-              <p className="text-xs font-black text-gray-500 mb-2">📋 붙여넣기 방법</p>
-              <div className="grid grid-cols-2 gap-3 text-xs text-gray-500">
-                <div className="bg-white rounded-xl p-3 border border-gray-100">
-                  <p className="font-bold text-gray-700 mb-1">🟢 네이버 블로그</p>
-                  <p>글쓰기 → HTML 편집 탭 → 붙여넣기</p>
+            {/* 미리보기 영역 */}
+            <div className="flex-1 overflow-auto p-4">
+              {(platform === 'naver' || platform === 'tistory' || platform === 'wordpress') ? (
+                <div className="border border-gray-200 rounded-2xl overflow-hidden">
+                  <div className="bg-gray-100 px-4 py-2.5 flex items-center gap-2 border-b border-gray-200">
+                    <div className="flex gap-1.5">
+                      <span className="w-3 h-3 rounded-full bg-red-400" />
+                      <span className="w-3 h-3 rounded-full bg-yellow-400" />
+                      <span className="w-3 h-3 rounded-full bg-green-400" />
+                    </div>
+                    <div className="flex-1 bg-white rounded-lg px-3 py-1 text-xs text-gray-400 ml-2">
+                      {platform === 'naver' ? 'blog.naver.com' : platform === 'tistory' ? 'yourblog.tistory.com' : 'yoursite.wordpress.com'}
+                    </div>
+                  </div>
+                  <iframe
+                    key={platform}
+                    srcDoc={getFormatContent()}
+                    className="w-full"
+                    style={{ height: '520px', border: 'none' }}
+                    title="블로그 미리보기"
+                  />
                 </div>
-                <div className="bg-white rounded-xl p-3 border border-gray-100">
-                  <p className="font-bold text-gray-700 mb-1">🟠 티스토리</p>
-                  <p>글쓰기 → HTML 모드 → 붙여넣기</p>
+              ) : (
+                <div className="border border-gray-200 rounded-2xl overflow-hidden">
+                  {platform === 'instagram' && (
+                    <div className="bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 p-0.5 rounded-2xl">
+                      <div className="bg-white rounded-[14px] p-5">
+                        <div className="flex items-center gap-2 mb-4">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500" />
+                          <span className="font-bold text-sm">your_store</span>
+                        </div>
+                        <pre className="whitespace-pre-wrap text-sm text-gray-800 leading-relaxed font-sans">{getFormatContent()}</pre>
+                      </div>
+                    </div>
+                  )}
+                  {platform === 'brunch' && (
+                    <div className="bg-white p-8">
+                      <pre className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed font-serif">{getFormatContent()}</pre>
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
+            </div>
+
+            {/* 붙여넣기 안내 */}
+            <div className="px-6 py-3 bg-gray-50 border-t border-gray-100 rounded-b-3xl shrink-0">
+              <p className="text-xs text-gray-500">
+                <span className="font-bold text-gray-700">📋 {PLATFORMS.find(p => p.id === platform)?.label} 붙여넣기:</span>
+                {' '}{PLATFORMS.find(p => p.id === platform)?.desc}
+              </p>
             </div>
           </div>
         </div>
