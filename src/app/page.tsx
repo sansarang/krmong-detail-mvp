@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import DemoAnimation from '@/components/DemoAnimation'
+import CompareSection from '@/components/CompareSection'
 
 const GOODBYE_ITEMS = [
   '눈치보이는 디자이너와의 소통', '막막한 기획', '값비싼 외주비용', '내 제품을 잘 모르는 AI',
@@ -90,12 +91,6 @@ const FEATURES = [
     title: '무제한 재생성',
     desc: '마음에 안 들면 버튼 하나로 다시 생성. 다양한 버전으로 A/B 테스트하세요.',
   },
-]
-
-const STEPS = [
-  { step: '01', title: '제품 정보 입력', desc: '제품명, 카테고리, 특징을 30초 만에 입력하세요. 자세할수록 더 좋아요.' },
-  { step: '02', title: 'AI 자동 생성', desc: 'Claude AI가 6개 섹션의 전문 카피를 즉시 생성합니다.' },
-  { step: '03', title: '수정 후 다운로드', desc: '인라인 편집으로 수정하고 PDF로 즉시 다운로드하세요.' },
 ]
 
 export default function Home() {
@@ -201,25 +196,8 @@ export default function Home() {
       </div>
 
 
-      {/* ─── HOW IT WORKS ─────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-6 py-16">
-        <div className="text-center mb-14">
-          <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">사용 방법</p>
-          <h2 className="text-5xl font-black text-black tracking-tight">단 3단계.</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {STEPS.map((s, i) => (
-            <div key={i} className="relative bg-gray-50 border border-gray-100 rounded-3xl p-8 hover:border-gray-300 hover:shadow-lg transition-all group">
-              <div className="text-5xl font-black text-gray-100 mb-4 group-hover:text-gray-200 transition-colors">{s.step}</div>
-              <h3 className="text-xl font-black text-black mb-2 tracking-tight">{s.title}</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">{s.desc}</p>
-              {i < 2 && (
-                <div className="hidden md:block absolute top-12 -right-3 text-gray-200 text-2xl font-black z-10">→</div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* ─── COMPARE SECTION ─────────────────────────── */}
+      <CompareSection />
 
       {/* ─── FEATURES ─────────────────────────────────── */}
       <section id="features" className="bg-black py-20 my-8">
