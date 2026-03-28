@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { resend, WELCOME_EMAIL } from '@/lib/resend'
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,6 +20,9 @@ export async function POST(req: NextRequest) {
       }
       throw error
     }
+
+    // 환영 이메일 발송
+    await resend.emails.send(WELCOME_EMAIL(email))
 
     return NextResponse.json({ success: true })
   } catch {

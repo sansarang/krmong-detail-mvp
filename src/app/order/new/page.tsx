@@ -1,26 +1,48 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import Link from 'next/link'
 
 const CATEGORIES = [
-  { value: 'food', label: '식품/음료' },
-  { value: 'beauty', label: '뷰티/화장품' },
-  { value: 'living', label: '생활용품' },
-  { value: 'fashion', label: '패션/의류' },
+  { value: 'food',        label: '식품/음료' },
+  { value: 'beauty',      label: '뷰티/화장품' },
+  { value: 'living',      label: '생활용품' },
+  { value: 'fashion',     label: '패션/의류' },
   { value: 'electronics', label: '전자제품' },
-  { value: 'health', label: '건강/의료' },
-  { value: 'other', label: '기타' },
+  { value: 'health',      label: '건강/의료' },
+  { value: 'other',       label: '기타' },
 ]
 
+const FREE_LIMIT = 3
+
 export default function NewOrderPage() {
-  const router = useRouter()
+  const router  = useRouter()
   const supabase = createClient()
-  const [loading, setLoading] = useState(false)
-  const [images, setImages] = useState<File[]>([])
-  const [form, setForm] = useState({ product_name: '', category: '', description: '' })
+  const [loading, setLoading]         = useState(false)
+  const [images, setImages]           = useState<File[]>([])
+  const [form, setForm]               = useState({ product_name: '', category: '', description: '' })
+  const [monthlyUsed, setMonthlyUsed] = useState(0)
+  const [showUpgrade, setShowUpgrade] = useState(false)
+
+  // 이번 달 사용량 로드
+  useEffect(() => {
+    async function loadUsage() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const now = new Date()
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+      const { count } = await supabase
+        .from('orders')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .gte('created_at', startOfMonth)
+        .neq('status', 'error')
+      setMonthlyUsed(count ?? 0)
+    }
+    loadUsage()
+  }, [])
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || [])
@@ -30,11 +52,20 @@ export default function NewOrderPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.product_name || !form.category || !form.description) { toast.error('모든 항목을 입력해주세요'); return }
+    if (!form.product_name || !form.category || !form.description) {
+      toast.error('모든 항목을 입력해주세요'); return
+    }
+
+    // 클라이언트 사전 체크 (무료 제한)
+    if (monthlyUsed >= FREE_LIMIT) {
+      setShowUpgrade(true); return
+    }
+
     setLoading(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
+
       const imageUrls: string[] = []
       for (const image of images) {
         const ext = image.name.split('.').pop()
@@ -44,18 +75,27 @@ export default function NewOrderPage() {
         const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(path)
         imageUrls.push(publicUrl)
       }
+
       const { data: order, error } = await supabase
         .from('orders')
         .insert({ user_id: user.id, ...form, image_urls: imageUrls, status: 'pending' })
         .select().single()
       if (error) throw error
+
       toast.success('AI가 상세페이지를 생성 중입니다...')
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderId: order.id }),
       })
-      if (!res.ok) throw new Error('생성 실패')
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        if (data.error === 'LIMIT_EXCEEDED') { setShowUpgrade(true); return }
+        throw new Error(data.message || '생성 실패')
+      }
+
       toast.success('완성됐습니다!')
       router.push(`/order/${order.id}`)
     } catch (err: unknown) {
@@ -65,21 +105,88 @@ export default function NewOrderPage() {
     }
   }
 
+  const remaining = Math.max(FREE_LIMIT - monthlyUsed, 0)
+  const usagePct  = Math.min((monthlyUsed / FREE_LIMIT) * 100, 100)
+
   return (
     <main className="min-h-screen bg-white">
+      {/* 업그레이드 모달 */}
+      {showUpgrade && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl">
+            <div className="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5">🔒</div>
+            <h2 className="text-2xl font-black text-black text-center tracking-tight mb-2">
+              무료 한도에 도달했어요
+            </h2>
+            <p className="text-gray-400 text-sm text-center leading-relaxed mb-6">
+              이번 달 무료 생성 <strong className="text-black">{FREE_LIMIT}회</strong>를 모두 사용했습니다.<br />
+              프로 플랜으로 업그레이드하면 무제한으로 생성할 수 있어요.
+            </p>
+            <div className="bg-black rounded-2xl p-5 mb-4">
+              <p className="text-xs font-black text-gray-500 uppercase tracking-widest mb-2">프로 플랜</p>
+              <p className="text-3xl font-black text-white mb-1">₩29,000<span className="text-gray-500 text-sm font-normal">/월</span></p>
+              <ul className="space-y-1.5 mt-3">
+                {['무제한 상세페이지 생성', '우선순위 AI 처리', 'A/B 버전 자동 생성'].map(f => (
+                  <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
+                    <span className="w-4 h-4 bg-white/10 rounded-full flex items-center justify-center text-[9px] text-white font-black">✓</span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <Link
+              href="/#pricing"
+              className="w-full bg-black text-white py-4 rounded-2xl font-black text-sm text-center block hover:bg-gray-800 transition-all mb-3"
+            >
+              프로 플랜 시작하기 →
+            </Link>
+            <button
+              onClick={() => setShowUpgrade(false)}
+              className="w-full text-gray-400 text-sm py-2 hover:text-black transition-colors"
+            >
+              다음 달까지 기다리기
+            </button>
+          </div>
+        </div>
+      )}
+
       <nav className="flex items-center justify-between px-8 py-5 border-b border-gray-100">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-black rounded-lg" />
+          <div className="w-7 h-7 bg-black rounded-lg flex items-center justify-center">
+            <span className="text-white text-[10px] font-black">AI</span>
+          </div>
           <span className="font-bold text-lg tracking-tight">페이지AI</span>
         </Link>
         <Link href="/dashboard" className="text-gray-400 text-sm hover:text-black transition-colors">← 대시보드</Link>
       </nav>
 
       <div className="max-w-xl mx-auto px-8 py-16">
-        <div className="mb-12">
+        <div className="mb-10">
           <p className="text-xs font-bold text-gray-300 uppercase tracking-widest mb-3">새 상세페이지</p>
           <h1 className="text-4xl font-black text-black tracking-tight mb-3">제품 정보 입력</h1>
           <p className="text-gray-400 text-sm leading-relaxed">정보를 입력하면 AI가 전환율 높은 상세페이지를 만들어드려요</p>
+        </div>
+
+        {/* 사용량 바 */}
+        <div className={`rounded-2xl p-4 mb-8 border ${remaining === 0 ? 'bg-orange-50 border-orange-200' : 'bg-gray-50 border-gray-100'}`}>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-gray-500">이번 달 사용량</span>
+            <span className={`text-xs font-black ${remaining === 0 ? 'text-orange-600' : 'text-gray-600'}`}>
+              {monthlyUsed}/{FREE_LIMIT}회 사용
+              {remaining > 0 ? ` · ${remaining}회 남음` : ' · 한도 초과'}
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-1.5">
+            <div
+              className={`h-1.5 rounded-full transition-all ${remaining === 0 ? 'bg-orange-500' : 'bg-black'}`}
+              style={{ width: `${usagePct}%` }}
+            />
+          </div>
+          {remaining === 0 && (
+            <p className="text-xs text-orange-600 font-medium mt-2">
+              무료 한도 초과 · <Link href="/#pricing" className="underline font-bold">프로 업그레이드</Link>로 무제한 사용
+            </p>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
