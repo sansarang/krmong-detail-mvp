@@ -29,7 +29,8 @@ export default function Home() {
           스마트스토어 상세페이지를 자동으로 만들어드립니다
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-          <Link href="/login" className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-10 py-4 rounded-2xl text-lg font-료로 시작하기
+          <Link href="/login" className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-10 py-4 rounded-2xl text-lg font-semibold hover:shadow-2xl transition-all duration-300 hover:scale-105">
+            무료로 시작하기
           </Link>
           <Link href="/dashboard" className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-10 py-4 rounded-2xl text-lg font-semibold hover:bg-white/20 transition-all duration-300 hover:scale-105">
             대시보드 보기
