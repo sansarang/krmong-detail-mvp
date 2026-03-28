@@ -126,6 +126,7 @@ export default function Home() {
             <a href="#features" className="text-gray-500 text-sm hover:text-black transition-colors font-medium">주요 기능</a>
             <a href="#reviews" className="text-gray-500 text-sm hover:text-black transition-colors font-medium">이용 후기</a>
             <a href="#faq" className="text-gray-500 text-sm hover:text-black transition-colors font-medium">FAQ</a>
+            <Link href="/blog" className="text-gray-500 text-sm hover:text-black transition-colors font-medium">블로그</Link>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-sm text-gray-500 hover:text-black font-medium transition-colors hidden sm:block">로그인</Link>
@@ -422,13 +423,14 @@ export default function Home() {
               <p className="text-gray-400 text-sm max-w-xs leading-relaxed">당신의 상세페이지 제작 AI 파트너.</p>
             </div>
             <div className="grid grid-cols-2 gap-x-16 gap-y-3 text-sm text-gray-400">
-              <Link href="/" className="hover:text-black transition-colors">홈</Link>
-              <Link href="#features" className="hover:text-black transition-colors">주요 기능</Link>
-              <Link href="#reviews" className="hover:text-black transition-colors">이용 후기</Link>
-              <Link href="#faq" className="hover:text-black transition-colors">FAQ</Link>
-              <Link href="/login" className="hover:text-black transition-colors">로그인</Link>
-              <Link href="/dashboard" className="hover:text-black transition-colors">대시보드</Link>
-            </div>
+                     <Link href="/" className="hover:text-black transition-colors">홈</Link>
+                     <Link href="#features" className="hover:text-black transition-colors">주요 기능</Link>
+                     <Link href="#reviews" className="hover:text-black transition-colors">이용 후기</Link>
+                     <Link href="#faq" className="hover:text-black transition-colors">FAQ</Link>
+                     <Link href="/blog" className="hover:text-black transition-colors">블로그</Link>
+                     <Link href="/login" className="hover:text-black transition-colors">로그인</Link>
+                     <Link href="/dashboard" className="hover:text-black transition-colors">대시보드</Link>
+                   </div>
           </div>
           <div className="border-t border-gray-100 pt-6 flex flex-col md:flex-row justify-between items-center gap-3">
             <p className="text-xs text-gray-300">© 2026 페이지AI. All rights reserved.</p>
