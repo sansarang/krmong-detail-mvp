@@ -262,6 +262,35 @@ export default async function DashboardPage() {
                   </div>
                 ))}
               </div>
+              <Link href="/blog" className="mt-4 block text-xs font-black text-gray-400 hover:text-black transition-colors text-center pt-3 border-t border-gray-50">
+                전체 가이드 보기 →
+              </Link>
+            </div>
+
+            {/* 이번 주 인기 카테고리 트렌드 */}
+            <div className="bg-white border border-gray-100 rounded-2xl p-5">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">이번 주 급상승 카테고리</p>
+                <span className="text-[9px] bg-green-50 text-green-600 border border-green-200 px-1.5 py-0.5 rounded font-bold">LIVE</span>
+              </div>
+              <div className="space-y-2.5">
+                {[
+                  { rank: 1, name: '뷰티/화장품',  change: '+24%', up: true  },
+                  { rank: 2, name: '건강식품',      change: '+18%', up: true  },
+                  { rank: 3, name: '식품/음료',     change: '+12%', up: true  },
+                  { rank: 4, name: '생활용품',      change: '-3%',  up: false },
+                  { rank: 5, name: '패션/의류',     change: '+8%',  up: true  },
+                ].map(item => (
+                  <div key={item.rank} className="flex items-center gap-2">
+                    <span className="w-4 text-[10px] font-black text-gray-300 shrink-0">{item.rank}</span>
+                    <span className="flex-1 text-xs font-medium text-gray-700 truncate">{item.name}</span>
+                    <span className={`text-[10px] font-black ${item.up ? 'text-green-500' : 'text-red-400'}`}>
+                      {item.up ? '↑' : '↓'} {item.change}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[9px] text-gray-200 mt-3">* 스마트스토어 판매 데이터 기준</p>
             </div>
 
           </div>

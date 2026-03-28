@@ -5,6 +5,7 @@ import DemoAnimation from '@/components/DemoAnimation'
 import CompareSection from '@/components/CompareSection'
 import PricingSection from '@/components/PricingSection'
 import LiveTicker from '@/components/LiveTicker'
+import NewsletterForm from '@/components/NewsletterForm'
 
 const GOODBYE_ITEMS = [
   '눈치보이는 디자이너와의 소통', '막막한 기획', '값비싼 외주비용', '내 제품을 잘 모르는 AI',
@@ -342,6 +343,44 @@ export default function Home() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* ─── BLOG ─────────────────────────────────────── */}
+      <section className="max-w-5xl mx-auto px-6 py-16">
+        <div className="flex items-end justify-between mb-10">
+          <div>
+            <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-2">무료 가이드</p>
+            <h2 className="text-4xl font-black text-black tracking-tight leading-tight">
+              팔리는 상세페이지의<br />
+              <span className="text-gray-200">모든 전략.</span>
+            </h2>
+          </div>
+          <Link href="/blog" className="text-sm font-bold text-gray-400 hover:text-black transition-colors hidden sm:block">
+            전체 보기 →
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[
+            { slug: 'smartstore-detail-page-tips', category: '전환율 최적화', color: 'bg-orange-50 text-orange-600 border-orange-200', title: '스마트스토어 상세페이지 전환율 높이는 10가지 방법', time: '8분' },
+            { slug: 'coupang-detail-page-strategy', category: '쿠팡 최적화', color: 'bg-blue-50 text-blue-600 border-blue-200', title: '쿠팡 상위노출을 위한 상세페이지 전략 완벽 가이드', time: '10분' },
+            { slug: 'ai-detail-page-2026', category: 'AI 트렌드', color: 'bg-purple-50 text-purple-600 border-purple-200', title: 'AI 상세페이지 자동 생성, 2026년에는 왜 필수인가', time: '6분' },
+          ].map((post, i) => (
+            <Link key={i} href={`/blog/${post.slug}`} className="group border border-gray-100 rounded-3xl p-6 hover:border-gray-300 hover:shadow-lg transition-all hover:-translate-y-0.5 bg-white">
+              <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border inline-block mb-4 ${post.color}`}>
+                {post.category}
+              </span>
+              <h3 className="text-base font-black text-black leading-snug mb-3 group-hover:opacity-70 transition-opacity">
+                {post.title}
+              </h3>
+              <p className="text-xs text-gray-300 font-medium">{post.time} 읽기 →</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── NEWSLETTER ───────────────────────────────── */}
+      <section className="max-w-5xl mx-auto px-6 pb-8">
+        <NewsletterForm />
       </section>
 
       {/* ─── FINAL CTA ────────────────────────────────── */}
