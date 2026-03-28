@@ -12,7 +12,7 @@ const PLANS = [
     ctaHref: '/login',
     featured: false,
     features: [
-      { text: '월 3회 상세페이지 생성',      included: true },
+      { text: '월 5회 상세페이지 생성',      included: true },
       { text: 'PDF 다운로드',               included: true },
       { text: '6개 섹션 기본 템플릿',         included: true },
       { text: '인라인 편집',                 included: true },
