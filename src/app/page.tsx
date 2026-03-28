@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import DemoAnimation from '@/components/DemoAnimation'
 import CompareSection from '@/components/CompareSection'
+import BeforeAfterSection from '@/components/BeforeAfterSection'
 import PricingSection from '@/components/PricingSection'
 import LiveTicker from '@/components/LiveTicker'
 import NewsletterForm from '@/components/NewsletterForm'
@@ -119,6 +120,7 @@ export default function Home() {
             <a href="#features" className="text-gray-500 text-sm hover:text-black transition-colors font-medium">주요 기능</a>
             <a href="#reviews" className="text-gray-500 text-sm hover:text-black transition-colors font-medium">이용 후기</a>
             <a href="#faq" className="text-gray-500 text-sm hover:text-black transition-colors font-medium">FAQ</a>
+            <Link href="/samples" className="text-gray-500 text-sm hover:text-black transition-colors font-medium">샘플 보기</Link>
             <Link href="/blog" className="text-gray-500 text-sm hover:text-black transition-colors font-medium">블로그</Link>
           </div>
           <div className="flex items-center gap-3">
@@ -203,6 +205,9 @@ export default function Home() {
         </div>
       </div>
 
+
+      {/* ─── BEFORE/AFTER SECTION ────────────────────── */}
+      <BeforeAfterSection />
 
       {/* ─── COMPARE SECTION ─────────────────────────── */}
       <CompareSection />
