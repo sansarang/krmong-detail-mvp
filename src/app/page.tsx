@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { useState } from 'react'
 import DemoAnimation from '@/components/DemoAnimation'
 import CompareSection from '@/components/CompareSection'
+import PricingSection from '@/components/PricingSection'
+import LiveTicker from '@/components/LiveTicker'
 
 const GOODBYE_ITEMS = [
   '눈치보이는 디자이너와의 소통', '막막한 기획', '값비싼 외주비용', '내 제품을 잘 모르는 AI',
@@ -98,6 +100,17 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-white overflow-x-hidden">
+
+      {/* ─── 얼리버드 배너 ───────────────────────────── */}
+      <div className="bg-black text-white text-center py-3 px-4 text-sm font-medium">
+        <span className="text-yellow-400 font-black">⚡ 얼리버드 특가</span>
+        {' '}프로 플랜 <span className="line-through text-gray-400">₩29,000</span>
+        {' '}<span className="text-white font-black">₩14,500</span> · 종료까지
+        {' '}<span className="bg-white text-black text-xs font-black px-2 py-0.5 rounded-full mx-1">D-3</span>
+        <Link href="/login" className="ml-2 underline underline-offset-2 text-yellow-400 font-bold hover:text-yellow-300 transition-colors">
+          지금 시작 →
+        </Link>
+      </div>
 
       {/* ─── NAV ─────────────────────────────────────── */}
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100">
@@ -238,6 +251,9 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      {/* ─── PRICING ──────────────────────────────────── */}
+      <PricingSection />
 
       {/* ─── REVIEWS ──────────────────────────────────── */}
       <section id="reviews" className="bg-gray-50 py-20 my-8">
@@ -384,6 +400,9 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* ─── LIVE TICKER ──────────────────────────────── */}
+      <LiveTicker />
     </main>
   )
 }
