@@ -40,7 +40,7 @@ export default function DemoAnimation() {
     // 타이핑 애니메이션
     const typeText = (text: string, setter: (v: string) => void, startDelay: number) => {
       ;[...text].forEach((char, i) => {
-        timers.push(setTimeout(() => setter(prev => prev + char), startDelay + i * 38))
+        timers.push(setTimeout(() => setter((prev: string) => prev + char), startDelay + i * 38))
       })
     }
 
