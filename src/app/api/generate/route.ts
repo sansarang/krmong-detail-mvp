@@ -59,37 +59,72 @@ export async function POST(req: NextRequest) {
     // 상태 업데이트
     await supabase.from('orders').update({ status: 'generating' }).eq('id', orderId)
 
+    // ── 업종 타입 자동 감지 ────────────────────────────────────
+    const SERVICE_CATS = ['car_service','car_repair','interior','window','cleaning','moving',
+      'construction','restaurant','cafe','delivery','franchise','academy','coaching','medical',
+      'beauty_shop','fitness','realestate','pension','travel','insurance','saas','it_service','design']
+    const AUTO_CATS = ['used_car','new_car']
+    const isService = SERVICE_CATS.includes(order.category)
+    const isAuto    = AUTO_CATS.includes(order.category)
+
+    const sectionGuide = isAuto ? `
+[자동차 업종 — 6개 섹션 구성]
+1. 후킹 헤드라인: 차량 핵심 어필 + 의문형 (연식/상태 포함)
+2. 차량 상태: 사고 이력·점검 결과·보증 (숫자/수치 포함)
+3. 주요 사양: 핵심 옵션과 특장점 나열 (✓ 기호 활용)
+4. 구매 혜택: 할부/금융/보험 등 구매 지원 조건
+5. 시승 안내: 방문·비대면 시승 예약 방법
+6. 상담 유도 CTA: 지금 바로 연락/상담 유도` :
+    isService ? `
+[서비스업 — 6개 섹션 구성]
+1. 후킹 헤드라인: 의문형으로 고객의 핵심 고민 제기
+2. 고객 고민 공감: 이 서비스가 필요한 상황·불편함 묘사
+3. 서비스 소개: 핵심 서비스 내용과 차별점 (수치/경력 포함)
+4. 작업/시공 과정: 단계별 프로세스 (신뢰도 향상, 숫자 포함)
+5. 시공 사례/후기: 실제 결과·고객 반응 구체적으로 언급
+6. 예약/상담 CTA: 지금 바로 견적·예약·문의 유도` : `
+[제품 상세페이지 — 6개 섹션 구성]
+1. 후킹 헤드라인: 의문형으로 고객 문제 제기
+2. 문제 공감: 구매 전 고민·불편함 공감
+3. 제품 소개: 핵심 가치와 차별점 (수치 포함)
+4. 핵심 특징: 3~5가지 특징 (✓ 기호, 숫자 포함)
+5. 사용 방법/추천 대상: 단계별 안내 또는 이런 분께 추천
+6. 구매 유도 CTA: 지금 바로 구매·시작 유도`
+
     // Claude API 호출
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-5',
       max_tokens: 4000,
       messages: [{
         role: 'user',
-        content: `당신은 대한민국 스마트스토어·쿠팡 상세페이지 전문 카피라이터이자 SEO 전문가입니다.
-아래 제품 정보를 바탕으로 전환율 높고 검색 최적화된 상세페이지를 JSON 형식으로 작성해주세요.
+        content: `당신은 대한민국 최고의 마케팅 카피라이터이자 SEO 전문가입니다.
+아래 업종과 제품/서비스 정보를 분석하여, 업종에 맞는 상세페이지를 작성해주세요.
 
-제품명: ${order.product_name}
 카테고리: ${order.category}
-제품 설명: ${order.description}
+제품/서비스명: ${order.product_name}
+설명: ${order.description}
 
-반드시 지켜야 할 SEO 규칙:
-1. 섹션 제목 중 최소 3개에 숫자를 포함하세요 (예: "3가지", "100%", "2주", "50%" 등 구체적 수치)
-2. 최소 1개 섹션 제목은 반드시 의문형으로 작성하세요 (예: "~하고 계신가요?", "~때문은 아닐까요?")
-3. 제품명(${order.product_name.slice(0, 6)}) 또는 카테고리(${order.category}) 키워드를 최소 3개 섹션 제목에 포함하세요
-4. 각 섹션 본문은 반드시 150자 이상 작성하세요 (6개 섹션 합계 최소 900자)
-5. 마지막 섹션(구매 CTA) 본문에는 "지금", "바로", "구매", "시작", "할인", "무료" 중 최소 2개를 포함하세요
-6. 제목 길이는 15~40자 사이로 작성하세요
+${sectionGuide}
 
-다음 6개 섹션을 포함한 JSON만 출력하세요 (다른 텍스트 없이):
+반드시 지켜야 할 규칙:
+1. 섹션 제목 3개 이상에 구체적 숫자 포함 (예: "3가지", "10년", "100%", "무료 견적 5분")
+2. 최소 1개 섹션 제목은 의문형으로 작성 (예: "~하고 계신가요?", "~이 문제인가요?")
+3. 제품/서비스명 키워드를 최소 3개 섹션 제목에 자연스럽게 포함
+4. 각 섹션 본문 150자 이상 (구체적 정보, 감성 카피, 설득력 있는 문장)
+5. 마지막 섹션 본문에 행동 유도 키워드 2개 이상 포함 ("지금", "바로", "무료", "상담", "예약", "구매", "문의")
+6. 제목 길이 15~40자
+7. 업종에 맞는 전문 용어 사용 (자동차→차량 컨디션, 썬팅→시공 퀄리티, 음식점→식재료 품질 등)
+
+JSON만 출력 (다른 텍스트 없이):
 
 {
   "sections": [
-    { "id": 1, "name": "후킹 헤드라인", "title": "의문형 제목 (예: ~때문에 고민이신가요?)", "body": "고객 공감 카피 + 문제 제기 (150자 이상)", "bg_color": "#FFFFFF" },
-    { "id": 2, "name": "문제 공감", "title": "숫자 포함 제목 (예: 3가지 이유로 효과 없는 ~)", "body": "구체적 문제 상황 묘사 (150자 이상)", "bg_color": "#F8F9FA" },
-    { "id": 3, "name": "제품 소개", "title": "제품명+핵심 키워드 포함 제목", "body": "제품 핵심 가치 + 차별점 (150자 이상)", "bg_color": "#FFFFFF" },
-    { "id": 4, "name": "핵심 특징", "title": "숫자 포함 (예: 3가지 핵심 성분/특징)", "body": "각 특징을 ✓ 기호로 구분, 설명 포함 (150자 이상)", "bg_color": "#F0F7FF" },
-    { "id": 5, "name": "사용 방법", "title": "숫자 포함 단계별 안내 (예: 하루 2회, 3단계)", "body": "구체적인 사용법 + 팁 (150자 이상)", "bg_color": "#FFFFFF" },
-    { "id": 6, "name": "구매 유도 CTA", "title": "혜택 강조 제목 (숫자 포함)", "body": "지금 바로 구매해야 하는 이유 + 혜택 + 행동 유도 (150자 이상, '지금'·'바로'·'구매' 포함 필수)", "bg_color": "#FFF8E7" }
+    { "id": 1, "name": "섹션명", "title": "제목", "body": "본문 150자 이상", "bg_color": "#FFFFFF" },
+    { "id": 2, "name": "섹션명", "title": "제목", "body": "본문 150자 이상", "bg_color": "#F8F9FA" },
+    { "id": 3, "name": "섹션명", "title": "제목", "body": "본문 150자 이상", "bg_color": "#FFFFFF" },
+    { "id": 4, "name": "섹션명", "title": "제목", "body": "본문 150자 이상", "bg_color": "#F0F7FF" },
+    { "id": 5, "name": "섹션명", "title": "제목", "body": "본문 150자 이상", "bg_color": "#FFFFFF" },
+    { "id": 6, "name": "섹션명", "title": "제목", "body": "본문 150자 이상", "bg_color": "#FFF8E7" }
   ]
 }`,
       }],

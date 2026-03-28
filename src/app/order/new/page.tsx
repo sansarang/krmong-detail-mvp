@@ -6,13 +6,57 @@ import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 
 const CATEGORIES = [
-  { value: 'food',        label: '식품/음료' },
-  { value: 'beauty',      label: '뷰티/화장품' },
-  { value: 'living',      label: '생활용품' },
-  { value: 'fashion',     label: '패션/의류' },
-  { value: 'electronics', label: '전자제품' },
-  { value: 'health',      label: '건강/의료' },
-  { value: 'other',       label: '기타' },
+  { group: '📦 제품·쇼핑몰', items: [
+    { value: 'food',        label: '식품/음료' },
+    { value: 'beauty',      label: '뷰티/화장품' },
+    { value: 'living',      label: '생활용품' },
+    { value: 'fashion',     label: '패션/의류' },
+    { value: 'electronics', label: '전자제품' },
+    { value: 'health',      label: '건강기능식품' },
+    { value: 'pet',         label: '반려동물' },
+    { value: 'sports',      label: '스포츠/레저' },
+    { value: 'baby',        label: '육아/아동' },
+  ]},
+  { group: '🚗 자동차·모빌리티', items: [
+    { value: 'used_car',    label: '중고차 판매' },
+    { value: 'new_car',     label: '신차/리스' },
+    { value: 'car_service', label: '자동차 시공 (썬팅/랩핑/블박)' },
+    { value: 'car_repair',  label: '자동차 정비/수리' },
+  ]},
+  { group: '🏠 인테리어·시공', items: [
+    { value: 'interior',    label: '인테리어 시공' },
+    { value: 'window',      label: '창호/도어' },
+    { value: 'cleaning',    label: '청소/방역' },
+    { value: 'moving',      label: '이사/운반' },
+    { value: 'construction',label: '건설/리모델링' },
+  ]},
+  { group: '🍽️ 음식·F&B', items: [
+    { value: 'restaurant',  label: '음식점/식당' },
+    { value: 'cafe',        label: '카페/디저트' },
+    { value: 'delivery',    label: '배달 전문점' },
+    { value: 'franchise',   label: '프랜차이즈' },
+  ]},
+  { group: '📚 교육·서비스', items: [
+    { value: 'academy',     label: '학원/교습소' },
+    { value: 'coaching',    label: '코칭/컨설팅' },
+    { value: 'medical',     label: '병원/의원/한의원' },
+    { value: 'beauty_shop', label: '미용실/네일/피부관리' },
+    { value: 'fitness',     label: '헬스장/요가/필라테스' },
+  ]},
+  { group: '🏢 부동산·금융', items: [
+    { value: 'realestate',  label: '부동산 매물' },
+    { value: 'pension',     label: '펜션/숙박' },
+    { value: 'travel',      label: '여행 상품' },
+    { value: 'insurance',   label: '보험/금융' },
+  ]},
+  { group: '💻 IT·디지털', items: [
+    { value: 'saas',        label: 'SaaS/앱/소프트웨어' },
+    { value: 'it_service',  label: 'IT 개발·외주' },
+    { value: 'design',      label: '디자인/마케팅 대행' },
+  ]},
+  { group: '기타', items: [
+    { value: 'other',       label: '기타 (직접 설명)' },
+  ]},
 ]
 
 const FREE_LIMIT = 5
@@ -210,7 +254,13 @@ export default function NewOrderPage() {
               className="w-full border border-gray-200 rounded-2xl px-5 py-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm bg-white"
             >
               <option value="">카테고리를 선택해주세요</option>
-              {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+              {CATEGORIES.map(group => (
+                <optgroup key={group.group} label={group.group}>
+                  {group.items.map(c => (
+                    <option key={c.value} value={c.value}>{c.label}</option>
+                  ))}
+                </optgroup>
+              ))}
             </select>
           </div>
 
