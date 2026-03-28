@@ -93,7 +93,7 @@ export default function OrderResultPage() {
         filename: `상품상세페이지_${order.product_name}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, backgroundColor: '#0f0f1a' },
-        jsPDF: { unit: 'px' as const, format: [390, 10000], orientation: 'portrait' as const },
+        jsPDF: { unit: 'px' as const, format: [390, 10000] as [number, number], orientation: 'portrait' as const },
       }
       await html2pdf().set(opt).from(element).save()
       toast.success('PDF 다운로드 완료!')
