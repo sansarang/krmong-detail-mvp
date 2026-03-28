@@ -230,14 +230,47 @@ export default function NewOrderPage() {
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
               제품 사진 <span className="text-gray-300 normal-case font-normal">(최대 3장, 선택)</span>
             </label>
-            <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-200 rounded-2xl p-10 cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-all">
-              <div className="text-3xl mb-2">📸</div>
-              <p className="text-sm font-semibold text-gray-500 mb-1">
-                {images.length > 0 ? `${images.length}장 선택됨` : '클릭해서 사진 업로드'}
-              </p>
-              <p className="text-xs text-gray-300">PNG, JPG, WEBP</p>
-              <input id="file-upload" type="file" accept="image/*" multiple onChange={handleImageChange} className="hidden" />
-            </label>
+
+            {/* 이미지 미리보기 */}
+            {images.length > 0 && (
+              <div className="grid grid-cols-3 gap-3 mb-3">
+                {images.map((file, i) => (
+                  <div key={i} className="relative group aspect-square rounded-2xl overflow-hidden border border-gray-200 bg-gray-50">
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={`미리보기 ${i + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setImages(prev => prev.filter((_, idx) => idx !== i))}
+                      className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/70 hover:bg-black text-white rounded-full text-xs font-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      ×
+                    </button>
+                    <div className="absolute bottom-1.5 left-1.5 bg-black/50 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                      {i + 1}
+                    </div>
+                  </div>
+                ))}
+                {images.length < 3 && (
+                  <label htmlFor="file-upload" className="aspect-square rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-all">
+                    <span className="text-2xl text-gray-300">+</span>
+                    <span className="text-xs text-gray-300 mt-1">추가</span>
+                  </label>
+                )}
+              </div>
+            )}
+
+            {images.length === 0 && (
+              <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-200 rounded-2xl p-10 cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-all">
+                <div className="text-3xl mb-2">📸</div>
+                <p className="text-sm font-semibold text-gray-500 mb-1">클릭해서 사진 업로드</p>
+                <p className="text-xs text-gray-300">PNG, JPG, WEBP · 최대 3장</p>
+              </label>
+            )}
+
+            <input id="file-upload" type="file" accept="image/*" multiple onChange={handleImageChange} className="hidden" />
           </div>
 
           <button

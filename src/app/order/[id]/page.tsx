@@ -36,28 +36,60 @@ const BG_COLORS = ['#ffffff','#fafafa','#fff8f5','#f0f7ff','#f5fff8','#fdf4ff']
 // ── SEO 분석 (클라이언트 사이드) ──────────────────────────────
 function analyzeSeo(sections: Section[], productName: string, category: string): SeoReport {
   const fullText = sections.map(s => s.title + ' ' + s.body).join(' ')
-  const wordCount = fullText.replace(/\s+/g, ' ').trim().split(' ').length
+  // 한국어는 글자 수 기준으로 측정
+  const charCount = fullText.replace(/\s/g, '').length
   const titleLengths = sections.map(s => s.title.length)
   const avgTitleLen = titleLengths.reduce((a, b) => a + b, 0) / titleLengths.length
-  const hasNumbers = sections.some(s => /\d/.test(s.title))
-  const hasQuestion = sections.some(s => /[?？]/.test(s.title))
+  const hasNumbers = sections.filter(s => /\d/.test(s.title)).length >= 3
+  const hasQuestion = sections.some(s => /[?？]|인가요|나요|까요|세요/.test(s.title))
   const hasCta = /지금|바로|구매|시작|할인|무료/.test(sections[sections.length - 1]?.body ?? '')
+  const ctaCount = (sections[sections.length - 1]?.body ?? '').split(/지금|바로|구매|시작|할인|무료/).length - 1
   const keywordInTitles = sections.filter(s =>
     s.title.includes(productName.slice(0, 4)) || s.title.includes(category)
   ).length
+  const bodyLengths = sections.map(s => s.body.replace(/\s/g, '').length)
+  const allBodySufficient = bodyLengths.every(l => l >= 100)
 
   const items = [
-    { label: '키워드 제목 포함', ok: keywordInTitles >= 2, tip: '제목에 제품명·카테고리를 2개 이상 포함하면 검색 노출에 유리합니다.' },
-    { label: '충분한 본문량', ok: wordCount >= 300, tip: '300단어 이상 작성 시 검색 엔진이 풍부한 콘텐츠로 평가합니다.' },
-    { label: '제목 길이 최적화', ok: avgTitleLen >= 15 && avgTitleLen <= 40, tip: '제목은 15~40자가 검색 결과에서 잘 보입니다.' },
-    { label: '숫자 활용', ok: hasNumbers, tip: '"3가지", "50%" 같은 숫자는 클릭률을 높입니다.' },
-    { label: '의문형 제목 활용', ok: hasQuestion, tip: '"~이신가요?" 형식의 제목은 공감도를 높입니다.' },
-    { label: '마지막 섹션 CTA', ok: hasCta, tip: '마지막 섹션에 행동 유도 문구(CTA)가 있으면 전환율이 높아집니다.' },
+    {
+      label: '키워드 제목 포함 (3개 이상)',
+      ok: keywordInTitles >= 3,
+      tip: `제목에 제품명·카테고리 키워드가 ${keywordInTitles}개만 있어요. 최소 3개 이상 포함해야 검색 노출에 유리합니다.`,
+    },
+    {
+      label: '충분한 본문량 (900자 이상)',
+      ok: charCount >= 900,
+      tip: `현재 본문 총 ${charCount}자입니다. 900자 이상이어야 검색 엔진이 풍부한 콘텐츠로 평가합니다. "다시 생성" 버튼을 눌러보세요.`,
+    },
+    {
+      label: '제목 길이 최적화 (15~40자)',
+      ok: avgTitleLen >= 15 && avgTitleLen <= 40,
+      tip: `평균 제목 길이 ${Math.round(avgTitleLen)}자입니다. 15~40자가 검색 결과에서 가장 잘 표시됩니다.`,
+    },
+    {
+      label: '숫자 활용 제목 (3개 이상)',
+      ok: hasNumbers,
+      tip: `숫자가 포함된 제목이 ${sections.filter(s => /\d/.test(s.title)).length}개입니다. "3가지", "100%", "2주" 같은 수치가 클릭률을 높입니다.`,
+    },
+    {
+      label: '의문형 제목 사용',
+      ok: hasQuestion,
+      tip: '"~하고 계신가요?", "~때문인가요?" 형식의 제목은 공감도를 높이고 체류 시간을 늘립니다.',
+    },
+    {
+      label: 'CTA 문구 2개 이상 (마지막 섹션)',
+      ok: hasCta && ctaCount >= 2,
+      tip: `마지막 섹션에 "지금", "바로", "구매" 등 행동 유도 키워드가 ${ctaCount}개입니다. 최소 2개 이상 포함하세요.`,
+    },
+    {
+      label: '섹션별 본문 충분 (각 100자 이상)',
+      ok: allBodySufficient,
+      tip: `본문이 짧은 섹션이 있습니다. 최소값: ${Math.min(...bodyLengths)}자. 각 섹션을 100자 이상으로 작성해야 블로그·SEO에 효과적입니다.`,
+    },
   ]
 
   const score = Math.round((items.filter(i => i.ok).length / items.length) * 100)
 
-  // 추천 태그
   const tags = [
     productName.split(' ')[0],
     category,
@@ -72,19 +104,81 @@ function analyzeSeo(sections: Section[], productName: string, category: string):
   return { score, items, tags, metaTitle, metaDesc }
 }
 
-// ── 네이버 블로그 포맷 변환 ──────────────────────────────────
-function toNaverBlogFormat(sections: Section[], productName: string): string {
-  const lines: string[] = []
-  lines.push(`# ${productName} 상세 리뷰\n`)
-  lines.push(`> AI가 분석한 ${productName}의 핵심 정보를 정리했습니다.\n`)
-  sections.forEach((s) => {
-    lines.push(`\n## ${s.title}\n`)
-    lines.push(s.body)
-    lines.push('')
-  })
-  lines.push('\n---')
-  lines.push('*본 포스팅은 페이지AI로 자동 생성된 콘텐츠입니다.*')
-  return lines.join('\n')
+// ── 블로그 HTML 포맷 변환 (네이버 블로그 / 티스토리 최적화) ──
+function toBlogHTML(sections: Section[], productName: string, category: string): string {
+  const SECTION_EMOJIS = ['💡','😔','✨','🔑','📋','🛒']
+
+  // 요약 박스
+  const summaryRows = sections.slice(0, 3).map(s =>
+    `<tr><td style="padding:6px 12px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#555;width:90px;font-weight:600;">${s.name}</td><td style="padding:6px 12px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#333;">${s.title}</td></tr>`
+  ).join('')
+
+  // 추천 대상 추출 (5번 섹션 body에서 ✓ 항목 추출)
+  const recommendSection = sections.find(s => s.name.includes('사용') || s.name.includes('추천')) ?? sections[4]
+  const recommendLines = (recommendSection?.body ?? '').split('\n')
+    .filter(l => l.trim())
+    .slice(0, 4)
+    .map(l => `<li style="margin-bottom:6px;font-size:14px;color:#333;">${l.replace(/^[✓•·-]\s*/, '')}</li>`)
+    .join('')
+
+  // 섹션 HTML (글-구분선-글 교차 구조)
+  const sectionHTML = sections.map((s, i) => {
+    const isEven = i % 2 === 0
+    const bg = isEven ? '#ffffff' : '#f9f9f9'
+    const bodyLines = s.body.split('\n').map(line =>
+      line.trim()
+        ? `<p style="margin:0 0 10px;font-size:15px;line-height:1.9;color:#333;">${line}</p>`
+        : '<br>'
+    ).join('')
+
+    return `
+<div style="background:${bg};padding:28px 24px;margin-bottom:4px;border-radius:12px;">
+  <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#999;letter-spacing:2px;text-transform:uppercase;">${SECTION_EMOJIS[i] ?? '📌'} ${s.name}</p>
+  <h2 style="margin:0 0 16px;font-size:20px;font-weight:900;color:#111;line-height:1.4;">${s.title}</h2>
+  <div>${bodyLines}</div>
+</div>`
+  }).join('\n<hr style="border:none;border-top:1px solid #eee;margin:0;">\n')
+
+  return `<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="max-width:680px;margin:0 auto;padding:20px;font-family:'Apple SD Gothic Neo',Malgun Gothic,sans-serif;background:#fff;">
+
+<!-- 제목 영역 -->
+<div style="text-align:center;padding:40px 20px 32px;border-bottom:3px solid #111;margin-bottom:32px;">
+  <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#999;letter-spacing:3px;">PRODUCT REVIEW</p>
+  <h1 style="margin:0 0 12px;font-size:26px;font-weight:900;color:#111;line-height:1.3;">${productName}</h1>
+  <p style="margin:0;font-size:13px;color:#888;">카테고리: ${category} · AI 상세페이지 분석</p>
+</div>
+
+<!-- 요약 박스 -->
+<div style="background:#f5f5f5;border-radius:12px;padding:20px;margin-bottom:32px;">
+  <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:#555;">📋 이 글의 핵심 요약</p>
+  <table style="width:100%;border-collapse:collapse;">${summaryRows}</table>
+</div>
+
+<!-- 이런 분에게 추천 -->
+<div style="background:#fff9e6;border-left:4px solid #f59e0b;border-radius:0 12px 12px 0;padding:20px;margin-bottom:32px;">
+  <p style="margin:0 0 10px;font-size:14px;font-weight:900;color:#b45309;">✅ 이런 분에게 추천합니다</p>
+  <ul style="margin:0;padding-left:18px;">${recommendLines}</ul>
+</div>
+
+<!-- 본문 섹션들 -->
+<div style="border-radius:12px;overflow:hidden;border:1px solid #eee;margin-bottom:32px;">
+${sectionHTML}
+</div>
+
+<!-- 마무리 CTA -->
+<div style="background:#111;border-radius:16px;padding:32px 24px;text-align:center;margin-bottom:24px;">
+  <p style="margin:0 0 8px;font-size:13px;color:#888;">페이지AI로 생성된 콘텐츠</p>
+  <p style="margin:0 0 20px;font-size:20px;font-weight:900;color:#fff;">지금 바로 구매하러 가기 →</p>
+  <a href="#" style="display:inline-block;background:#fff;color:#111;font-weight:900;font-size:14px;padding:14px 32px;border-radius:50px;text-decoration:none;">구매 링크 바로가기</a>
+</div>
+
+<p style="text-align:center;font-size:11px;color:#ccc;">본 포스팅은 페이지AI(pageai.kr)로 자동 생성된 콘텐츠입니다.</p>
+
+</body>
+</html>`
 }
 
 export default function OrderResultPage() {
@@ -101,6 +195,7 @@ export default function OrderResultPage() {
   const [sections, setSections] = useState<Section[]>([])
   const [seoReport, setSeoReport] = useState<SeoReport | null>(null)
   const [showSeo, setShowSeo] = useState(false)
+  const [showBlogPreview, setShowBlogPreview] = useState(false)
   const [copyDone, setCopyDone] = useState(false)
 
   useEffect(() => {
@@ -161,10 +256,10 @@ export default function OrderResultPage() {
 
   function handleNaverCopy() {
     if (!order) return
-    const text = toNaverBlogFormat(sections, order.product_name)
-    navigator.clipboard.writeText(text).then(() => {
+    const html = toBlogHTML(sections, order.product_name, order.category)
+    navigator.clipboard.writeText(html).then(() => {
       setCopyDone(true)
-      toast.success('네이버 블로그 형식으로 복사됐습니다! 블로그에 붙여넣기 하세요.')
+      toast.success('블로그 HTML이 복사됐습니다! 에디터에 붙여넣기 하세요.')
       setTimeout(() => setCopyDone(false), 3000)
     }).catch(() => toast.error('복사 실패. 다시 시도해주세요.'))
   }
@@ -266,13 +361,21 @@ export default function OrderResultPage() {
             )}
 
             {/* 네이버 블로그 복사 */}
-            <button
-              onClick={handleNaverCopy}
-              className="w-full bg-[#03C75A] hover:bg-[#02b050] text-white rounded-2xl p-3 text-sm font-black transition-all hover:shadow-md flex items-center gap-2"
-            >
-              <span className="text-lg leading-none">N</span>
-              {copyDone ? '복사됨 ✓' : '네이버 블로그\n복사'}
-            </button>
+            <div className="space-y-2">
+              <button
+                onClick={() => setShowBlogPreview(true)}
+                className="w-full bg-[#03C75A] hover:bg-[#02b050] text-white rounded-2xl p-3 text-sm font-black transition-all hover:shadow-md flex items-center gap-2"
+              >
+                <span className="text-lg leading-none">N</span>
+                블로그 미리보기
+              </button>
+              <button
+                onClick={handleNaverCopy}
+                className="w-full border border-[#03C75A] text-[#03C75A] hover:bg-green-50 rounded-2xl p-2 text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+              >
+                {copyDone ? '✓ 복사됨' : '↗ HTML 복사'}
+              </button>
+            </div>
           </div>
         </aside>
 
@@ -459,12 +562,76 @@ export default function OrderResultPage() {
             </div>
 
             <button
-              onClick={() => { setShowSeo(false); handleNaverCopy() }}
+              onClick={() => { setShowSeo(false); setShowBlogPreview(true) }}
               className="w-full mt-5 bg-[#03C75A] hover:bg-[#02b050] text-white py-4 rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2"
             >
               <span className="font-black text-base">N</span>
-              네이버 블로그 형식으로 복사하기
+              블로그 포스팅 미리보기
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 블로그 미리보기 모달 */}
+      {showBlogPreview && order && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowBlogPreview(false)}>
+          <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
+            {/* 모달 헤더 */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div>
+                <p className="text-xs font-black text-gray-400 uppercase tracking-wider">블로그 포스팅 미리보기</p>
+                <p className="text-xs text-gray-400 mt-0.5">네이버 블로그 · 티스토리에서 이렇게 보입니다</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleNaverCopy}
+                  className="flex items-center gap-1.5 bg-[#03C75A] hover:bg-[#02b050] text-white px-4 py-2 rounded-xl text-sm font-black transition-all"
+                >
+                  <span className="font-black">N</span>
+                  {copyDone ? '복사됨 ✓' : 'HTML 복사'}
+                </button>
+                <button onClick={() => setShowBlogPreview(false)} className="text-gray-300 hover:text-black text-2xl leading-none">×</button>
+              </div>
+            </div>
+
+            {/* 블로그 미리보기 iframe */}
+            <div className="flex-1 overflow-auto p-4">
+              <div className="border border-gray-200 rounded-2xl overflow-hidden">
+                {/* 브라우저 주소창 흉내 */}
+                <div className="bg-gray-100 px-4 py-2.5 flex items-center gap-2 border-b border-gray-200">
+                  <div className="flex gap-1.5">
+                    <span className="w-3 h-3 rounded-full bg-red-400" />
+                    <span className="w-3 h-3 rounded-full bg-yellow-400" />
+                    <span className="w-3 h-3 rounded-full bg-green-400" />
+                  </div>
+                  <div className="flex-1 bg-white rounded-lg px-3 py-1 text-xs text-gray-400 ml-2">
+                    blog.naver.com / tistory.com
+                  </div>
+                </div>
+                {/* 실제 미리보기 */}
+                <iframe
+                  srcDoc={toBlogHTML(sections, order.product_name, order.category)}
+                  className="w-full"
+                  style={{ height: '600px', border: 'none' }}
+                  title="블로그 미리보기"
+                />
+              </div>
+            </div>
+
+            {/* 사용 안내 */}
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 rounded-b-3xl">
+              <p className="text-xs font-black text-gray-500 mb-2">📋 붙여넣기 방법</p>
+              <div className="grid grid-cols-2 gap-3 text-xs text-gray-500">
+                <div className="bg-white rounded-xl p-3 border border-gray-100">
+                  <p className="font-bold text-gray-700 mb-1">🟢 네이버 블로그</p>
+                  <p>글쓰기 → HTML 편집 탭 → 붙여넣기</p>
+                </div>
+                <div className="bg-white rounded-xl p-3 border border-gray-100">
+                  <p className="font-bold text-gray-700 mb-1">🟠 티스토리</p>
+                  <p>글쓰기 → HTML 모드 → 붙여넣기</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
