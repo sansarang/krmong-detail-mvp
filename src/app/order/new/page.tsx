@@ -8,10 +8,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 
-const CATEGORIES = ['식품', '뷰티', '생활용품', '패션', '전자제품', '기타']
+const CATEGORIES = ['food', 'beauty', 'living', 'fashion', 'electronics', 'other']
 
 export default function NewOrderPage() {
   const router = useRouter()
@@ -28,7 +27,7 @@ export default function NewOrderPage() {
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || [])
     if (files.length > 3) {
-      toast.error('이미지는 최대 3장까지 업로드 가능합니다')
+      toast.error('Max 3 images allowed')
       return
     }
     setImages(files)
@@ -37,7 +36,7 @@ export default function NewOrderPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.product_name || !form.category || !form.description) {
-      toast.error('모든 항목을 입력해주세요')
+      toast.error('Please fill in all fields')
       return
     }
 
@@ -46,7 +45,6 @@ export default function NewOrderPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      // 이미지 업로드
       const imageUrls: string[] = []
       for (const image of images) {
         const ext = image.name.split('.').pop()
@@ -61,7 +59,6 @@ export default function NewOrderPage() {
         imageUrls.push(publicUrl)
       }
 
-      // 주문 생성
       const { data: order, error } = await supabase
         .from('orders')
         .insert({
@@ -77,22 +74,22 @@ export default function NewOrderPage() {
 
       if (error) throw error
 
-      toast.success('주문이 생성됐습니다! AI 생성을 시작합니다...')
+      toast.success('Order created! Generating...')
 
-      // Claude API 호출
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderId: order.id }),
       })
 
-      if (!res.ok) throw new Error('AI 생성 실패')
+      if (!res.ok) throw new Error('Generation failed')
 
-      toast.success('상세페이지가 생성됐습니다!')
+      toast.success('Detail page created!')
       router.push(`/order/${order.id}`)
 
-    } catch (err: any) {
-      toast.error(err.message || '오류가 발생했습니다')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'An error occurred'
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
@@ -101,21 +98,21 @@ export default function NewOrderPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="bg-white border-b px-6 py-4">
-        <h1 className="text-lg font-semibold">새 상세페이지 주문</h1>
+        <h1 className="text-lg font-semibold">New Order</h1>
       </header>
 
       <div className="max-w-2xl mx-auto px-6 py-8">
         <Card>
           <CardHeader>
-            <CardTitle>제품 정보 입력</CardTitle>
+            <CardTitle>Product Info</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-5">
 
               <div className="space-y-2">
-                <Label>제품명 *</Label>
+                <Label>Product Name *</Label>
                 <Input
-                  placeholder="예: 제주 유기농 녹차 추출 세럼"
+                  placeholder="e.g. Jeju Green Tea Serum"
                   value={form.product_name}
                   onChange={e => setForm({ ...form, product_name: e.target.value })}
                   required
@@ -123,23 +120,24 @@ export default function NewOrderPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>카테고리 *</Label>
-                <Select onValueChange={v => setForm({ ...form, category: v })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="카테고리 선택" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map(c => (
-                      <SelectItem key={c} value={c}>{c}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Category *</Label>
+                <select
+                  className="w-full border rounded-md px-3 py-2 text-sm"
+                  value={form.category}
+                  onChange={e => setForm({ ...form, category: e.target.value })}
+                  required
+                >
+                  <option value="">Select category</option>
+                  {CATEGORIES.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="space-y-2">
-                <Label>제품 설명 *</Label>
+                <Label>Description *</Label>
                 <Textarea
-                  placeholder="제품의 주요 특징, 효능, 타겟 고객 등을 자세히 입력해주세요. 더 자세할수록 AI가 더 좋은 상세페이지를 만들어줍니다."
+                  placeholder="Describe key features, benefits, and target customers..."
                   rows={5}
                   value={form.description}
                   onChange={e => setForm({ ...form, description: e.target.value })}
@@ -148,7 +146,7 @@ export default function NewOrderPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>제품 사진 (최대 3장)</Label>
+                <Label>Product Images (max 3)</Label>
                 <Input
                   type="file"
                   accept="image/*"
@@ -157,12 +155,12 @@ export default function NewOrderPage() {
                   className="cursor-pointer"
                 />
                 {images.length > 0 && (
-                  <p className="text-sm text-gray-500">{images.length}장 선택됨</p>
+                  <p className="text-sm text-gray-500">{images.length} file(s) selected</p>
                 )}
               </div>
 
               <Button type="submit" className="w-full" size="lg" disabled={loading}>
-                {loading ? 'AI가 상세페이지를 만드는 중...' : '상세페이지 생성 시작 →'}
+                {loading ? 'AI is generating...' : 'Generate Detail Page'}
               </Button>
 
             </form>
