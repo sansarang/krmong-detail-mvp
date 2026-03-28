@@ -38,9 +38,9 @@ export default function DemoAnimation() {
     const timers: ReturnType<typeof setTimeout>[] = []
 
     // 타이핑 애니메이션
-    const typeText = (text: string, setter: (v: string) => void, startDelay: number) => {
+    const typeText = (text: string, setter: React.Dispatch<React.SetStateAction<string>>, startDelay: number) => {
       ;[...text].forEach((char, i) => {
-        timers.push(setTimeout(() => setter((prev: string) => prev + char), startDelay + i * 38))
+        timers.push(setTimeout(() => setter(prev => prev + char), startDelay + i * 38))
       })
     }
 
