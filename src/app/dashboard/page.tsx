@@ -25,7 +25,7 @@ export default async function DashboardPage() {
  className="min-h-screen bg-gray-50">
       <header className="bg-white border-b px-6 py-4 flex justify-between items-center">
         <h1 className="text-lg font-semibold">상세페이지 AI 제작</h1>
-        <span className="text-sm text-gray-500">{use>
+        <span className="text-sm text-gray-500">{user.email}</span>
       </header>
 
       <div className="max-w-4xl mx-auto px-6 py-8">
@@ -46,20 +46,20 @@ export default async function DashboardPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
-            {orders.map(order => {
-              const status = statusMap[order.status] || statusMap.pending
+          <div classNaonst status = statusMap[order.status] || statusMap.pending
               return (
                 <Card key={order.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="flex items-center justify-betw       <p className="font-medium">{order.product_name}</p>
+                  <CardContent className="flex items-center justify-between py-4">
+                    <div>
+                      <p className="font-medium">{order.product_name}</p>
                       <p className="text-sm text-gray-400 mt-0.5">
-                        {order.category} · {new Date(order.created_at).toLocaleDateString('ko-KR')}
+                        {order.category}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
                       <Badge variant={status.variant}>{status.label}</Badge>
                       {order.status === 'done' && (
-                        <Link href={`/order/${order.id}`}>
+                        <Link href={"/order/" + order.id}>
                           <Button size="sm" variant="outline">결과 보기</Button>
                         </Link>
                       )}
@@ -68,7 +68,7 @@ export default async function DashboardPage() {
                 </Card>
               )
             })}
-          </div>
+   /div>
         )}
       </div>
     </main>
