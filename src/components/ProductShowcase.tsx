@@ -2,56 +2,55 @@
 import { useState, useEffect } from 'react'
 import Logo from '@/components/Logo'
 
-const DEMO_SECTIONS = [
-  {
-    id: 1,
-    name: '후킹 헤드라인',
-    title: '지금 피부가 보내는 SOS 신호, 무시하고 계신가요?',
-    body: '매일 아침 거울을 볼 때마다 피부가 당기고 칙칙한 느낌이 드신가요? 수분크림을 아무리 발라도 2시간 후면 다시 건조해지는 분들을 위해 만들었습니다.',
-    bg: '#FFFFFF',
-    accent: '#000',
-  },
-  {
-    id: 2,
-    name: '제품 소개',
-    title: '3중 히알루론산이 다른 이유 — 크기가 다르면 작용이 다릅니다',
-    body: '고분자: 피부 표면 수분 필름 형성 · 중분자: 표피층 침투, 수분 저장 · 저분자: 진피층까지 침투, 속 건조 개선. 3가지 크기가 동시에 작용합니다.',
-    bg: '#F8F9FA',
-    accent: '#6366F1',
-  },
-  {
-    id: 3,
-    name: '핵심 특징',
-    title: '비건 인증 × 피부과 테스트 완료 × 무향',
-    body: '✓ 동물성 원료 0%  ✓ 알레르기 유발 향료 0%  ✓ 파라벤 미사용  ✓ 피부과 테스트 완료  ✓ 비건 소사이어티 공식 인증',
-    bg: '#FFFFFF',
-    accent: '#10B981',
-  },
-  {
-    id: 4,
-    name: '추천 대상',
-    title: '이런 분께 꼭 맞습니다',
-    body: '✓ 보습크림을 발라도 금방 건조해지는 분 ✓ 화장이 들뜨는 분 ✓ 민감성 피부로 새 제품이 걱정되는 분 ✓ 자극 없는 수분 앰플을 찾는 분',
-    bg: '#F0F7FF',
-    accent: '#3B82F6',
-  },
-  {
-    id: 5,
-    name: '고객 후기',
-    title: '"민감한 피부인데 자극 없이 촉촉해졌어요"',
-    body: '사용 2주 후: "민감한 피부라 새 제품 쓸 때마다 걱정했는데, 바르고 나서 당기거나 붉어지는 느낌이 전혀 없었어요. 피부 결이 확실히 달라졌습니다." — 이지윤, 32세',
-    bg: '#FFFFFF',
-    accent: '#F59E0B',
-  },
-  {
-    id: 6,
-    name: '구매 유도',
-    title: '지금 바로 시작하세요 — 첫 구매 20% 할인',
-    body: '지금 구매 시: 첫 구매 20% 할인 자동 적용 · 미니 사이즈 무료 증정 · 무료 배송 · 당일 출고. 오늘만 특가 — 재고 한정.',
-    bg: '#FFF8E7',
-    accent: '#F97316',
-  },
+const DEMO_SECTIONS_KO = [
+  { id: 1, name: '후킹 헤드라인', title: '지금 피부가 보내는 SOS 신호, 무시하고 계신가요?', body: '매일 아침 거울을 볼 때마다 피부가 당기고 칙칙한 느낌이 드신가요? 수분크림을 아무리 발라도 2시간 후면 다시 건조해지는 분들을 위해 만들었습니다.', bg: '#FFFFFF', accent: '#000' },
+  { id: 2, name: '제품 소개', title: '3중 히알루론산이 다른 이유 — 크기가 다르면 작용이 다릅니다', body: '고분자: 피부 표면 수분 필름 형성 · 중분자: 표피층 침투, 수분 저장 · 저분자: 진피층까지 침투, 속 건조 개선. 3가지 크기가 동시에 작용합니다.', bg: '#F8F9FA', accent: '#6366F1' },
+  { id: 3, name: '핵심 특징', title: '비건 인증 × 피부과 테스트 완료 × 무향', body: '✓ 동물성 원료 0%  ✓ 알레르기 유발 향료 0%  ✓ 파라벤 미사용  ✓ 피부과 테스트 완료  ✓ 비건 소사이어티 공식 인증', bg: '#FFFFFF', accent: '#10B981' },
+  { id: 4, name: '추천 대상', title: '이런 분께 꼭 맞습니다', body: '✓ 보습크림을 발라도 금방 건조해지는 분 ✓ 화장이 들뜨는 분 ✓ 민감성 피부로 새 제품이 걱정되는 분 ✓ 자극 없는 수분 앰플을 찾는 분', bg: '#F0F7FF', accent: '#3B82F6' },
+  { id: 5, name: '고객 후기', title: '"민감한 피부인데 자극 없이 촉촉해졌어요"', body: '사용 2주 후: "민감한 피부라 새 제품 쓸 때마다 걱정했는데, 바르고 나서 당기거나 붉어지는 느낌이 전혀 없었어요. 피부 결이 확실히 달라졌습니다." — 이지윤, 32세', bg: '#FFFFFF', accent: '#F59E0B' },
+  { id: 6, name: '구매 유도', title: '지금 바로 시작하세요 — 첫 구매 20% 할인', body: '지금 구매 시: 첫 구매 20% 할인 자동 적용 · 미니 사이즈 무료 증정 · 무료 배송 · 당일 출고. 오늘만 특가 — 재고 한정.', bg: '#FFF8E7', accent: '#F97316' },
 ]
+
+const DEMO_SECTIONS_EN = [
+  { id: 1, name: 'Hook', title: 'Is Your Skin Sending SOS Signals You Keep Ignoring?', body: 'Every morning, your skin feels tight, dull, and dry within hours of moisturizing. No matter how much cream you apply, the dryness returns. Sound familiar? This was made for you.', bg: '#FFFFFF', accent: '#000' },
+  { id: 2, name: 'Product', title: 'Triple Hyaluronic Acid — 3 Sizes, 3 Layers of Hydration', body: 'High-molecular: Forms a moisture film on the skin surface · Mid-molecular: Penetrates the epidermis, stores hydration · Low-molecular: Reaches the dermis, fixes deep dryness. All 3 work simultaneously.', bg: '#F8F9FA', accent: '#6366F1' },
+  { id: 3, name: 'Features', title: 'Vegan Certified × Dermatologist Tested × Fragrance-Free', body: '✓ 0% animal-derived ingredients  ✓ 0% allergenic fragrances  ✓ Paraben-free  ✓ Dermatologist tested  ✓ Officially certified by The Vegan Society', bg: '#FFFFFF', accent: '#10B981' },
+  { id: 4, name: 'Who It\'s For', title: 'Perfect For You If...', body: '✓ Moisturizer wears off within hours ✓ Makeup looks flaky or uneven ✓ Sensitive skin makes new products a risk ✓ You want a serum that truly hydrates without irritation', bg: '#F0F7FF', accent: '#3B82F6' },
+  { id: 5, name: 'Reviews', title: '"Finally a serum for sensitive skin that actually works"', body: 'After 2 weeks: "I\'ve always been nervous trying new products on my sensitive skin, but this caused zero redness or irritation. My skin texture has completely changed." — Emma L., 32', bg: '#FFFFFF', accent: '#F59E0B' },
+  { id: 6, name: 'Buy Now', title: 'Start Today — 20% Off Your First Order', body: 'Order now: 20% first-order discount applied automatically · Free mini size gift · Free shipping · Same-day dispatch. Today only — limited stock.', bg: '#FFF8E7', accent: '#F97316' },
+]
+
+const DEMO_SECTIONS_JA = [
+  { id: 1, name: 'フック', title: '肌が発するSOSシグナル、見逃していませんか？', body: '毎朝鏡を見るたびに、肌がつっぱり、くすんで感じませんか？保湿クリームを塗っても2時間後には乾燥が戻る方のために作りました。', bg: '#FFFFFF', accent: '#000' },
+  { id: 2, name: '製品紹介', title: '3種類のヒアルロン酸 — サイズが違えば働きも違う', body: '高分子：肌表面に水分フィルムを形成 · 中分子：表皮層に浸透し水分を保持 · 低分子：真皮層まで浸透し深部乾燥を改善。3つのサイズが同時に働きます。', bg: '#F8F9FA', accent: '#6366F1' },
+  { id: 3, name: '特徴', title: 'ヴィーガン認定 × 皮膚科テスト済み × 無香料', body: '✓ 動物由来原料0%  ✓ アレルギー誘発香料0%  ✓ パラベンフリー  ✓ 皮膚科テスト済み  ✓ ヴィーガンソサイエティ公式認定', bg: '#FFFFFF', accent: '#10B981' },
+  { id: 4, name: 'こんな方に', title: 'こんな方にぴったりです', body: '✓ 保湿クリームを塗ってもすぐ乾燥する方 ✓ メイクが浮く方 ✓ 敏感肌で新しい製品が心配な方 ✓ 刺激のない水分アンプルを探している方', bg: '#F0F7FF', accent: '#3B82F6' },
+  { id: 5, name: 'レビュー', title: '「敏感肌なのに刺激ゼロで潤いました」', body: '使用2週間後：「敏感肌なので新しい製品を使うたびに心配でしたが、塗った後のつっぱりや赤みが全くありませんでした。肌のキメが確実に変わりました。」— 山田花子, 32歳', bg: '#FFFFFF', accent: '#F59E0B' },
+  { id: 6, name: '購入', title: '今すぐ始めましょう — 初回購入20%オフ', body: '今すぐ購入：初回20%割引自動適用 · ミニサイズ無料プレゼント · 送料無料 · 当日発送。本日限定特価 — 在庫限り。', bg: '#FFF8E7', accent: '#F97316' },
+]
+
+const DEMO_SECTIONS_ZH = [
+  { id: 1, name: '吸引标题', title: '您的皮肤正在发出SOS信号，您还在忽视吗？', body: '每天早上照镜子，是否感到皮肤紧绷、暗沉？不管涂多少保湿霜，两小时后又开始干燥？这款产品就是为您而生的。', bg: '#FFFFFF', accent: '#000' },
+  { id: 2, name: '产品介绍', title: '三重玻尿酸 — 分子大小不同，作用深度不同', body: '大分子：在皮肤表面形成保湿膜 · 中分子：渗透表皮层，锁住水分 · 小分子：深入真皮层，改善深层干燥。三种分子同时发挥作用。', bg: '#F8F9FA', accent: '#6366F1' },
+  { id: 3, name: '核心特点', title: '纯素认证 × 皮肤科测试 × 无香料', body: '✓ 动物源性成分0%  ✓ 过敏性香料0%  ✓ 无防腐剂  ✓ 皮肤科测试完成  ✓ 素食协会官方认证', bg: '#FFFFFF', accent: '#10B981' },
+  { id: 4, name: '适用人群', title: '特别适合以下人群', body: '✓ 涂了保湿霜还是很快干燥的人 ✓ 妆容浮粉的人 ✓ 敏感肌肤担心新产品的人 ✓ 寻找无刺激补水精华的人', bg: '#F0F7FF', accent: '#3B82F6' },
+  { id: 5, name: '用户评价', title: '「敏感肌肤，用后无刺激，皮肤变水润了」', body: '使用2周后："我的皮肤很敏感，每次用新产品都很担心，但用了之后完全没有紧绷感或泛红。皮肤质感确实改变了。"— 李雅婷, 32岁', bg: '#FFFFFF', accent: '#F59E0B' },
+  { id: 6, name: '立即购买', title: '立即开始 — 首次购买享8折优惠', body: '立即购买：首次自动享受8折优惠 · 赠送迷你装 · 免费配送 · 当天发货。仅限今天特惠 — 库存有限。', bg: '#FFF8E7', accent: '#F97316' },
+]
+
+const DEMO_LABELS: Record<string, { product: string; category: string; flag: string; edit: string; regen: string; inputLabel: string; timeLabel: string }> = {
+  ko: { product: '비건 히알루론산 앰플 50ml', category: '뷰티/화장품', flag: '🇰🇷 한국어', edit: '편집', regen: 'AI 재생성', inputLabel: '입력', timeLabel: '30초 입력 → 45초 생성' },
+  en: { product: 'Vegan Hyaluronic Acid Serum 50ml', category: 'Beauty/Skincare', flag: '🇺🇸 English', edit: 'Edit', regen: 'AI Regenerate', inputLabel: 'Input', timeLabel: '30s input → 45s output' },
+  ja: { product: 'ヴィーガンヒアルロン酸アンプル 50ml', category: 'ビューティ/スキンケア', flag: '🇯🇵 日本語', edit: '編集', regen: 'AI再生成', inputLabel: '入力', timeLabel: '30秒入力 → 45秒生成' },
+  zh: { product: '纯素玻尿酸精华 50ml', category: '美妆/护肤', flag: '🇨🇳 中文', edit: '编辑', regen: 'AI重新生成', inputLabel: '输入', timeLabel: '30秒输入 → 45秒生成' },
+}
+
+const DEMO_BY_LANG: Record<string, typeof DEMO_SECTIONS_KO> = {
+  ko: DEMO_SECTIONS_KO,
+  en: DEMO_SECTIONS_EN,
+  ja: DEMO_SECTIONS_JA,
+  zh: DEMO_SECTIONS_ZH,
+}
 
 const SEO_SCORE = 95
 const SEO_ITEMS = [
@@ -64,7 +63,9 @@ const SEO_ITEMS = [
   { label: '섹션별 분량',  score: 96, ok: true, color: '#06B6D4' },
 ]
 
-export default function ProductShowcase() {
+export default function ProductShowcase({ lang = 'ko' }: { lang?: string }) {
+  const DEMO_SECTIONS = DEMO_BY_LANG[lang] ?? DEMO_SECTIONS_KO
+  const LABELS = DEMO_LABELS[lang] ?? DEMO_LABELS.ko
   const [activeSection, setActiveSection] = useState(0)
   const [tab, setTab] = useState<'result' | 'seo' | 'blog'>('result')
   const [seoVisible, setSeoVisible] = useState(false)
@@ -137,7 +138,7 @@ export default function ProductShowcase() {
                   tab === t ? 'bg-black text-white' : 'text-gray-400 hover:text-black'
                 }`}
               >
-                {t === 'result' ? '📄 결과물' : t === 'seo' ? '📊 SEO' : '📝 블로그'}
+                {t === 'result' ? '📄 ' + (lang === 'en' ? 'Result' : lang === 'ja' ? '結果' : lang === 'zh' ? '结果' : '결과물') : t === 'seo' ? '📊 SEO' : '📝 ' + (lang === 'en' ? 'Blog' : lang === 'ja' ? 'ブログ' : lang === 'zh' ? '博客' : '블로그')}
               </button>
             ))}
           </div>
@@ -151,7 +152,7 @@ export default function ProductShowcase() {
             <div className="flex h-full">
               {/* 섹션 목록 사이드바 */}
               <div className="w-36 md:w-44 bg-white border-r border-gray-100 py-3 shrink-0 overflow-y-auto">
-                <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest px-3 mb-2">섹션 목록</p>
+                <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest px-3 mb-2">{lang === 'en' ? 'Sections' : lang === 'ja' ? 'セクション' : lang === 'zh' ? '章节' : '섹션 목록'}</p>
                 {DEMO_SECTIONS.map((s, i) => (
                   <button
                     key={s.id}
@@ -162,7 +163,7 @@ export default function ProductShowcase() {
                         : 'border-transparent text-gray-400 hover:text-gray-700'
                     }`}
                   >
-                    <span className="block text-[9px] text-gray-300 mb-0.5">섹션 {s.id}</span>
+                    <span className="block text-[9px] text-gray-300 mb-0.5">{lang === 'en' ? 'Section' : lang === 'ja' ? 'セクション' : lang === 'zh' ? '章节' : '섹션'} {s.id}</span>
                     {s.name}
                   </button>
                 ))}
@@ -206,8 +207,8 @@ export default function ProductShowcase() {
 
                     {/* 하단 툴바 */}
                     <div className="flex items-center gap-2 pt-4 border-t border-gray-100 mt-4">
-                      <button className="text-[10px] bg-black text-white px-3 py-1.5 rounded-lg font-bold">편집</button>
-                      <button className="text-[10px] text-gray-400 border border-gray-200 px-3 py-1.5 rounded-lg">AI 재생성</button>
+                      <button className="text-[10px] bg-black text-white px-3 py-1.5 rounded-lg font-bold">{LABELS.edit}</button>
+                      <button className="text-[10px] text-gray-400 border border-gray-200 px-3 py-1.5 rounded-lg">{LABELS.regen}</button>
                       <div className="ml-auto flex items-center gap-1">
                         {DEMO_SECTIONS.map((_, j) => (
                           <div
@@ -325,17 +326,21 @@ export default function ProductShowcase() {
               {/* 미리보기 */}
               <div className="flex-1 overflow-y-auto bg-white p-4">
                 <div className="border border-gray-100 rounded-xl overflow-hidden">
-                  {/* 네이버 블로그 헤더 */}
                   <div className="bg-[#03C75A] px-4 py-2 flex items-center gap-2">
                     <span className="text-white font-black text-xs">N</span>
                     <span className="text-white text-[10px]">blog.naver.com/mystore</span>
                   </div>
                   <div className="p-4 space-y-3 bg-white">
-                    <h3 className="text-sm font-black text-black leading-snug">지금 피부가 보내는 SOS 신호, 무시하고 계신가요?</h3>
+                    <h3 className="text-sm font-black text-black leading-snug">{DEMO_SECTIONS[0].title}</h3>
                     <div className="flex gap-2 flex-wrap">
-                      <span className="text-[9px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">#히알루론산앰플</span>
-                      <span className="text-[9px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">#비건화장품</span>
-                      <span className="text-[9px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">#수분앰플추천</span>
+                      {lang === 'en'
+                        ? ['#hyaluronicacid', '#veganbeauty', '#skincareserum'].map((t, i) => <span key={i} className="text-[9px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">{t}</span>)
+                        : lang === 'ja'
+                        ? ['#ヒアルロン酸', '#ビーガンコスメ', '#美容液'].map((t, i) => <span key={i} className="text-[9px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">{t}</span>)
+                        : lang === 'zh'
+                        ? ['#玻尿酸', '#纯素护肤', '#补水精华'].map((t, i) => <span key={i} className="text-[9px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">{t}</span>)
+                        : ['#히알루론산앰플', '#비건화장품', '#수분앰플추천'].map((t, i) => <span key={i} className="text-[9px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">{t}</span>)
+                      }
                     </div>
                     <div className="space-y-1.5">
                       <div className="h-2.5 bg-gray-100 rounded w-full" />
@@ -343,17 +348,17 @@ export default function ProductShowcase() {
                       <div className="h-2.5 bg-gray-100 rounded w-4/5" />
                     </div>
                     <div className="bg-gray-50 rounded-xl h-20 flex items-center justify-center">
-                      <span className="text-[9px] text-gray-300">📷 제품 이미지 자동 삽입</span>
+                      <span className="text-[9px] text-gray-300">📷 {lang === 'en' ? 'Product image auto-inserted' : lang === 'ja' ? '製品画像自動挿入' : lang === 'zh' ? '产品图片自动插入' : '제품 이미지 자동 삽입'}</span>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-[9px] font-black text-gray-700">3중 히알루론산이 다른 이유 — 크기가 다르면 작용이 다릅니다</p>
+                      <p className="text-[9px] font-black text-gray-700">{DEMO_SECTIONS[1].title}</p>
                       <div className="h-2 bg-gray-100 rounded w-full" />
                       <div className="h-2 bg-gray-100 rounded w-3/4" />
                     </div>
                   </div>
                 </div>
                 <button className="mt-3 w-full bg-[#03C75A] text-white py-2.5 rounded-xl text-xs font-black hover:opacity-90 transition-all">
-                  ↗ HTML 복사해서 블로그에 붙여넣기
+                  ↗ {lang === 'en' ? 'Copy HTML and paste to blog' : lang === 'ja' ? 'HTMLをコピーしてブログに貼付' : lang === 'zh' ? '复制HTML并粘贴到博客' : 'HTML 복사해서 블로그에 붙여넣기'}
                 </button>
               </div>
             </div>
@@ -365,14 +370,14 @@ export default function ProductShowcase() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 bg-green-400 rounded-full" />
-              <span className="text-[10px] text-gray-400 font-medium">생성 완료 · 45초 소요</span>
+              <span className="text-[10px] text-gray-400 font-medium">{lang === 'en' ? 'Generated · 45s' : lang === 'ja' ? '生成完了 · 45秒' : lang === 'zh' ? '生成完成 · 45秒' : '생성 완료 · 45초 소요'}</span>
             </div>
             <span className="text-[10px] text-gray-200">|</span>
-            <span className="text-[10px] text-gray-400">6개 섹션 · 총 1,240자</span>
+            <span className="text-[10px] text-gray-400">{lang === 'en' ? '6 sections · 1,240 chars' : lang === 'ja' ? '6セクション · 1,240文字' : lang === 'zh' ? '6个章节 · 1,240字' : '6개 섹션 · 총 1,240자'}</span>
           </div>
           <div className="flex items-center gap-2">
-            <button className="text-[10px] text-gray-400 border border-gray-200 px-3 py-1.5 rounded-lg font-medium hover:border-gray-400 transition-all">PDF 다운</button>
-            <button className="text-[10px] bg-black text-white px-3 py-1.5 rounded-lg font-black">✦ AI 수정 요청</button>
+            <button className="text-[10px] text-gray-400 border border-gray-200 px-3 py-1.5 rounded-lg font-medium hover:border-gray-400 transition-all">{lang === 'en' ? 'PDF' : 'PDF 다운'}</button>
+            <button className="text-[10px] bg-black text-white px-3 py-1.5 rounded-lg font-black">✦ {lang === 'en' ? 'AI Edit' : lang === 'ja' ? 'AI修正' : lang === 'zh' ? 'AI修改' : 'AI 수정 요청'}</button>
           </div>
         </div>
       </div>
@@ -381,17 +386,17 @@ export default function ProductShowcase() {
       <div className="mt-6 bg-gray-50 rounded-2xl p-5 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black text-gray-400 uppercase">입력</span>
+            <span className="text-[10px] font-black text-gray-400 uppercase">{LABELS.inputLabel}</span>
             <div className="flex items-center gap-2">
-              <span className="text-xs bg-white border border-gray-200 px-2.5 py-1 rounded-lg font-medium text-gray-700">비건 히알루론산 앰플 50ml</span>
-              <span className="text-xs bg-white border border-gray-200 px-2.5 py-1 rounded-lg font-medium text-gray-500">뷰티/화장품</span>
-              <span className="text-xs bg-white border border-gray-200 px-2.5 py-1 rounded-lg font-medium text-gray-500">🇰🇷 한국어</span>
+              <span className="text-xs bg-white border border-gray-200 px-2.5 py-1 rounded-lg font-medium text-gray-700">{LABELS.product}</span>
+              <span className="text-xs bg-white border border-gray-200 px-2.5 py-1 rounded-lg font-medium text-gray-500">{LABELS.category}</span>
+              <span className="text-xs bg-white border border-gray-200 px-2.5 py-1 rounded-lg font-medium text-gray-500">{LABELS.flag}</span>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2 text-xs text-gray-400 shrink-0">
           <span className="text-green-500 font-bold">✓</span>
-          <span>30초 입력 → 45초 생성</span>
+          <span>{LABELS.timeLabel}</span>
         </div>
       </div>
     </section>

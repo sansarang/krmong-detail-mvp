@@ -928,40 +928,108 @@ export default function OrderResultPage() {
 
             {/* 붙여넣기 안내 */}
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 rounded-b-3xl shrink-0">
-              {platform === 'naver' ? (
+              {platform === 'naver' && (
                 <div>
-                  <p className="text-xs font-black text-gray-700 mb-3">🚀 네이버 블로그 1-click 발행 방법</p>
-                  <div className="grid grid-cols-4 gap-2 mb-3">
+                  <p className="text-xs font-black text-gray-700 mb-3">🚀 네이버 블로그 발행 (3단계)</p>
+                  <div className="grid grid-cols-3 gap-2 mb-3">
                     {[
-                      { step: '1', icon: '📋', label: 'HTML 복사', desc: '아래 버튼 클릭' },
-                      { step: '2', icon: '✏️', label: '새 글 작성', desc: '네이버 블로그 열기' },
-                      { step: '3', icon: '🔧', label: 'HTML 편집', desc: '편집 모드 전환' },
-                      { step: '4', icon: '📤', label: '붙여넣기', desc: 'Ctrl+V 후 발행' },
+                      { step: '1', label: 'HTML 복사', desc: '아래 버튼' },
+                      { step: '2', label: 'HTML 편집 탭', desc: '블로그 글쓰기' },
+                      { step: '3', label: '붙여넣기 → 발행', desc: 'Ctrl+V' },
                     ].map(s => (
                       <div key={s.step} className="text-center">
-                        <div className="w-8 h-8 bg-[#03C75A] text-white rounded-xl flex items-center justify-center text-xs font-black mx-auto mb-1">{s.step}</div>
+                        <div className="w-7 h-7 bg-[#03C75A] text-white rounded-lg flex items-center justify-center text-xs font-black mx-auto mb-1">{s.step}</div>
                         <p className="text-[10px] font-bold text-gray-700">{s.label}</p>
                         <p className="text-[9px] text-gray-400">{s.desc}</p>
                       </div>
                     ))}
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        handleNaverCopy()
-                        window.open('https://blog.naver.com/write.naver', '_blank')
-                      }}
-                      className="flex-1 bg-[#03C75A] hover:bg-[#02b050] text-white py-2.5 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2"
-                    >
-                      <span className="font-black">N</span>
-                      {copyDone ? 'HTML 복사됨 ✓ — 블로그 열림' : '1-click: 복사 + 네이버 열기'}
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => { handleNaverCopy(); window.open('https://blog.naver.com/write.naver', '_blank') }}
+                    className="w-full bg-[#03C75A] hover:bg-[#02b050] text-white py-2.5 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2"
+                  >
+                    <span className="font-black text-base">N</span>
+                    {copyDone ? 'HTML 복사됨 ✓ — 네이버 열렸어요' : '1-click: HTML 복사 + 네이버 블로그 열기'}
+                  </button>
                 </div>
-              ) : (
+              )}
+              {platform === 'tistory' && (
+                <div>
+                  <p className="text-xs font-black text-gray-700 mb-3">🟠 티스토리 발행 (3단계)</p>
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    {[
+                      { step: '1', label: 'HTML 복사', desc: '아래 버튼' },
+                      { step: '2', label: '새 글 쓰기', desc: '티스토리 열기' },
+                      { step: '3', label: 'HTML 모드 붙여넣기', desc: '<> 아이콘 클릭' },
+                    ].map(s => (
+                      <div key={s.step} className="text-center">
+                        <div className="w-7 h-7 bg-orange-500 text-white rounded-lg flex items-center justify-center text-xs font-black mx-auto mb-1">{s.step}</div>
+                        <p className="text-[10px] font-bold text-gray-700">{s.label}</p>
+                        <p className="text-[9px] text-gray-400">{s.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => { handleNaverCopy(); window.open('https://www.tistory.com/manage/newpost/', '_blank') }}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2.5 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2"
+                  >
+                    {copyDone ? 'HTML 복사됨 ✓ — 티스토리 열렸어요' : '1-click: HTML 복사 + 티스토리 열기'}
+                  </button>
+                </div>
+              )}
+              {platform === 'wordpress' && (
+                <div>
+                  <p className="text-xs font-black text-gray-700 mb-3">🔵 워드프레스 발행 (3단계)</p>
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    {[
+                      { step: '1', label: 'HTML 복사', desc: '아래 버튼' },
+                      { step: '2', label: '새 글 추가', desc: 'WP 관리자' },
+                      { step: '3', label: 'HTML 블록 붙여넣기', desc: '/html 입력' },
+                    ].map(s => (
+                      <div key={s.step} className="text-center">
+                        <div className="w-7 h-7 bg-blue-600 text-white rounded-lg flex items-center justify-center text-xs font-black mx-auto mb-1">{s.step}</div>
+                        <p className="text-[10px] font-bold text-gray-700">{s.label}</p>
+                        <p className="text-[9px] text-gray-400">{s.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => { handleNaverCopy(); window.open('https://wordpress.com/post', '_blank') }}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2"
+                  >
+                    {copyDone ? 'HTML 복사됨 ✓ — 워드프레스 열렸어요' : '1-click: HTML 복사 + 워드프레스 열기'}
+                  </button>
+                </div>
+              )}
+              {platform === 'instagram' && (
+                <div>
+                  <p className="text-xs font-black text-gray-700 mb-3">📸 인스타그램 업로드 (3단계)</p>
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    {[
+                      { step: '1', label: '캡션 복사', desc: '아래 버튼' },
+                      { step: '2', label: '새 게시물', desc: '인스타 앱 열기' },
+                      { step: '3', label: '캡션 붙여넣기', desc: '이미지 + 캡션' },
+                    ].map(s => (
+                      <div key={s.step} className="text-center">
+                        <div className="w-7 h-7 bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-lg flex items-center justify-center text-xs font-black mx-auto mb-1">{s.step}</div>
+                        <p className="text-[10px] font-bold text-gray-700">{s.label}</p>
+                        <p className="text-[9px] text-gray-400">{s.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => { handleNaverCopy(); window.open('https://www.instagram.com', '_blank') }}
+                    className="w-full text-white py-2.5 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2"
+                    style={{ background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' }}
+                  >
+                    {copyDone ? '캡션 복사됨 ✓ — 인스타그램 열렸어요' : '1-click: 캡션 복사 + 인스타그램 열기'}
+                  </button>
+                </div>
+              )}
+              {platform === 'brunch' && (
                 <p className="text-xs text-gray-500">
-                  <span className="font-bold text-gray-700">📋 {PLATFORMS.find(p => p.id === platform)?.label} 붙여넣기:</span>
-                  {' '}{PLATFORMS.find(p => p.id === platform)?.desc}
+                  <span className="font-bold text-gray-700">📋 브런치 붙여넣기:</span> 일반 텍스트 형식으로 복사 후 브런치 편집기에 붙여넣기
+                  <button onClick={() => { handleNaverCopy(); window.open('https://brunch.co.kr/write', '_blank') }} className="ml-2 underline text-black font-bold">브런치 열기 →</button>
                 </p>
               )}
             </div>

@@ -124,7 +124,7 @@ export default function EnglishHome() {
       </section>
 
       {/* ─── PRODUCT SHOWCASE ─────────────────────────── */}
-      <ProductShowcase />
+      <ProductShowcase lang="en" />
 
       {/* ─── FEATURES ─────────────────────────────────── */}
       <section id="features" className="bg-black py-14 md:py-20 my-8">
