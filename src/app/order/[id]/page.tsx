@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { readStoredUiLang, type UiLang } from '@/lib/uiLocale'
 import {
   type PublishPlatform,
+  type OrderResultUi,
   platformsForLang,
   defaultPlatformForLang,
   ORDER_RESULT_UI,
@@ -15,6 +16,7 @@ import {
   primaryPublishStyle,
 } from '@/lib/orderResultUi'
 import { buildSeoReport, ORDER_PAGE_UI, seoLevelMessage } from '@/lib/orderPageUi'
+import { type ComplianceFinding, flattenContentForScan, scanPostPublishCompliance } from '@/lib/postPublishCheck'
 
 interface Section {
   id: number
@@ -178,6 +180,59 @@ ${cta}
 ${tags}`
 }
 
+function ComplianceScanPanel({
+  findings,
+  open,
+  onToggle,
+  ui,
+  className = '',
+}: {
+  findings: ComplianceFinding[]
+  open: boolean
+  onToggle: () => void
+  ui: OrderResultUi
+  className?: string
+}) {
+  return (
+    <div className={`border border-amber-200/80 bg-amber-50/90 rounded-2xl overflow-hidden ${className}`}>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full text-left p-3 hover:bg-amber-100/50 transition-colors"
+      >
+        <p className="text-[10px] font-black text-amber-900/60 uppercase tracking-widest">{ui.complianceSub}</p>
+        <p className="text-sm font-black text-amber-950 mt-0.5">{ui.complianceTitle}</p>
+        <p className="text-xs text-amber-900/75 mt-1 font-medium">
+          {findings.length === 0 ? ui.complianceAllClear : ui.complianceIssues(findings.length)}
+        </p>
+        <span className="text-[10px] font-bold text-amber-800 mt-1 inline-block">{open ? ui.complianceHide : ui.complianceShow}</span>
+      </button>
+      {open && (
+        <div className="px-3 pb-3 space-y-2 border-t border-amber-200/60 pt-2">
+          {findings.length === 0 ? (
+            <p className="text-xs text-amber-900/70 leading-relaxed">{ui.complianceDisclaimer}</p>
+          ) : (
+            <>
+              {findings.map((f, i) => (
+                <div key={i} className="rounded-xl bg-white/80 border border-amber-100 px-2.5 py-2 text-xs leading-relaxed">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <span className={`text-[10px] font-black uppercase px-1.5 py-0.5 rounded shrink-0 ${f.severity === 'high' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-800'}`}>
+                      {f.severity === 'high' ? ui.complianceHigh : ui.complianceMedium}
+                    </span>
+                    <code className="text-[10px] text-gray-600 break-all">{f.matched}</code>
+                  </div>
+                  <p className="text-gray-700">{f.tip}</p>
+                </div>
+              ))}
+              <p className="text-[10px] text-amber-900/55 leading-relaxed">{ui.complianceDisclaimer}</p>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function OrderResultPage() {
   const { id } = useParams()
   const orderId = Array.isArray(id) ? id[0] : id
@@ -205,6 +260,7 @@ export default function OrderResultPage() {
   const [chatLoading, setChatLoading] = useState(false)
   const chatBottomRef = useRef<HTMLDivElement>(null)
   const [imageBusy, setImageBusy] = useState(false)
+  const [complianceOpen, setComplianceOpen] = useState(false)
 
   const PLATFORMS = platformsForLang(uiLang)
   const t = ORDER_RESULT_UI[uiLang]
@@ -232,6 +288,20 @@ export default function OrderResultPage() {
     if (!order || sections.length === 0) return
     setSeoReport(buildSeoReport(sections, order.product_name, order.category, uiLang))
   }, [order, sections, uiLang])
+
+  const { complianceFindings, complianceHighCount } = useMemo(() => {
+    if (!order || sections.length === 0) {
+      return { complianceFindings: [] as ComplianceFinding[], complianceHighCount: 0 }
+    }
+    const text = flattenContentForScan(order.product_name, order.category, sections)
+    const complianceFindings = scanPostPublishCompliance(text, uiLang)
+    const complianceHighCount = complianceFindings.filter(f => f.severity === 'high').length
+    return { complianceFindings, complianceHighCount }
+  }, [order, sections, uiLang])
+
+  useEffect(() => {
+    if (complianceHighCount > 0) setComplianceOpen(true)
+  }, [complianceHighCount])
 
   useEffect(() => {
     if (!orderId) return
@@ -509,6 +579,15 @@ export default function OrderResultPage() {
               </button>
             )}
 
+            <div className="print:hidden">
+              <ComplianceScanPanel
+                findings={complianceFindings}
+                open={complianceOpen}
+                onToggle={() => setComplianceOpen(o => !o)}
+                ui={t}
+              />
+            </div>
+
             {/* Primary publish (locale default platform) */}
             <div className="space-y-2">
               <button
@@ -607,6 +686,15 @@ export default function OrderResultPage() {
             <p className="text-[10px] text-gray-400 mt-2 leading-relaxed">
               {p.imageHint}
             </p>
+          </div>
+
+          <div className="max-w-[390px] mx-auto w-full mb-4 xl:hidden print:hidden">
+            <ComplianceScanPanel
+              findings={complianceFindings}
+              open={complianceOpen}
+              onToggle={() => setComplianceOpen(o => !o)}
+              ui={t}
+            />
           </div>
 
           {/* PDF 타겟 */}

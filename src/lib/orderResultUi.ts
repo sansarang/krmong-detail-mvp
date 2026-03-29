@@ -91,6 +91,16 @@ export type OrderResultUi = {
   instagram: { title: string; steps: PublishStep[]; cta: string; ctaDone: string }
   brunch: { line: string; desc: string; open: string }
   genericHtml: { title: string; steps: PublishStep[]; cta: string; ctaDone: string }
+  /** 발행 전 과장·효능 표현 휴리스틱 점검 (법률 자문 아님) */
+  complianceTitle: string
+  complianceSub: string
+  complianceAllClear: string
+  complianceDisclaimer: string
+  complianceIssues: (n: number) => string
+  complianceHigh: string
+  complianceMedium: string
+  complianceShow: string
+  complianceHide: string
 }
 
 export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
@@ -165,6 +175,15 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
       cta: '1-click: HTML 복사 + 에디터 열기',
       ctaDone: 'HTML 복사됨 ✓ — 에디터를 열었어요',
     },
+    complianceTitle: '발행 전 안전 점검',
+    complianceSub: '과장·효능 표현 휴리스틱',
+    complianceAllClear: '눈에 띄는 리스크 문구가 없습니다',
+    complianceDisclaimer: '자동 키워드 검사이며 법률·심의 판단이 아닙니다. 최종 책임은 게시자에게 있습니다.',
+    complianceIssues: (n) => `확인 권장 ${n}건`,
+    complianceHigh: '높음',
+    complianceMedium: '중간',
+    complianceShow: '펼치기',
+    complianceHide: '접기',
   },
   en: {
     loading: 'Loading your AI-generated page...',
@@ -237,6 +256,15 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
       cta: '1-click: Copy HTML + Open editor',
       ctaDone: 'HTML copied ✓ — Editor opened',
     },
+    complianceTitle: 'Pre-publish safety check',
+    complianceSub: 'Heuristic scan for risky claims',
+    complianceAllClear: 'No obvious risk phrases detected',
+    complianceDisclaimer: 'Automated keyword scan only — not legal or regulatory advice. You are responsible for published content.',
+    complianceIssues: (n) => `${n} item${n === 1 ? '' : 's'} to review`,
+    complianceHigh: 'High',
+    complianceMedium: 'Medium',
+    complianceShow: 'Show',
+    complianceHide: 'Hide',
   },
   ja: {
     loading: 'AIが作成したページを読み込み中...',
@@ -309,6 +337,15 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
       cta: '1クリック: HTMLコピー + エディタを開く',
       ctaDone: 'HTMLコピー済み ✓ — エディタを開きました',
     },
+    complianceTitle: '公開前チェック',
+    complianceSub: '誇大・効能表現のヒューリスティック',
+    complianceAllClear: '特に注意すべき表現は見つかりませんでした',
+    complianceDisclaimer: '自動キーワード検査であり法的助言ではありません。最終責任は投稿者にあります。',
+    complianceIssues: (n) => `確認推奨 ${n}件`,
+    complianceHigh: '高',
+    complianceMedium: '中',
+    complianceShow: '開く',
+    complianceHide: '閉じる',
   },
   zh: {
     loading: '正在加载 AI 生成的详情页...',
@@ -381,6 +418,15 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
       cta: '一键：复制 HTML + 打开编辑器',
       ctaDone: '已复制 HTML ✓ — 已打开编辑器',
     },
+    complianceTitle: '发布前安全检查',
+    complianceSub: '夸大与功效表述启发式扫描',
+    complianceAllClear: '未发现明显风险用语',
+    complianceDisclaimer: '仅为自动关键词扫描，不构成法律或审核意见。发布内容由您自行负责。',
+    complianceIssues: (n) => `建议复核 ${n} 处`,
+    complianceHigh: '高',
+    complianceMedium: '中',
+    complianceShow: '展开',
+    complianceHide: '收起',
   },
 }
 
