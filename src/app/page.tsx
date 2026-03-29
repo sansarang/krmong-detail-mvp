@@ -226,7 +226,7 @@ export default function Home() {
           </h2>
           <p className="text-gray-400 text-sm font-medium">실제 서비스 시뮬레이션 · 자동 반복</p>
         </div>
-        <DemoAnimation />
+        <DemoAnimation lang="ko" />
       </section>
 
       {/* ─── SAY GOODBYE TO (마키) ─────────────────────── */}
@@ -247,10 +247,10 @@ export default function Home() {
 
 
       {/* ─── BEFORE/AFTER SECTION ────────────────────── */}
-      <BeforeAfterSection />
+      <BeforeAfterSection lang="ko" />
 
       {/* ─── COMPARE SECTION ─────────────────────────── */}
-      <CompareSection />
+      <CompareSection lang="ko" />
 
       {/* ─── FEATURES ─────────────────────────────────── */}
       <section id="features" className="bg-black py-14 md:py-20 my-8">
@@ -468,7 +468,7 @@ export default function Home() {
       </footer>
 
       {/* ─── LIVE TICKER ──────────────────────────────── */}
-      <LiveTicker />
+      <LiveTicker lang="ko" />
     </main>
   )
 }

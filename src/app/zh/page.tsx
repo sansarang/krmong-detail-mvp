@@ -125,7 +125,7 @@ export default function ZhPage() {
       </section>
 
       {/* ── LIVE TICKER ── */}
-      <LiveTicker />
+      <LiveTicker lang="zh" />
 
       {/* ── PRODUCT SHOWCASE ── */}
       <ProductShowcase lang="zh" />
@@ -140,7 +140,7 @@ export default function ZhPage() {
           </h2>
           <p className="text-gray-400 text-sm font-medium">实时服务模拟 · 自动循环演示</p>
         </div>
-        <DemoAnimation />
+        <DemoAnimation lang="zh" />
       </section>
 
       {/* ── SAY GOODBYE TO ── */}
@@ -157,10 +157,10 @@ export default function ZhPage() {
       </div>
 
       {/* ── BEFORE/AFTER ── */}
-      <BeforeAfterSection />
+      <BeforeAfterSection lang="zh" />
 
       {/* ── COMPARE ── */}
-      <CompareSection />
+      <CompareSection lang="zh" />
 
       {/* ── FEATURES ── */}
       <section id="features" className="bg-black py-14 md:py-20 my-8">

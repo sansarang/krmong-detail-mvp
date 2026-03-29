@@ -45,6 +45,83 @@ const DEMO_LABELS: Record<string, { product: string; category: string; flag: str
   zh: { product: '纯素玻尿酸精华 50ml', category: '美妆/护肤', flag: '🇨🇳 中文', edit: '编辑', regen: 'AI重新生成', inputLabel: '输入', timeLabel: '30秒输入 → 45秒生成' },
 }
 
+const SHOWCASE_UI: Record<string, {
+  kicker: string; h2a: string; h2b: string; sub: string; urlBar: string; statusReady: string; clickHint: string
+  seoHead: string; seoLevel: string; seoLine1: string; seoLine2: string; seoPass: string; seoPct: string
+  seoFoot: string; seoBullets: string[]
+  blogPlat: string
+  blogSide: { name: string; icon: string; active: boolean; url: string }[]
+}> = {
+  ko: {
+    kicker: '실제 결과물', h2a: '30초 입력하면', h2b: '이렇게 나옵니다.', sub: '실제 서비스 화면 · 직접 편집 가능',
+    urlBar: 'pageai.kr/order/abc123', statusReady: '생성 완료', clickHint: '클릭해서 편집 가능',
+    seoHead: 'SEO 종합 점수', seoLevel: '최상위 수준', seoLine1: '검색 상위 노출 최적화 완료', seoLine2: '7개 항목 모두 통과 ✅',
+    seoPass: '7/7 통과', seoPct: '100%',
+    seoFoot: '✓ AI가 자동으로 최적화한 항목',
+    seoBullets: ['숫자 포함 제목 4개', '"히알루론산" 키워드 6회', 'CTA 문구 3개 삽입', '의문형 헤드라인 포함', '섹션당 평균 160자', '제목 평균 22자 최적'],
+    blogPlat: '플랫폼',
+    blogSide: [
+      { name: '네이버 블로그', icon: '🟢', active: true, url: 'blog.naver.com' },
+      { name: '티스토리', icon: '🟠', active: false, url: 'tistory.com' },
+      { name: '워드프레스', icon: '🔵', active: false, url: 'wordpress.com' },
+      { name: '브런치', icon: '⚫', active: false, url: 'brunch.co.kr' },
+      { name: '인스타캡션', icon: '🟣', active: false, url: 'instagram.com' },
+      { name: 'PDF', icon: '🔴', active: false, url: 'export.pdf' },
+    ],
+  },
+  en: {
+    kicker: 'Real output', h2a: '30 seconds in,', h2b: 'this is what you get.', sub: 'Actual UI · edit any section',
+    urlBar: 'pageai.com/order/abc123', statusReady: 'Ready', clickHint: 'Click to edit',
+    seoHead: 'SEO score', seoLevel: 'Top tier', seoLine1: 'Optimized for search visibility', seoLine2: 'All 7 checks passed ✅',
+    seoPass: '7/7 passed', seoPct: '100%',
+    seoFoot: '✓ Auto-optimized by AI',
+    seoBullets: ['4 titles with numbers', '"Hyaluronic" ×6', '3 CTAs placed', 'Question-style hook', '~160 chars/section', '~22-char titles'],
+    blogPlat: 'Platform',
+    blogSide: [
+      { name: 'Naver Blog', icon: '🟢', active: true, url: 'blog.naver.com' },
+      { name: 'Tistory', icon: '🟠', active: false, url: 'tistory.com' },
+      { name: 'WordPress', icon: '🔵', active: false, url: 'wordpress.com' },
+      { name: 'Brunch', icon: '⚫', active: false, url: 'brunch.co.kr' },
+      { name: 'Instagram', icon: '🟣', active: false, url: 'instagram.com' },
+      { name: 'PDF', icon: '🔴', active: false, url: 'export.pdf' },
+    ],
+  },
+  ja: {
+    kicker: '実際の成果', h2a: '30秒入力で、', h2b: 'こうなります。', sub: '実サービス画面 · その場で編集',
+    urlBar: 'pageai.jp/order/abc123', statusReady: '生成完了', clickHint: 'クリックで編集',
+    seoHead: 'SEO総合スコア', seoLevel: '最高水準', seoLine1: '検索最適化完了', seoLine2: '7項目すべて合格 ✅',
+    seoPass: '7/7 合格', seoPct: '100%',
+    seoFoot: '✓ AIが自動最適化',
+    seoBullets: ['数字入りタイトル4件', '「ヒアルロン酸」6回', 'CTA 3箇所', '疑問形見出し', 'セクション平均160字', 'タイトル平均22字'],
+    blogPlat: 'プラットフォーム',
+    blogSide: [
+      { name: 'NAVERブログ', icon: '🟢', active: true, url: 'blog.naver.com' },
+      { name: 'Tistory', icon: '🟠', active: false, url: 'tistory.com' },
+      { name: 'WordPress', icon: '🔵', active: false, url: 'wordpress.com' },
+      { name: 'Brunch', icon: '⚫', active: false, url: 'brunch.co.kr' },
+      { name: 'Instagram', icon: '🟣', active: false, url: 'instagram.com' },
+      { name: 'PDF', icon: '🔴', active: false, url: 'export.pdf' },
+    ],
+  },
+  zh: {
+    kicker: '真实效果', h2a: '输入30秒，', h2b: '立刻得到这些。', sub: '真实界面 · 可点选编辑',
+    urlBar: 'pageai.com/order/abc123', statusReady: '生成完成', clickHint: '点击即可编辑',
+    seoHead: 'SEO 综合分', seoLevel: '顶尖水平', seoLine1: '搜索优化已完成', seoLine2: '7 项全部通过 ✅',
+    seoPass: '7/7 通过', seoPct: '100%',
+    seoFoot: '✓ AI 已自动优化',
+    seoBullets: ['含数字标题4个', '「玻尿酸」出现6次', '插入3处CTA', '疑问型标题', '每段约160字', '标题约22字'],
+    blogPlat: '平台',
+    blogSide: [
+      { name: 'NAVER博客', icon: '🟢', active: true, url: 'blog.naver.com' },
+      { name: 'Tistory', icon: '🟠', active: false, url: 'tistory.com' },
+      { name: 'WordPress', icon: '🔵', active: false, url: 'wordpress.com' },
+      { name: 'Brunch', icon: '⚫', active: false, url: 'brunch.co.kr' },
+      { name: 'Instagram', icon: '🟣', active: false, url: 'instagram.com' },
+      { name: 'PDF', icon: '🔴', active: false, url: 'export.pdf' },
+    ],
+  },
+}
+
 const DEMO_BY_LANG: Record<string, typeof DEMO_SECTIONS_KO> = {
   ko: DEMO_SECTIONS_KO,
   en: DEMO_SECTIONS_EN,
@@ -53,19 +130,50 @@ const DEMO_BY_LANG: Record<string, typeof DEMO_SECTIONS_KO> = {
 }
 
 const SEO_SCORE = 95
-const SEO_ITEMS = [
-  { label: '키워드 밀도',  score: 97, ok: true, color: '#10B981' },
-  { label: '제목 최적화',  score: 93, ok: true, color: '#6366F1' },
-  { label: '본문 길이',    score: 95, ok: true, color: '#3B82F6' },
-  { label: 'CTA 강도',    score: 98, ok: true, color: '#F59E0B' },
-  { label: '숫자 포함',   score: 92, ok: true, color: '#8B5CF6' },
-  { label: '의문형 제목', score: 100, ok: true, color: '#EC4899' },
-  { label: '섹션별 분량',  score: 96, ok: true, color: '#06B6D4' },
-]
+const SEO_ITEMS_BY_LANG: Record<string, { label: string; score: number; ok: boolean; color: string }[]> = {
+  ko: [
+    { label: '키워드 밀도', score: 97, ok: true, color: '#10B981' },
+    { label: '제목 최적화', score: 93, ok: true, color: '#6366F1' },
+    { label: '본문 길이', score: 95, ok: true, color: '#3B82F6' },
+    { label: 'CTA 강도', score: 98, ok: true, color: '#F59E0B' },
+    { label: '숫자 포함', score: 92, ok: true, color: '#8B5CF6' },
+    { label: '의문형 제목', score: 100, ok: true, color: '#EC4899' },
+    { label: '섹션별 분량', score: 96, ok: true, color: '#06B6D4' },
+  ],
+  en: [
+    { label: 'Keyword density', score: 97, ok: true, color: '#10B981' },
+    { label: 'Title tuning', score: 93, ok: true, color: '#6366F1' },
+    { label: 'Body length', score: 95, ok: true, color: '#3B82F6' },
+    { label: 'CTA strength', score: 98, ok: true, color: '#F59E0B' },
+    { label: 'Numbers in titles', score: 92, ok: true, color: '#8B5CF6' },
+    { label: 'Question hooks', score: 100, ok: true, color: '#EC4899' },
+    { label: 'Section depth', score: 96, ok: true, color: '#06B6D4' },
+  ],
+  ja: [
+    { label: 'キーワード密度', score: 97, ok: true, color: '#10B981' },
+    { label: 'タイトル最適化', score: 93, ok: true, color: '#6366F1' },
+    { label: '本文の長さ', score: 95, ok: true, color: '#3B82F6' },
+    { label: 'CTA強度', score: 98, ok: true, color: '#F59E0B' },
+    { label: '数字入りタイトル', score: 92, ok: true, color: '#8B5CF6' },
+    { label: '疑問形見出し', score: 100, ok: true, color: '#EC4899' },
+    { label: 'セクション分量', score: 96, ok: true, color: '#06B6D4' },
+  ],
+  zh: [
+    { label: '关键词密度', score: 97, ok: true, color: '#10B981' },
+    { label: '标题优化', score: 93, ok: true, color: '#6366F1' },
+    { label: '正文长度', score: 95, ok: true, color: '#3B82F6' },
+    { label: 'CTA强度', score: 98, ok: true, color: '#F59E0B' },
+    { label: '标题含数字', score: 92, ok: true, color: '#8B5CF6' },
+    { label: '疑问型标题', score: 100, ok: true, color: '#EC4899' },
+    { label: '分段篇幅', score: 96, ok: true, color: '#06B6D4' },
+  ],
+}
 
 export default function ProductShowcase({ lang = 'ko' }: { lang?: string }) {
   const DEMO_SECTIONS = DEMO_BY_LANG[lang] ?? DEMO_SECTIONS_KO
   const LABELS = DEMO_LABELS[lang] ?? DEMO_LABELS.ko
+  const SU = SHOWCASE_UI[lang] ?? SHOWCASE_UI.ko
+  const SEO_ITEMS = SEO_ITEMS_BY_LANG[lang] ?? SEO_ITEMS_BY_LANG.ko
   const [activeSection, setActiveSection] = useState(0)
   const [tab, setTab] = useState<'result' | 'seo' | 'blog'>('result')
   const [seoVisible, setSeoVisible] = useState(false)
@@ -89,12 +197,12 @@ export default function ProductShowcase({ lang = 'ko' }: { lang?: string }) {
     <section className="max-w-6xl mx-auto px-5 md:px-6 py-12 md:py-20">
       {/* 섹션 헤더 */}
       <div className="text-center mb-10 md:mb-14">
-        <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">실제 결과물</p>
+        <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">{SU.kicker}</p>
         <h2 className="text-3xl md:text-5xl font-black text-black tracking-tight leading-tight mb-3">
-          30초 입력하면<br />
-          <span className="text-gray-300">이렇게 나옵니다.</span>
+          {SU.h2a}<br />
+          <span className="text-gray-300">{SU.h2b}</span>
         </h2>
-        <p className="text-gray-400 text-sm">실제 서비스 화면 · 직접 편집 가능</p>
+        <p className="text-gray-400 text-sm">{SU.sub}</p>
       </div>
 
       {/* 브라우저 목업 */}
@@ -111,7 +219,7 @@ export default function ProductShowcase({ lang = 'ko' }: { lang?: string }) {
             <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
-            <span className="text-xs text-gray-400 font-mono">pageai.kr/order/abc123</span>
+            <span className="text-xs text-gray-400 font-mono">{SU.urlBar}</span>
           </div>
         </div>
 
@@ -120,11 +228,11 @@ export default function ProductShowcase({ lang = 'ko' }: { lang?: string }) {
           <div className="flex items-center gap-2.5 min-w-0">
             <Logo size={26} />
             <div className="min-w-0">
-              <p className="text-xs font-black text-black truncate">비건 히알루론산 앰플 50ml</p>
+              <p className="text-xs font-black text-black truncate">{LABELS.product}</p>
               <div className="flex items-center gap-1.5">
-                <span className="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md font-medium">뷰티/화장품</span>
+                <span className="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md font-medium">{LABELS.category}</span>
                 <span className="flex items-center gap-1 text-[9px] text-green-600 font-bold">
-                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full inline-block" />생성 완료
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full inline-block" />{SU.statusReady}
                 </span>
               </div>
             </div>
@@ -191,7 +299,7 @@ export default function ProductShowcase({ lang = 'ko' }: { lang?: string }) {
                         >
                           {s.name}
                         </span>
-                        <span className="text-[10px] text-gray-300 font-medium">클릭해서 편집 가능</span>
+                        <span className="text-[10px] text-gray-300 font-medium">{SU.clickHint}</span>
                       </div>
 
                       {/* 제목 */}
@@ -248,16 +356,16 @@ export default function ProductShowcase({ lang = 'ko' }: { lang?: string }) {
                   </div>
                 </div>
                 <div>
-                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">SEO 종합 점수</p>
-                  <p className="text-xl font-black text-black">최상위 수준</p>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">{SU.seoHead}</p>
+                  <p className="text-xl font-black text-black">{SU.seoLevel}</p>
                   <p className="text-[10px] text-gray-400 leading-relaxed mt-0.5">
-                    검색 상위 노출 최적화 완료<br />
-                    7개 항목 모두 통과 ✅
+                    {SU.seoLine1}<br />
+                    {SU.seoLine2}
                   </p>
                 </div>
                 <div className="ml-auto shrink-0 flex flex-col items-center bg-green-50 border border-green-200 rounded-xl px-3 py-2">
-                  <span className="text-[9px] text-green-600 font-black">7/7 통과</span>
-                  <span className="text-lg font-black text-green-600">100%</span>
+                  <span className="text-[9px] text-green-600 font-black">{SU.seoPass}</span>
+                  <span className="text-lg font-black text-green-600">{SU.seoPct}</span>
                 </div>
               </div>
 
@@ -283,16 +391,9 @@ export default function ProductShowcase({ lang = 'ko' }: { lang?: string }) {
               </div>
 
               <div className="mt-4 bg-green-50 border border-green-200 rounded-xl p-3">
-                <p className="text-[9px] font-black text-green-700 mb-1.5">✓ AI가 자동으로 최적화한 항목</p>
+                <p className="text-[9px] font-black text-green-700 mb-1.5">{SU.seoFoot}</p>
                 <div className="grid grid-cols-2 gap-1">
-                  {[
-                    '숫자 포함 제목 4개',
-                    '"히알루론산" 키워드 6회',
-                    'CTA 문구 3개 삽입',
-                    '의문형 헤드라인 포함',
-                    '섹션당 평균 160자',
-                    '제목 평균 22자 최적',
-                  ].map((t, i) => (
+                  {SU.seoBullets.map((t, i) => (
                     <p key={i} className="text-[9px] text-green-600 flex items-center gap-1">
                       <span>·</span> {t}
                     </p>
@@ -307,15 +408,8 @@ export default function ProductShowcase({ lang = 'ko' }: { lang?: string }) {
             <div className="flex h-full">
               {/* 플랫폼 선택 */}
               <div className="w-28 md:w-36 bg-white border-r border-gray-100 py-3 shrink-0">
-                <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest px-3 mb-2">플랫폼</p>
-                {[
-                  { name: '네이버 블로그', icon: '🟢', active: true,  url: 'blog.naver.com' },
-                  { name: '티스토리',     icon: '🟠', active: false, url: 'tistory.com' },
-                  { name: '워드프레스',   icon: '🔵', active: false, url: 'wordpress.com' },
-                  { name: '브런치',       icon: '⚫', active: false, url: 'brunch.co.kr' },
-                  { name: '인스타캡션',   icon: '🟣', active: false, url: 'instagram.com' },
-                  { name: 'PDF',          icon: '🔴', active: false, url: 'export.pdf' },
-                ].map((p, i) => (
+                <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest px-3 mb-2">{SU.blogPlat}</p>
+                {SU.blogSide.map((p, i) => (
                   <button key={i} className={`w-full text-left px-3 py-2 text-[10px] transition-all border-l-2 ${
                     p.active ? 'border-black bg-gray-50 font-black text-black' : 'border-transparent text-gray-400 hover:text-gray-700'
                   }`}>

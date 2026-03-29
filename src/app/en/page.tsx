@@ -132,7 +132,7 @@ export default function EnglishHome() {
       </section>
 
       {/* ── LIVE TICKER ── */}
-      <LiveTicker />
+      <LiveTicker lang="en" />
 
       {/* ── PRODUCT SHOWCASE ── */}
       <ProductShowcase lang="en" />
@@ -147,7 +147,7 @@ export default function EnglishHome() {
           </h2>
           <p className="text-gray-400 text-sm font-medium">Live service simulation · Auto-repeating</p>
         </div>
-        <DemoAnimation />
+        <DemoAnimation lang="en" />
       </section>
 
       {/* ── SAY GOODBYE TO ── */}
@@ -164,10 +164,10 @@ export default function EnglishHome() {
       </div>
 
       {/* ── BEFORE/AFTER ── */}
-      <BeforeAfterSection />
+      <BeforeAfterSection lang="en" />
 
       {/* ── COMPARE ── */}
-      <CompareSection />
+      <CompareSection lang="en" />
 
       {/* ── FEATURES ── */}
       <section id="features" className="bg-black py-14 md:py-20 my-8">

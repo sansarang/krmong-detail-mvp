@@ -125,7 +125,7 @@ export default function JaPage() {
       </section>
 
       {/* ── LIVE TICKER ── */}
-      <LiveTicker />
+      <LiveTicker lang="ja" />
 
       {/* ── PRODUCT SHOWCASE ── */}
       <ProductShowcase lang="ja" />
@@ -140,7 +140,7 @@ export default function JaPage() {
           </h2>
           <p className="text-gray-400 text-sm font-medium">実際のサービスシミュレーション · 自動ループ</p>
         </div>
-        <DemoAnimation />
+        <DemoAnimation lang="ja" />
       </section>
 
       {/* ── SAY GOODBYE TO ── */}
@@ -157,10 +157,10 @@ export default function JaPage() {
       </div>
 
       {/* ── BEFORE/AFTER ── */}
-      <BeforeAfterSection />
+      <BeforeAfterSection lang="ja" />
 
       {/* ── COMPARE ── */}
-      <CompareSection />
+      <CompareSection lang="ja" />
 
       {/* ── FEATURES ── */}
       <section id="features" className="bg-black py-14 md:py-20 my-8">

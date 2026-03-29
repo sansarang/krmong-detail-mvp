@@ -1,5 +1,6 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -26,7 +27,17 @@ function detectLang(): string {
   return ['ko', 'en', 'ja', 'zh'].includes(l) ? l : 'en'
 }
 
+/** 라우트 우선(영문 페이지면 무조건 영어 UI), 그다음 브라우저 */
+function langFromPath(pathname: string | null): string {
+  if (!pathname) return detectLang()
+  if (pathname === '/en' || pathname.startsWith('/en/')) return 'en'
+  if (pathname === '/ja' || pathname.startsWith('/ja/')) return 'ja'
+  if (pathname === '/zh' || pathname.startsWith('/zh/')) return 'zh'
+  return detectLang()
+}
+
 export default function ChatWidget() {
+  const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -36,8 +47,8 @@ export default function ChatWidget() {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    setLang(detectLang())
-  }, [])
+    setLang(langFromPath(pathname))
+  }, [pathname])
 
   useEffect(() => {
     const t = setTimeout(() => setShowBubble(true), 10000)
