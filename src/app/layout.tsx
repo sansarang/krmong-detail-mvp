@@ -4,6 +4,7 @@ import Script from 'next/script'
 import './globals.css'
 import { Toaster } from 'sonner'
 import ChatWidget from '@/components/ChatWidget'
+import { Analytics } from '@vercel/analytics/next'
 
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
@@ -51,6 +52,7 @@ export default function RootLayout({
         {children}
         <Toaster richColors position="top-center" />
         <ChatWidget />
+        <Analytics />
       </body>
     </html>
   )
