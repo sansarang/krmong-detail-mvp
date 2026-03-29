@@ -29,7 +29,7 @@ import { type ChannelPublishKitContent, getChannelPublishKit } from '@/lib/chann
 import { buildConversionAbCopy, type AbRecommendation, type AbRunnerUp } from '@/lib/conversionAbCopy'
 import { buildMetaOgPackage, metaOgPackageToHtmlMeta, metaOgPackageToJson } from '@/lib/metaOgPackage'
 import { buildListingPasteBundle, listingBundleUsesPlainText } from '@/lib/listingPasteBundles'
-import { buildListingEvidencePack } from '@/lib/listingEvidenceLayer'
+import { buildListingEvidencePack, type ListingEvidencePack } from '@/lib/listingEvidenceLayer'
 import { buildListingAssetKit } from '@/lib/listingAssetKit'
 import { buildMarketIntelHeuristics } from '@/lib/marketIntelCopy'
 import OrderWritingWidgets from '@/components/OrderWritingWidgets'
@@ -664,20 +664,24 @@ function ConversionAbPanel({
 }
 
 function EvidencePackPanel({
-  copyBlock,
+  pack,
   ui,
   open,
   onToggle,
-  onCopy,
   className = '',
 }: {
-  copyBlock: string
+  pack: ListingEvidencePack
   ui: OrderResultUi
   open: boolean
   onToggle: () => void
-  onCopy: () => void
   className?: string
 }) {
+  function copyText(text: string, toastMsg: string) {
+    navigator.clipboard.writeText(text).then(() => toast.success(toastMsg)).catch(() => toast.error(ui.toastCopyFail))
+  }
+
+  const preview = `${pack.executiveSummary.slice(0, 380)}${pack.executiveSummary.length > 380 ? '…' : ''}`
+
   return (
     <div className={`border border-cyan-200 bg-cyan-50/90 rounded-2xl overflow-hidden ${className}`}>
       <button type="button" onClick={onToggle} className="w-full text-left p-3 hover:bg-cyan-100/50 transition-colors">
@@ -686,17 +690,46 @@ function EvidencePackPanel({
         <span className="text-[10px] font-bold text-cyan-900 mt-1 inline-block">{open ? ui.metaOgHide : ui.metaOgShow}</span>
       </button>
       {open && (
-        <div className="px-3 pb-3 border-t border-cyan-200/80 pt-2 space-y-2">
+        <div className="px-3 pb-3 border-t border-cyan-200/80 pt-2 space-y-1.5">
           <button
             type="button"
-            onClick={onCopy}
-            className="w-full text-left text-xs font-bold bg-white border border-cyan-200 rounded-xl px-3 py-2 hover:bg-cyan-50"
+            onClick={() => copyText(pack.copyFullPackage, ui.evidenceToastFullPackage)}
+            className="w-full text-center text-[10px] font-black text-white bg-cyan-800 py-2 rounded-xl hover:bg-cyan-900"
           >
-            {ui.evidenceCopyAll}
+            {ui.evidenceCopyFullPackage}
           </button>
-          <pre className="text-[9px] text-gray-700 bg-white/90 border border-cyan-100 rounded-lg p-2 max-h-36 overflow-auto whitespace-pre-wrap break-words">
-            {copyBlock.slice(0, 900)}
-            {copyBlock.length > 900 ? '…' : ''}
+          <div className="grid grid-cols-2 gap-1">
+            <button
+              type="button"
+              onClick={() => copyText(pack.executiveSummary, ui.evidenceToastExecutive)}
+              className="text-[9px] font-bold text-cyan-950 bg-white border border-cyan-200 rounded-lg px-2 py-1.5 hover:bg-cyan-50 text-center leading-tight"
+            >
+              {ui.evidenceCopyExecutive}
+            </button>
+            <button
+              type="button"
+              onClick={() => copyText(pack.slideOutline, ui.evidenceToastSlides)}
+              className="text-[9px] font-bold text-cyan-950 bg-white border border-cyan-200 rounded-lg px-2 py-1.5 hover:bg-cyan-50 text-center leading-tight"
+            >
+              {ui.evidenceCopySlides}
+            </button>
+            <button
+              type="button"
+              onClick={() => copyText(pack.footnoteAppendix, ui.evidenceToastAppendix)}
+              className="text-[9px] font-bold text-cyan-950 bg-white border border-cyan-200 rounded-lg px-2 py-1.5 hover:bg-cyan-50 text-center leading-tight"
+            >
+              {ui.evidenceCopyAppendix}
+            </button>
+            <button
+              type="button"
+              onClick={() => copyText(pack.copyBlock, ui.evidenceToastSections)}
+              className="text-[9px] font-bold text-cyan-950 bg-white border border-cyan-200 rounded-lg px-2 py-1.5 hover:bg-cyan-50 text-center leading-tight"
+            >
+              {ui.evidenceCopySections}
+            </button>
+          </div>
+          <pre className="text-[9px] text-gray-700 bg-white/90 border border-cyan-100 rounded-lg p-2 max-h-32 overflow-auto whitespace-pre-wrap break-words">
+            {preview}
           </pre>
         </div>
       )}
@@ -1446,15 +1479,10 @@ export default function OrderResultPage() {
             {evidencePack && (
               <div className="print:hidden">
                 <EvidencePackPanel
-                  copyBlock={evidencePack.copyBlock}
+                  pack={evidencePack}
                   ui={t}
                   open={evidenceOpen}
                   onToggle={() => setEvidenceOpen(o => !o)}
-                  onCopy={() => {
-                    navigator.clipboard.writeText(evidencePack.copyBlock).then(() => {
-                      toast.success(t.evidenceToast)
-                    }).catch(() => toast.error(t.toastCopyFail))
-                  }}
                 />
               </div>
             )}
@@ -1701,15 +1729,10 @@ export default function OrderResultPage() {
             )}
             {evidencePack && (
               <EvidencePackPanel
-                copyBlock={evidencePack.copyBlock}
+                pack={evidencePack}
                 ui={t}
                 open={evidenceOpen}
                 onToggle={() => setEvidenceOpen(o => !o)}
-                onCopy={() => {
-                  navigator.clipboard.writeText(evidencePack.copyBlock).then(() => {
-                    toast.success(t.evidenceToast)
-                  }).catch(() => toast.error(t.toastCopyFail))
-                }}
               />
             )}
             {assetKit && (

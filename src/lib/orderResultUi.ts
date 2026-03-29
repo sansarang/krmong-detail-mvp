@@ -173,8 +173,16 @@ export type OrderResultUi = {
   abCopyToastExperimentSheet: string
   evidenceTitle: string
   evidenceSub: string
-  evidenceCopyAll: string
-  evidenceToast: string
+  evidenceCopyFullPackage: string
+  evidenceCopyExecutive: string
+  evidenceCopySlides: string
+  evidenceCopyAppendix: string
+  evidenceCopySections: string
+  evidenceToastFullPackage: string
+  evidenceToastExecutive: string
+  evidenceToastSlides: string
+  evidenceToastAppendix: string
+  evidenceToastSections: string
   assetTitle: string
   assetSub: string
   assetThumbLabel: string
@@ -357,9 +365,17 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
     abCopyCopyExperimentSheet: '실험 시트 전체 복사',
     abCopyToastExperimentSheet: '실험 시트를 복사했습니다',
     evidenceTitle: '근거·출처 레이어',
-    evidenceSub: 'B2B·제안서용 (한 줄 근거 + 각주 힌트)',
-    evidenceCopyAll: '근거 블록 전체 복사',
-    evidenceToast: '근거 블록을 복사했습니다',
+    evidenceSub: 'B2B·제안·입찰 (요약·슬라이드·각주·섹션)',
+    evidenceCopyFullPackage: '전체 패키지 복사',
+    evidenceCopyExecutive: '경영진 요약만',
+    evidenceCopySlides: '슬라이드 아웃라인만',
+    evidenceCopyAppendix: '각주 부록만',
+    evidenceCopySections: '섹션 근거(상세)만',
+    evidenceToastFullPackage: '전체 패키지를 복사했습니다',
+    evidenceToastExecutive: '경영진 요약을 복사했습니다',
+    evidenceToastSlides: '슬라이드 아웃라인을 복사했습니다',
+    evidenceToastAppendix: '각주 부록을 복사했습니다',
+    evidenceToastSections: '섹션 근거를 복사했습니다',
     assetTitle: '에셋·썸네일 키트',
     assetSub: '비율 가이드 + 짧은 카피 슬롯',
     assetThumbLabel: '썸네일 한 줄 (3안)',
@@ -540,9 +556,17 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
     abCopyCopyExperimentSheet: 'Copy full experiment sheet',
     abCopyToastExperimentSheet: 'Experiment sheet copied',
     evidenceTitle: 'Evidence & sources',
-    evidenceSub: 'For B2B decks (one-line rationale + footnote hints)',
-    evidenceCopyAll: 'Copy evidence block',
-    evidenceToast: 'Evidence block copied',
+    evidenceSub: 'B2B / RFP (summary, slides, footnotes, sections)',
+    evidenceCopyFullPackage: 'Copy full package',
+    evidenceCopyExecutive: 'Executive summary only',
+    evidenceCopySlides: 'Slide outline only',
+    evidenceCopyAppendix: 'Footnote appendix only',
+    evidenceCopySections: 'Section rationale only',
+    evidenceToastFullPackage: 'Full package copied',
+    evidenceToastExecutive: 'Executive summary copied',
+    evidenceToastSlides: 'Slide outline copied',
+    evidenceToastAppendix: 'Footnote appendix copied',
+    evidenceToastSections: 'Section evidence copied',
     assetTitle: 'Asset & thumbnail kit',
     assetSub: 'Ratio guides + short copy slots',
     assetThumbLabel: 'Thumbnail one-liners (3)',
@@ -723,9 +747,17 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
     abCopyCopyExperimentSheet: '実験シート全体をコピー',
     abCopyToastExperimentSheet: '実験シートをコピーしました',
     evidenceTitle: '根拠・出典レイヤー',
-    evidenceSub: 'B2B・提案用（1行の根拠＋脚注ヒント）',
-    evidenceCopyAll: '根拠ブロックをすべてコピー',
-    evidenceToast: '根拠ブロックをコピーしました',
+    evidenceSub: 'B2B・提案（要約・スライド・脚注・セクション）',
+    evidenceCopyFullPackage: 'パッケージ全体をコピー',
+    evidenceCopyExecutive: '要約のみ',
+    evidenceCopySlides: 'スライド案のみ',
+    evidenceCopyAppendix: '脚注付録のみ',
+    evidenceCopySections: 'セクション根拠のみ',
+    evidenceToastFullPackage: 'パッケージをコピーしました',
+    evidenceToastExecutive: '要約をコピーしました',
+    evidenceToastSlides: 'スライド案をコピーしました',
+    evidenceToastAppendix: '脚注付録をコピーしました',
+    evidenceToastSections: 'セクション根拠をコピーしました',
     assetTitle: 'アセット・サムネキット',
     assetSub: '比率ガイド＋短文スロット',
     assetThumbLabel: 'サムネ一行（3案）',
@@ -906,9 +938,17 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
     abCopyCopyExperimentSheet: '复制完整实验表',
     abCopyToastExperimentSheet: '已复制实验表',
     evidenceTitle: '依据与出处',
-    evidenceSub: 'B2B/投标用（一句依据 + 脚注提示）',
-    evidenceCopyAll: '复制依据全文',
-    evidenceToast: '已复制依据块',
+    evidenceSub: 'B2B/投标（摘要·大纲·脚注·分节）',
+    evidenceCopyFullPackage: '复制完整包',
+    evidenceCopyExecutive: '仅高管摘要',
+    evidenceCopySlides: '仅演示提纲',
+    evidenceCopyAppendix: '仅脚注附录',
+    evidenceCopySections: '仅分节依据',
+    evidenceToastFullPackage: '已复制完整包',
+    evidenceToastExecutive: '已复制摘要',
+    evidenceToastSlides: '已复制提纲',
+    evidenceToastAppendix: '已复制脚注附录',
+    evidenceToastSections: '已复制分节依据',
     assetTitle: '素材与缩略图套件',
     assetSub: '比例指南 + 短文案位',
     assetThumbLabel: '缩略图一行（3 套）',
