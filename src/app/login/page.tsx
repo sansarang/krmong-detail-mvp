@@ -1,26 +1,43 @@
 'use client'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [isSignUp, setIsSignUp] = useState(false)
+  const refCode = searchParams.get('ref')
+
+  useEffect(() => {
+    if (refCode) setIsSignUp(true)
+  }, [refCode])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({ email, password })
+        const { data, error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
-        toast.success('가입 완료! 첫 상세페이지를 만들어보세요.')
+
+        // 래퍼럴 처리
+        if (refCode && data.user) {
+          await fetch('/api/referral', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refCode, newUserId: data.user.id }),
+          })
+          toast.success('🎁 초대 코드 적용! 3회 무료 보너스가 추가됐어요.')
+        } else {
+          toast.success('가입 완료! 첫 문서를 만들어보세요.')
+        }
         router.push('/order/new')
         router.refresh()
       } else {
@@ -52,8 +69,14 @@ export default function LoginPage() {
               {isSignUp ? '시작하기' : '로그인'}
             </h1>
             <p className="text-gray-400 text-sm">
-              {isSignUp ? '계정을 만들고 AI 상세페이지를 경험하세요' : '계정에 로그인하세요'}
+              {isSignUp ? '계정을 만들고 AI 문서 생성을 경험하세요' : '계정에 로그인하세요'}
             </p>
+            {refCode && (
+              <div className="mt-4 bg-green-50 border border-green-200 rounded-2xl px-4 py-3">
+                <p className="text-green-700 text-sm font-bold">🎁 초대 코드 적용됨</p>
+                <p className="text-green-600 text-xs mt-0.5">가입 완료 시 3회 무료 보너스 제공</p>
+              </div>
+            )}
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>

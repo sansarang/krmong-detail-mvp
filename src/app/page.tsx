@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import DemoAnimation from '@/components/DemoAnimation'
 import CompareSection from '@/components/CompareSection'
 import BeforeAfterSection from '@/components/BeforeAfterSection'
@@ -8,6 +8,17 @@ import PricingSection from '@/components/PricingSection'
 import LiveTicker from '@/components/LiveTicker'
 import NewsletterForm from '@/components/NewsletterForm'
 import CountdownBanner from '@/components/CountdownBanner'
+
+const HERO_WORDS = [
+  '상세페이지',
+  '보도자료',
+  '사업계획서',
+  '논문 요약',
+  '회사소개서',
+  'IR 피칭 문서',
+  '정책 홍보문',
+  '연구 제안서',
+]
 
 const GOODBYE_ITEMS = [
   '눈치보이는 디자이너와의 소통', '막막한 기획', '값비싼 외주비용', '내 제품을 잘 모르는 AI',
@@ -100,6 +111,19 @@ const FEATURES = [
 
 export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const [wordIdx, setWordIdx] = useState(0)
+  const [fade, setFade] = useState(true)
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setFade(false)
+      setTimeout(() => {
+        setWordIdx(i => (i + 1) % HERO_WORDS.length)
+        setFade(true)
+      }, 300)
+    }, 2200)
+    return () => clearInterval(id)
+  }, [])
 
   return (
     <main className="min-h-screen bg-white overflow-x-hidden">
@@ -133,42 +157,46 @@ export default function Home() {
       </nav>
 
       {/* ─── HERO ─────────────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-6 pt-20 pb-12 text-center">
+      <section className="max-w-5xl mx-auto px-5 pt-12 md:pt-20 pb-10 md:pb-12 text-center">
         {/* 소셜 프루프 배지 */}
-        <div className="inline-flex items-center gap-2 bg-gray-50 border border-gray-200 text-gray-600 text-xs font-semibold px-4 py-2.5 rounded-full mb-8">
-          <div className="flex -space-x-1">
-            {['#FF5C35','#6366F1','#10B981','#F59E0B'].map((c, i) => (
+        <div className="inline-flex items-center gap-2 bg-gray-50 border border-gray-200 text-gray-600 text-xs font-semibold px-3 md:px-4 py-2 md:py-2.5 rounded-full mb-6 md:mb-8 max-w-full overflow-hidden">
+          <div className="flex -space-x-1 shrink-0">
+            {['#FF5C35','#6366F1','#10B981','#F59E0B','#EC4899'].map((c, i) => (
               <div key={i} className="w-5 h-5 rounded-full border-2 border-white" style={{ backgroundColor: c }} />
             ))}
           </div>
-          <span className="w-px h-3 bg-gray-300" />
-               <span className="text-green-600 font-bold">베타</span> 서비스 운영 중
-                 <span className="flex ml-1">
-                   {'★★★★★'.split('').map((s, i) => <span key={i} className="text-yellow-400 text-xs">{s}</span>)}
-                 </span>
-                 <span className="font-bold text-gray-700">베타</span>
+          <span className="w-px h-3 bg-gray-300 shrink-0" />
+          <span className="text-green-600 font-bold shrink-0">베타</span>
+          <span className="hidden sm:inline truncate">운영 중 · 상세페이지·보도자료·사업계획서 등 40개+ 카테고리</span>
+          <span className="sm:hidden truncate">운영 중 · 40개+ 카테고리</span>
         </div>
 
         {/* 헤드라인 */}
         <h1
-          className="text-[72px] md:text-[96px] font-black text-black leading-[0.92] tracking-[-0.04em] mb-8"
+          className="text-[40px] sm:text-[58px] md:text-[88px] font-black text-black leading-[0.92] tracking-[-0.04em] mb-6 md:mb-8"
           style={{ fontFamily: "'Pretendard', sans-serif" }}
         >
-          압도적 퀄리티<br />
-          <span className="text-gray-200">상세페이지,</span><br />
+          <span
+            className="inline-block transition-all duration-300"
+            style={{ opacity: fade ? 1 : 0, transform: fade ? 'translateY(0)' : 'translateY(10px)', color: '#000' }}
+          >
+            {HERO_WORDS[wordIdx]},
+          </span>
+          <br />
+          <span className="text-gray-200">어떤 글이든</span><br />
           AI로 5분 완성.
         </h1>
 
-        <p className="text-xl text-gray-400 mb-10 max-w-xl mx-auto leading-relaxed font-medium">
-          제품 정보 30초 입력하고, 지금 바로 다운로드 하세요.<br />
-          <span className="text-gray-600 font-semibold">외주 비용 95% 절감, 제작 시간 100% 단축.</span>
+        <p className="text-base md:text-xl text-gray-400 mb-8 md:mb-10 max-w-xl mx-auto leading-relaxed font-medium px-2">
+          제품 상세페이지부터 보도자료·사업계획서·논문 요약까지<br className="hidden sm:block" />
+          <span className="text-gray-600 font-semibold"> 정보만 입력하면 AI가 전문가 수준으로 완성.</span>
         </p>
 
         {/* CTA */}
-        <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4 md:mb-6 px-4 sm:px-0">
           <Link
             href="/login"
-            className="bg-black text-white px-10 py-4 rounded-2xl text-lg font-black hover:bg-gray-800 transition-all hover:scale-[1.03] hover:shadow-xl hover:shadow-black/10 active:scale-100"
+            className="bg-black text-white px-8 md:px-10 py-4 rounded-2xl text-base md:text-lg font-black hover:bg-gray-800 transition-all hover:scale-[1.03] hover:shadow-xl hover:shadow-black/10 active:scale-100"
           >
             지금 무료로 시작하기 →
           </Link>
@@ -177,10 +205,10 @@ export default function Home() {
       </section>
 
       {/* ─── DEMO ANIMATION ──────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-6 pb-8">
-        <div className="text-center mb-10">
+      <section className="max-w-5xl mx-auto px-5 pb-8">
+        <div className="text-center mb-8 md:mb-10">
           <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">작동 방식</p>
-          <h2 className="text-5xl font-black text-black tracking-tight leading-tight mb-3">
+          <h2 className="text-3xl md:text-5xl font-black text-black tracking-tight leading-tight mb-3">
             입력하면,<br />
             <span className="text-gray-300">AI가 알아서 완성합니다.</span>
           </h2>
@@ -213,20 +241,20 @@ export default function Home() {
       <CompareSection />
 
       {/* ─── FEATURES ─────────────────────────────────── */}
-      <section id="features" className="bg-black py-20 my-8">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="text-center mb-14">
+      <section id="features" className="bg-black py-14 md:py-20 my-8">
+        <div className="max-w-5xl mx-auto px-5 md:px-6">
+          <div className="text-center mb-10 md:mb-14">
             <p className="text-xs font-black text-gray-500 uppercase tracking-widest mb-3">주요 기능</p>
-            <h2 className="text-5xl font-black text-white tracking-tight leading-tight">
+            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight">
               팔리는 상품에는<br />
               <span className="text-gray-500">공통된 법칙이 있어요.</span>
             </h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {FEATURES.map((f, i) => (
-              <div key={i} className="bg-white/5 border border-white/10 rounded-3xl p-7 hover:bg-white/10 transition-all group">
-                <div className="text-4xl mb-5">{f.icon}</div>
-                <h3 className="text-lg font-black text-white mb-2 tracking-tight">{f.title}</h3>
+              <div key={i} className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-7 hover:bg-white/10 transition-all group">
+                <div className="text-3xl md:text-4xl mb-4 md:mb-5">{f.icon}</div>
+                <h3 className="text-base md:text-lg font-black text-white mb-2 tracking-tight">{f.title}</h3>
                 <p className="text-gray-400 text-xs leading-relaxed">{f.desc}</p>
               </div>
             ))}
@@ -235,17 +263,17 @@ export default function Home() {
       </section>
 
       {/* ─── STATS ─────────────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <section className="max-w-5xl mx-auto px-5 md:px-6 py-12 md:py-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {[
             { value: '10X', label: '비용 절감', sub: '외주 대비' },
             { value: '2X', label: '구매 전환율', sub: '평균 향상' },
             { value: '5X', label: '생산성 증가', sub: '제작 속도' },
             { value: '10X', label: '신제품 출시', sub: '속도 향상' },
           ].map((s, i) => (
-            <div key={i} className="text-center py-10 border border-gray-100 rounded-3xl hover:border-gray-300 hover:shadow-sm transition-all">
-              <div className="text-6xl font-black text-black tracking-[-0.04em] mb-1">{s.value}</div>
-              <div className="text-sm font-bold text-gray-600 mb-0.5">{s.label}</div>
+            <div key={i} className="text-center py-7 md:py-10 border border-gray-100 rounded-3xl hover:border-gray-300 hover:shadow-sm transition-all">
+              <div className="text-4xl md:text-6xl font-black text-black tracking-[-0.04em] mb-1">{s.value}</div>
+              <div className="text-xs md:text-sm font-bold text-gray-600 mb-0.5">{s.label}</div>
               <div className="text-xs text-gray-300">{s.sub}</div>
             </div>
           ))}
@@ -256,11 +284,11 @@ export default function Home() {
       <PricingSection />
 
       {/* ─── REVIEWS ──────────────────────────────────── */}
-      <section id="reviews" className="bg-gray-50 py-20 my-8">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="text-center mb-14">
+      <section id="reviews" className="bg-gray-50 py-14 md:py-20 my-8">
+        <div className="max-w-5xl mx-auto px-5 md:px-6">
+          <div className="text-center mb-10 md:mb-14">
             <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">실사용자 후기</p>
-            <h2 className="text-5xl font-black text-black tracking-tight leading-tight mb-3">
+            <h2 className="text-3xl md:text-5xl font-black text-black tracking-tight leading-tight mb-3">
               먼저 사용해본<br />베타 테스터들의 생생한 후기.
             </h2>
             <div className="flex items-center justify-center gap-2">
@@ -268,11 +296,11 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
             {REVIEWS.map((r, i) => (
               <div
                 key={i}
-                className={`bg-white border border-gray-100 rounded-3xl p-7 hover:border-gray-300 hover:shadow-xl hover:shadow-gray-100 transition-all hover:-translate-y-1 ${i === 0 ? 'md:col-span-2 lg:col-span-1' : ''}`}
+                className="bg-white border border-gray-100 rounded-3xl p-6 md:p-7 hover:border-gray-300 hover:shadow-xl hover:shadow-gray-100 transition-all hover:-translate-y-1"
               >
                 {/* 별점 */}
                 <div className="flex gap-0.5 mb-4">
@@ -308,10 +336,10 @@ export default function Home() {
       </section>
 
       {/* ─── FAQ ──────────────────────────────────────── */}
-      <section id="faq" className="max-w-3xl mx-auto px-6 py-20">
-        <div className="text-center mb-14">
+      <section id="faq" className="max-w-3xl mx-auto px-5 md:px-6 py-14 md:py-20">
+        <div className="text-center mb-10 md:mb-14">
           <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">자주 묻는 질문</p>
-          <h2 className="text-5xl font-black text-black tracking-tight">궁금한 점이<br />있으신가요?</h2>
+          <h2 className="text-3xl md:text-5xl font-black text-black tracking-tight">궁금한 점이<br />있으신가요?</h2>
         </div>
         <div className="space-y-3">
           {FAQS.map((faq, i) => (
@@ -339,9 +367,104 @@ export default function Home() {
       </section>
 
       {/* ─── BLOG ─────────────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-6 py-16">
-        <div className="flex items-end justify-between mb-10">
+      <section className="max-w-5xl mx-auto px-5 md:px-6 py-12 md:py-16">
+        <div className="flex items-end justify-between mb-8 md:mb-10">
           <div>
+            <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">블로그</p>
+            <h2 className="text-2xl md:text-4xl font-black text-black tracking-tight leading-tight">
+              팔리는 상세페이지의<br />
+              <span className="text-gray-200">모든 전략.</span>
+            </h2>
+          </div>
+          <Link href="/blog" className="text-sm font-bold text-gray-400 hover:text-black transition-colors hidden sm:block">
+            전체 보기 →
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[
+            { slug: 'smartstore-detail-page-tips', category: '전환율 최적화', color: 'bg-orange-50 text-orange-600 border-orange-200', title: '스마트스토어 상세페이지 전환율 높이는 10가지 방법', time: '8분' },
+            { slug: 'coupang-detail-page-strategy', category: '쿠팡 최적화', color: 'bg-blue-50 text-blue-600 border-blue-200', title: '쿠팡 상위노출을 위한 상세페이지 전략 완벽 가이드', time: '10분' },
+            { slug: 'ai-detail-page-2026', category: 'AI 트렌드', color: 'bg-purple-50 text-purple-600 border-purple-200', title: 'AI 상세페이지 자동 생성, 2026년에는 왜 필수인가', time: '6분' },
+          ].map((post, i) => (
+            <Link key={i} href={`/blog/${post.slug}`} className="group border border-gray-100 rounded-3xl p-6 hover:border-gray-300 hover:shadow-lg transition-all hover:-translate-y-0.5 bg-white">
+              <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border inline-block mb-4 ${post.color}`}>
+                {post.category}
+              </span>
+              <h3 className="text-sm md:text-base font-black text-black leading-snug mb-3 group-hover:opacity-70 transition-opacity">
+                {post.title}
+              </h3>
+              <p className="text-xs text-gray-300 font-medium">{post.time} 읽기 →</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── NEWSLETTER ───────────────────────────────── */}
+      <section className="max-w-5xl mx-auto px-5 md:px-6 pb-8">
+        <NewsletterForm />
+      </section>
+
+      {/* ─── FINAL CTA ────────────────────────────────── */}
+      <section className="mx-4 md:mx-6 mb-12 md:mb-16">
+        <div
+          className="max-w-5xl mx-auto rounded-3xl p-8 md:p-16 text-center relative overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 50%, #0f0f0f 100%)' }}
+        >
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-48 bg-purple-500/20 rounded-full blur-3xl" />
+          <div className="relative z-10">
+            <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">지금 바로 시작하세요</p>
+            <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-[-0.04em] leading-tight mb-5 md:mb-6">
+              나만의 전문가 AI 팀,<br />
+              <span className="text-gray-400">지금 바로 구독하세요.</span>
+            </h2>
+            <p className="text-gray-400 mb-7 md:mb-10 text-base md:text-lg">신용카드 불필요 · 무료로 시작</p>
+            <Link
+              href="/login"
+              className="inline-block bg-white text-black px-8 md:px-12 py-4 md:py-5 rounded-2xl text-base md:text-lg font-black hover:bg-gray-100 transition-all hover:scale-105 hover:shadow-2xl hover:shadow-white/10"
+            >
+              무료로 시작하기 →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── FOOTER ───────────────────────────────────── */}
+      <footer className="border-t border-gray-100 px-5 md:px-6 py-10 md:py-12">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-8 md:mb-10">
+            <div>
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-7 h-7 bg-black rounded-xl flex items-center justify-center">
+                  <span className="text-white text-xs font-black">AI</span>
+                </div>
+                <span className="font-black text-lg tracking-tight">페이지AI</span>
+              </div>
+              <p className="text-gray-400 text-sm max-w-xs leading-relaxed">어떤 글이든 AI가 5분 만에 완성.</p>
+            </div>
+            <div className="grid grid-cols-2 gap-x-12 md:gap-x-16 gap-y-3 text-sm text-gray-400">
+              <Link href="/" className="hover:text-black transition-colors">홈</Link>
+              <Link href="#features" className="hover:text-black transition-colors">주요 기능</Link>
+              <Link href="#reviews" className="hover:text-black transition-colors">이용 후기</Link>
+              <Link href="#faq" className="hover:text-black transition-colors">FAQ</Link>
+              <Link href="/blog" className="hover:text-black transition-colors">블로그</Link>
+              <Link href="/login" className="hover:text-black transition-colors">로그인</Link>
+            </div>
+          </div>
+          <div className="border-t border-gray-100 pt-6 flex flex-col md:flex-row justify-between items-center gap-3">
+            <p className="text-xs text-gray-300">© 2026 페이지AI. All rights reserved.</p>
+            <div className="flex gap-6 text-xs text-gray-300">
+              <Link href="/privacy" className="hover:text-black transition-colors">개인정보처리방침</Link>
+              <Link href="/terms" className="hover:text-black transition-colors">이용약관</Link>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* ─── LIVE TICKER ──────────────────────────────── */}
+      <LiveTicker />
+    </main>
+  )
+}          <div>
             <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-2">무료 가이드</p>
             <h2 className="text-4xl font-black text-black tracking-tight leading-tight">
               팔리는 상세페이지의<br />

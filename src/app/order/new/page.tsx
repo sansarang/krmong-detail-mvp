@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -54,10 +54,69 @@ const CATEGORIES = [
     { value: 'it_service',  label: 'IT 개발·외주' },
     { value: 'design',      label: '디자인/마케팅 대행' },
   ]},
+  { group: '📋 공공기관·관공서', items: [
+    { value: 'press_release',  label: '보도자료' },
+    { value: 'policy_pr',      label: '정책 홍보문' },
+    { value: 'public_notice',  label: '공고문/공지사항' },
+    { value: 'project_intro',  label: '사업 안내문' },
+  ]},
+  { group: '🏛️ 정부과제·R&D', items: [
+    { value: 'gov_proposal',     label: '사업계획서' },
+    { value: 'research_proposal',label: '연구 제안서' },
+    { value: 'performance_report',label: '성과보고서' },
+    { value: 'tech_intro',       label: '기술이전 소개서' },
+  ]},
+  { group: '📄 논문·학술', items: [
+    { value: 'paper_summary',   label: '논문 요약/소개' },
+    { value: 'research_intro',  label: '연구 발표자료' },
+    { value: 'patent_intro',    label: '특허 소개문' },
+    { value: 'academic_report', label: '학술 보고서' },
+  ]},
+  { group: '📝 기획·IR·PR', items: [
+    { value: 'business_proposal', label: '사업제안서' },
+    { value: 'company_intro',     label: '회사 소개서' },
+    { value: 'ir_pitch',          label: 'IR 피칭 문서' },
+    { value: 'pr_article',        label: '보도자료/PR' },
+  ]},
   { group: '기타', items: [
-    { value: 'other',       label: '기타 (직접 설명)' },
+    { value: 'other', label: '기타 (직접 설명)' },
   ]},
 ]
+
+const DOC_CATS = [
+  'press_release','policy_pr','public_notice','project_intro',
+  'gov_proposal','research_proposal','performance_report','tech_intro',
+  'paper_summary','research_intro','patent_intro','academic_report',
+  'business_proposal','company_intro','ir_pitch','pr_article',
+]
+
+const LANGUAGES = [
+  { value: 'ko', label: '🇰🇷 한국어' },
+  { value: 'en', label: '🇺🇸 English' },
+  { value: 'ja', label: '🇯🇵 日本語' },
+  { value: 'zh', label: '🇨🇳 中文' },
+]
+
+function getLabels(category: string) {
+  if (DOC_CATS.includes(category)) return {
+    nameLabel: '문서/프로젝트 제목',
+    namePlaceholder: '예: 2025년 스마트시티 R&D 사업 제안서',
+    descLabel: '핵심 내용 요약',
+    descPlaceholder: '문서의 핵심 내용, 목적, 대상, 주요 성과 또는 특징을 입력하세요. 직접 문서 내용을 붙여넣기 해도 됩니다.',
+    buttonText: '문서 초안 생성 →',
+    title: '문서 정보 입력',
+    subtitle: '내용을 입력하면 AI가 전문적인 문서 초안을 만들어드려요',
+  }
+  return {
+    nameLabel: '제품/서비스명',
+    namePlaceholder: '예: 제주 유기농 녹차 추출 세럼',
+    descLabel: '제품/서비스 설명',
+    descPlaceholder: '주요 특징, 효능, 성분, 타겟 고객을 자세히 입력해주세요. 더 자세할수록 더 좋은 상세페이지가 만들어집니다.',
+    buttonText: '상세페이지 생성 시작 →',
+    title: '제품 정보 입력',
+    subtitle: '정보를 입력하면 AI가 전환율 높은 상세페이지를 만들어드려요',
+  }
+}
 
 const FREE_LIMIT = 5
 
@@ -66,9 +125,15 @@ export default function NewOrderPage() {
   const supabase = createClient()
   const [loading, setLoading]         = useState(false)
   const [images, setImages]           = useState<File[]>([])
+  const [docText, setDocText]         = useState('')
+  const [outputLang, setOutputLang]   = useState('ko')
   const [form, setForm]               = useState({ product_name: '', category: '', description: '' })
   const [monthlyUsed, setMonthlyUsed] = useState(0)
   const [showUpgrade, setShowUpgrade] = useState(false)
+  const docInputRef = useRef<HTMLInputElement>(null)
+
+  const isDocCat = DOC_CATS.includes(form.category)
+  const labels = getLabels(form.category)
 
   // 이번 달 사용량 로드
   useEffect(() => {
@@ -94,13 +159,26 @@ export default function NewOrderPage() {
     setImages(files)
   }
 
+  function handleDocFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.type === 'text/plain' || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
+      const reader = new FileReader()
+      reader.onload = ev => setDocText(ev.target?.result as string)
+      reader.readAsText(file)
+      toast.success('파일 내용을 불러왔습니다')
+    } else {
+      toast.info('PDF/HWP/DOCX는 파일을 열어 내용을 복사 후 아래에 붙여넣기 해주세요')
+    }
+    if (docInputRef.current) docInputRef.current.value = ''
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.product_name || !form.category || !form.description) {
       toast.error('모든 항목을 입력해주세요'); return
     }
 
-    // 클라이언트 사전 체크 (무료 제한)
     if (monthlyUsed >= FREE_LIMIT) {
       setShowUpgrade(true); return
     }
@@ -120,17 +198,22 @@ export default function NewOrderPage() {
         imageUrls.push(publicUrl)
       }
 
+      // 문서 카테고리: docText를 description에 합쳐서 전달
+      const combinedDesc = docText.trim()
+        ? `${form.description}\n\n[첨부 문서 내용]\n${docText.trim()}`
+        : form.description
+
       const { data: order, error } = await supabase
         .from('orders')
-        .insert({ user_id: user.id, ...form, image_urls: imageUrls, status: 'pending' })
+        .insert({ user_id: user.id, ...form, description: combinedDesc, image_urls: imageUrls, status: 'pending' })
         .select().single()
       if (error) throw error
 
-      toast.success('AI가 상세페이지를 생성 중입니다...')
+      toast.success('AI가 문서를 생성 중입니다...')
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: order.id }),
+        body: JSON.stringify({ orderId: order.id, outputLang }),
       })
 
       const data = await res.json()
@@ -206,9 +289,9 @@ export default function NewOrderPage() {
 
       <div className="max-w-xl mx-auto px-8 py-16">
         <div className="mb-10">
-          <p className="text-xs font-bold text-gray-300 uppercase tracking-widest mb-3">새 상세페이지</p>
-          <h1 className="text-4xl font-black text-black tracking-tight mb-3">제품 정보 입력</h1>
-          <p className="text-gray-400 text-sm leading-relaxed">정보를 입력하면 AI가 전환율 높은 상세페이지를 만들어드려요</p>
+          <p className="text-xs font-bold text-gray-300 uppercase tracking-widest mb-3">새 문서 생성</p>
+          <h1 className="text-4xl font-black text-black tracking-tight mb-3">{labels.title}</h1>
+          <p className="text-gray-400 text-sm leading-relaxed">{labels.subtitle}</p>
         </div>
 
         {/* 사용량 바 */}
@@ -235,9 +318,9 @@ export default function NewOrderPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">제품명</label>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{labels.nameLabel}</label>
             <input
-              placeholder="예: 제주 유기농 녹차 추출 세럼"
+              placeholder={labels.namePlaceholder}
               value={form.product_name}
               onChange={e => setForm({ ...form, product_name: e.target.value })}
               required
@@ -265,9 +348,31 @@ export default function NewOrderPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">제품 설명</label>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+              출력 언어 <span className="text-gray-300 normal-case font-normal">(AI가 이 언어로 작성합니다)</span>
+            </label>
+            <div className="grid grid-cols-4 gap-2">
+              {LANGUAGES.map(lang => (
+                <button
+                  key={lang.value}
+                  type="button"
+                  onClick={() => setOutputLang(lang.value)}
+                  className={`py-3 rounded-2xl text-sm font-bold border transition-all ${
+                    outputLang === lang.value
+                      ? 'bg-black text-white border-black'
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                  }`}
+                >
+                  {lang.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{labels.descLabel}</label>
             <textarea
-              placeholder="주요 특징, 효능, 성분, 타겟 고객을 자세히 입력해주세요. 더 자세할수록 더 좋은 상세페이지가 만들어집니다."
+              placeholder={labels.descPlaceholder}
               rows={6}
               value={form.description}
               onChange={e => setForm({ ...form, description: e.target.value })}
@@ -276,9 +381,41 @@ export default function NewOrderPage() {
             />
           </div>
 
+          {/* 문서 카테고리: 파일 업로드 + 텍스트 붙여넣기 */}
+          {isDocCat && (
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                문서 첨부 <span className="text-gray-300 normal-case font-normal">(선택 · TXT/MD 자동 추출, PDF/HWP는 내용 붙여넣기)</span>
+              </label>
+              <div className="flex gap-2 mb-3">
+                <label className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:bg-gray-100 transition-all text-sm text-gray-600 font-medium">
+                  <span>📎</span> 파일 선택
+                  <input ref={docInputRef} type="file" accept=".txt,.md,.csv" className="hidden" onChange={handleDocFile} />
+                </label>
+                {docText && (
+                  <button type="button" onClick={() => setDocText('')} className="text-xs text-gray-400 hover:text-red-500 transition-colors px-3">
+                    × 초기화
+                  </button>
+                )}
+              </div>
+              <textarea
+                placeholder="또는 PDF/HWP/DOCX 내용을 여기에 직접 붙여넣기 하세요..."
+                rows={4}
+                value={docText}
+                onChange={e => setDocText(e.target.value)}
+                className="w-full border border-gray-200 rounded-2xl px-5 py-4 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm resize-none bg-gray-50"
+              />
+              {docText && (
+                <p className="text-xs text-green-600 font-medium mt-1.5">
+                  ✓ {docText.length.toLocaleString()}자 문서 내용 추가됨 — AI가 참고하여 작성합니다
+                </p>
+              )}
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-              제품 사진 <span className="text-gray-300 normal-case font-normal">(최대 3장, 선택)</span>
+              {isDocCat ? '참고 이미지' : '제품 사진'} <span className="text-gray-300 normal-case font-normal">(최대 3장, 선택)</span>
             </label>
 
             {/* 이미지 미리보기 */}
@@ -331,9 +468,9 @@ export default function NewOrderPage() {
             {loading ? (
               <>
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                AI가 상세페이지를 만드는 중...
+                AI가 생성 중입니다...
               </>
-            ) : '상세페이지 생성 시작 →'}
+            ) : labels.buttonText}
           </button>
         </form>
       </div>

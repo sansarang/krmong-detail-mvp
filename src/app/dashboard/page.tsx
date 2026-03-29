@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import ReferralWidget from '@/components/ReferralWidget'
 
 const TIPS = [
   {
@@ -123,8 +124,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* 통계 카드 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {[
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">          {[
             { label: '총 생성',   value: `${total}개`,             sub: '누적 상세페이지',    icon: '📄' },
             { label: '완료',      value: `${doneCount}개`,          sub: 'PDF 다운 가능',     icon: '✅' },
             { label: '절약 추정', value: `₩${savedAmount.toLocaleString()}`, sub: '외주 대비 절감', icon: '💰' },
@@ -217,6 +217,9 @@ export default async function DashboardPage() {
 
           {/* 오른쪽: 정보 사이드바 */}
           <div className="space-y-4">
+
+            {/* 래퍼럴 위젯 */}
+            <ReferralWidget />
 
             {/* 오늘의 팁 */}
             <div className="bg-white border border-gray-100 rounded-2xl p-5">
