@@ -151,6 +151,12 @@ const KO_HEALTH_EXTRA: Rule[] = [
     severity: 'high',
     tip: '건강기능식품·일반식품은 질병의 치료·예방 효과를 표시할 수 없습니다. “일상 관리 보조” 등으로 순화하세요.',
   },
+  {
+    match: t => t.match(/한\s*알(로)?\s*완치|복용\s*만으로\s*정상|약\s*대신\s*충분|의약품\s*없이\s*치료/i)?.[0] ?? null,
+    severity: 'high',
+    tip: '의약품 대체·단일 섭취로 치료되는 듯한 표현은 식품·건강기능식품 광고에서 금지에 가깝습니다.',
+    suggest: '균형 잡힌 식단·운동과 함께 참고용으로만 소개하고, 치료는 전문의 상담을 안내하세요.',
+  },
 ]
 
 const KO_BEAUTY_EXTRA: Rule[] = [
@@ -158,6 +164,12 @@ const KO_BEAUTY_EXTRA: Rule[] = [
     match: t => t.match(/기미\s*완전\s*제거|여드름\s*치료|미백\s*효과\s*보장|각질\s*완치|주름\s*완전\s*제거|흉터\s*완치/i)?.[0] ?? null,
     severity: 'high',
     tip: '화장품은 의약품이 아니므로 치료·완치·의약적 효능 표현은 화장품법상 문제가 될 수 있습니다.',
+  },
+  {
+    match: t => t.match(/무자극\s*보장|100%\s*저자극\s*인증|피부과\s*전용\s*처방|의사\s*처방\s*화장품/i)?.[0] ?? null,
+    severity: 'high',
+    tip: '「무자극 보장」「처방」류 표현은 근거·인증 없이 쓰면 부당표시·의료기관 협찬 오인 소지가 큽니다.',
+    suggest: '패치 테스트를 권장하며, 이상 시 사용을 중단하고 전문의와 상담하세요(개인차가 있을 수 있어요).',
   },
 ]
 
@@ -182,6 +194,15 @@ const EN_BEAUTY_EXTRA: Rule[] = [
     match: t => t.match(/\bcures?\s+acne\b|\bremoves?\s+wrinkles\s+completely\b|\bguaranteed\s+whitening\b/i)?.[0] ?? null,
     severity: 'high',
     tip: 'Cosmetics cannot claim drug-like curing or guaranteed therapeutic outcomes.',
+  },
+  {
+    match: t =>
+      t.match(
+        /\bhypoallergenic\s+guaranteed\b|\b100%\s+non-irritating\b|\bdermatologist[\s-]*prescribed\b.*\bcosmetic\b/i,
+      )?.[0] ?? null,
+    severity: 'high',
+    tip: '“Guaranteed” hypoallergenic or “prescribed” cosmetic claims need strong substantiation and may mislead.',
+    suggest: 'Recommend a patch test; discontinue if irritation occurs; results vary.',
   },
 ]
 

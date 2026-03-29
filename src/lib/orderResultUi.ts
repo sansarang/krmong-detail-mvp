@@ -143,6 +143,9 @@ export type OrderResultUi = {
   industryFinance: string
   industryMedical: string
   complianceSuggestLabel: string
+  complianceDisclosureTitle: string
+  complianceCopyDisclosurePack: string
+  complianceToastDisclosurePack: string
   abCopyTitle: string
   abCopySub: string
   abCopyTitles: string
@@ -291,7 +294,7 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
       ctaDone: 'HTML 복사됨 ✓ — 에디터를 열었어요',
     },
     complianceTitle: '발행 전 안전 점검',
-    complianceSub: '과장·효능 표현 휴리스틱',
+    complianceSub: '과장·효능 스캔 + 업종 고지 문구',
     complianceAllClear: '눈에 띄는 리스크 문구가 없습니다',
     complianceDisclaimer: '자동 키워드 검사이며 법률·심의 판단이 아닙니다. 최종 책임은 게시자에게 있습니다.',
     complianceIssues: (n) => `확인 권장 ${n}건`,
@@ -325,6 +328,9 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
     industryFinance: '금융·투자',
     industryMedical: '의료·건강정보 톤',
     complianceSuggestLabel: '대체 문안 예시',
+    complianceDisclosureTitle: '업종별 필수·권장 고지',
+    complianceCopyDisclosurePack: '고지 문구 전체 복사',
+    complianceToastDisclosurePack: '고지 문구를 복사했습니다',
     abCopyTitle: '전환 A/B 카피',
     abCopySub: '제목·첫문장 3안 + CTA 2안',
     abCopyTitles: '제목 안',
@@ -471,7 +477,7 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
       ctaDone: 'HTML copied ✓ — Editor opened',
     },
     complianceTitle: 'Pre-publish safety check',
-    complianceSub: 'Heuristic scan for risky claims',
+    complianceSub: 'Risky-claim scan + industry disclosures',
     complianceAllClear: 'No obvious risk phrases detected',
     complianceDisclaimer: 'Automated keyword scan only — not legal or regulatory advice. You are responsible for published content.',
     complianceIssues: (n) => `${n} item${n === 1 ? '' : 's'} to review`,
@@ -505,6 +511,9 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
     industryFinance: 'Finance & investing',
     industryMedical: 'Medical / health-info tone',
     complianceSuggestLabel: 'Safer rewrite (example)',
+    complianceDisclosureTitle: 'Industry disclosures (paste-ready)',
+    complianceCopyDisclosurePack: 'Copy all disclosure text',
+    complianceToastDisclosurePack: 'Disclosure block copied',
     abCopyTitle: 'Conversion A/B copy',
     abCopySub: '3 titles & openers + 2 CTAs',
     abCopyTitles: 'Title variants',
@@ -651,7 +660,7 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
       ctaDone: 'HTMLコピー済み ✓ — エディタを開きました',
     },
     complianceTitle: '公開前チェック',
-    complianceSub: '誇大・効能表現のヒューリスティック',
+    complianceSub: '誇大・効能チェック＋業種別注意文',
     complianceAllClear: '特に注意すべき表現は見つかりませんでした',
     complianceDisclaimer: '自動キーワード検査であり法的助言ではありません。最終責任は投稿者にあります。',
     complianceIssues: (n) => `確認推奨 ${n}件`,
@@ -685,6 +694,9 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
     industryFinance: '金融・投資',
     industryMedical: '医療・健康情報のトーン',
     complianceSuggestLabel: '言い換え例',
+    complianceDisclosureTitle: '業種別の注意・表示文',
+    complianceCopyDisclosurePack: '注意文をすべてコピー',
+    complianceToastDisclosurePack: '注意文をコピーしました',
     abCopyTitle: 'コンバージョン A/B コピー',
     abCopySub: 'タイトル・冒頭3案 + CTA 2案',
     abCopyTitles: 'タイトル案',
@@ -831,7 +843,7 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
       ctaDone: '已复制 HTML ✓ — 已打开编辑器',
     },
     complianceTitle: '发布前安全检查',
-    complianceSub: '夸大与功效表述启发式扫描',
+    complianceSub: '夸大与功效扫描 + 行业声明',
     complianceAllClear: '未发现明显风险用语',
     complianceDisclaimer: '仅为自动关键词扫描，不构成法律或审核意见。发布内容由您自行负责。',
     complianceIssues: (n) => `建议复核 ${n} 处`,
@@ -865,6 +877,9 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
     industryFinance: '金融投资',
     industryMedical: '医疗/健康信息语气',
     complianceSuggestLabel: '替代表述示例',
+    complianceDisclosureTitle: '行业必备/建议声明',
+    complianceCopyDisclosurePack: '复制全部声明',
+    complianceToastDisclosurePack: '已复制声明',
     abCopyTitle: '转化 A/B 文案',
     abCopySub: '标题与开头 3 套 + CTA 2 套',
     abCopyTitles: '标题方案',

@@ -24,6 +24,7 @@ import {
   flattenContentForScan,
   scanPostPublishCompliance,
 } from '@/lib/postPublishCheck'
+import { buildComplianceDisclosureKit, type ComplianceDisclosurePack } from '@/lib/complianceDisclosureKit'
 import { type ChannelPublishKitContent, getChannelPublishKit } from '@/lib/channelPublishKit'
 import { buildConversionAbCopy, type AbRecommendation, type AbRunnerUp } from '@/lib/conversionAbCopy'
 import { buildMetaOgPackage, metaOgPackageToHtmlMeta, metaOgPackageToJson } from '@/lib/metaOgPackage'
@@ -197,6 +198,7 @@ ${tags}`
 
 function ComplianceScanPanel({
   findings,
+  disclosurePack,
   open,
   onToggle,
   ui,
@@ -204,6 +206,7 @@ function ComplianceScanPanel({
   className = '',
 }: {
   findings: ComplianceFinding[]
+  disclosurePack: ComplianceDisclosurePack
   open: boolean
   onToggle: () => void
   ui: OrderResultUi
@@ -228,7 +231,50 @@ function ComplianceScanPanel({
         <span className="text-[10px] font-bold text-amber-800 mt-1 inline-block">{open ? ui.complianceHide : ui.complianceShow}</span>
       </button>
       {open && (
-        <div className="px-3 pb-3 space-y-2 border-t border-amber-200/60 pt-2">
+        <div className="px-3 pb-3 space-y-3 border-t border-amber-200/60 pt-2">
+          <div className="rounded-xl bg-white/90 border border-amber-200/90 p-2.5 space-y-2">
+            <p className="text-[10px] font-black text-amber-900 uppercase tracking-wider">{ui.complianceDisclosureTitle}</p>
+            <p className="text-[11px] font-bold text-amber-950">{disclosurePack.headline}</p>
+            {disclosurePack.note ? (
+              <p className="text-[10px] text-amber-900/75 leading-relaxed">{disclosurePack.note}</p>
+            ) : null}
+            <div className="space-y-1.5 max-h-40 overflow-y-auto">
+              {disclosurePack.lines.map(line => (
+                <div
+                  key={line.id}
+                  className="flex gap-1.5 items-start rounded-lg bg-amber-50/80 border border-amber-100/80 px-2 py-1.5"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[9px] font-black text-amber-800">{line.label}</p>
+                    <p className="text-[10px] text-gray-800 leading-snug break-words">{line.body}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(line.body).then(() => {
+                        toast.success(ui.abCopyToast)
+                      }).catch(() => toast.error(ui.toastCopyFail))
+                    }}
+                    className="shrink-0 text-[9px] font-bold text-amber-900 border border-amber-300 bg-white px-1.5 py-0.5 rounded-md hover:bg-amber-50"
+                  >
+                    {ui.abCopyCopy}
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText(disclosurePack.copyAllBlock).then(() => {
+                  toast.success(ui.complianceToastDisclosurePack)
+                }).catch(() => toast.error(ui.toastCopyFail))
+              }}
+              className="w-full text-center text-[10px] font-black text-white bg-amber-800 py-2 rounded-xl hover:bg-amber-900"
+            >
+              {ui.complianceCopyDisclosurePack}
+            </button>
+          </div>
+
           {findings.length === 0 ? (
             <p className="text-xs text-amber-900/70 leading-relaxed">{ui.complianceDisclaimer}</p>
           ) : (
@@ -908,6 +954,11 @@ export default function OrderResultPage() {
     return { complianceFindings, complianceHighCount }
   }, [order, sections, uiLang, industryBucket])
 
+  const complianceDisclosurePack = useMemo(
+    () => buildComplianceDisclosureKit(industryBucket, uiLang),
+    [industryBucket, uiLang],
+  )
+
   useEffect(() => {
     if (complianceHighCount > 0) setComplianceOpen(true)
   }, [complianceHighCount])
@@ -1305,6 +1356,7 @@ export default function OrderResultPage() {
             <div className="print:hidden">
               <ComplianceScanPanel
                 findings={complianceFindings}
+                disclosurePack={complianceDisclosurePack}
                 open={complianceOpen}
                 onToggle={() => setComplianceOpen(o => !o)}
                 ui={t}
@@ -1568,6 +1620,7 @@ export default function OrderResultPage() {
           <div className="max-w-[390px] mx-auto w-full mb-4 xl:hidden print:hidden space-y-3">
             <ComplianceScanPanel
               findings={complianceFindings}
+              disclosurePack={complianceDisclosurePack}
               open={complianceOpen}
               onToggle={() => setComplianceOpen(o => !o)}
               ui={t}
