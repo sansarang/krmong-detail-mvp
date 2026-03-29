@@ -101,6 +101,44 @@ export type OrderResultUi = {
   complianceMedium: string
   complianceShow: string
   complianceHide: string
+  /** 채널별 전략·전환·패키징 키트 (로드맵 P0) */
+  channelKitTitle: string
+  channelKitSub: string
+  channelKitPlatformHint: string
+  channelKitStrategy: string
+  channelKitConversion: string
+  channelKitPackaging: string
+  channelKitHooks: string
+  channelKitCopyHook: string
+  channelKitToastHook: string
+  channelKitShow: string
+  channelKitHide: string
+  complianceIndustryBadge: (label: string) => string
+  industryGeneral: string
+  industryHealth: string
+  industryBeauty: string
+  industryFood: string
+  abCopyTitle: string
+  abCopySub: string
+  abCopyTitles: string
+  abCopyOpeners: string
+  abCopyCopy: string
+  abCopyToast: string
+  abCopyApplyTitle: string
+  abCopyApplyOpener: string
+  abCopyToastApplyTitle: string
+  abCopyToastApplyOpener: string
+  abCopyShow: string
+  abCopyHide: string
+  metaOgTitle: string
+  metaOgSub: string
+  metaOgCopyHtml: string
+  metaOgCopyJson: string
+  metaOgToastHtml: string
+  metaOgToastJson: string
+  metaOgNote: string
+  metaOgShow: string
+  metaOgHide: string
 }
 
 export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
@@ -184,6 +222,43 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
     complianceMedium: '중간',
     complianceShow: '펼치기',
     complianceHide: '접기',
+    channelKitTitle: '채널 발행 키트',
+    channelKitSub: '어디서 · 어떻게 팔릴지',
+    channelKitPlatformHint: '플랫폼',
+    channelKitStrategy: '이 채널에서의 역할',
+    channelKitConversion: '전환 팁',
+    channelKitPackaging: '패키징 체크',
+    channelKitHooks: '훅 문장',
+    channelKitCopyHook: '복사',
+    channelKitToastHook: '훅 문장을 복사했습니다',
+    channelKitShow: '펼치기',
+    channelKitHide: '접기',
+    complianceIndustryBadge: (label) => `업종 프로필: ${label} — 추가 규칙 적용`,
+    industryGeneral: '일반',
+    industryHealth: '건강·영양',
+    industryBeauty: '뷰티·화장품',
+    industryFood: '식품',
+    abCopyTitle: '전환 A/B 카피',
+    abCopySub: '제목·첫문장 3안',
+    abCopyTitles: '제목 안',
+    abCopyOpeners: '첫 문장 안',
+    abCopyCopy: '복사',
+    abCopyToast: '복사했습니다',
+    abCopyApplyTitle: '1번 섹션 제목에 적용',
+    abCopyApplyOpener: '1번 섹션 본문 앞에 붙이기',
+    abCopyToastApplyTitle: '첫 섹션 제목을 바꿨습니다',
+    abCopyToastApplyOpener: '첫 섹션 본문 앞에 문장을 넣었습니다',
+    abCopyShow: '펼치기',
+    abCopyHide: '접기',
+    metaOgTitle: '메타 · OG 패키지',
+    metaOgSub: '검색·SNS 미리보기용',
+    metaOgCopyHtml: 'HTML 메타 블록 복사',
+    metaOgCopyJson: 'JSON(LD 스타일) 복사',
+    metaOgToastHtml: 'HTML 메타를 복사했습니다',
+    metaOgToastJson: 'JSON을 복사했습니다',
+    metaOgNote: 'og:image는 대표 이미지 URL이 있으면 포함됩니다. 사이트 URL은 NEXT_PUBLIC_SITE_URL을 설정하면 반영됩니다.',
+    metaOgShow: '펼치기',
+    metaOgHide: '접기',
   },
   en: {
     loading: 'Loading your AI-generated page...',
@@ -265,6 +340,43 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
     complianceMedium: 'Medium',
     complianceShow: 'Show',
     complianceHide: 'Hide',
+    channelKitTitle: 'Channel publish kit',
+    channelKitSub: 'Where & how this post sells',
+    channelKitPlatformHint: 'Platform',
+    channelKitStrategy: 'Role on this channel',
+    channelKitConversion: 'Conversion tips',
+    channelKitPackaging: 'Packaging checklist',
+    channelKitHooks: 'Hook lines',
+    channelKitCopyHook: 'Copy',
+    channelKitToastHook: 'Hook copied',
+    channelKitShow: 'Show',
+    channelKitHide: 'Hide',
+    complianceIndustryBadge: (label) => `Industry profile: ${label} — extra rules on`,
+    industryGeneral: 'General',
+    industryHealth: 'Health & supplements',
+    industryBeauty: 'Beauty & cosmetics',
+    industryFood: 'Food & beverage',
+    abCopyTitle: 'Conversion A/B copy',
+    abCopySub: '3 title & opening lines',
+    abCopyTitles: 'Title variants',
+    abCopyOpeners: 'Opening lines',
+    abCopyCopy: 'Copy',
+    abCopyToast: 'Copied',
+    abCopyApplyTitle: 'Apply to section 1 title',
+    abCopyApplyOpener: 'Prepend to section 1 body',
+    abCopyToastApplyTitle: 'Updated first section title',
+    abCopyToastApplyOpener: 'Prepended opening to first section',
+    abCopyShow: 'Show',
+    abCopyHide: 'Hide',
+    metaOgTitle: 'Meta & OG package',
+    metaOgSub: 'Search & social previews',
+    metaOgCopyHtml: 'Copy HTML meta block',
+    metaOgCopyJson: 'Copy JSON',
+    metaOgToastHtml: 'HTML meta copied',
+    metaOgToastJson: 'JSON copied',
+    metaOgNote: 'og:image uses your first product image when set. Set NEXT_PUBLIC_SITE_URL for canonical URLs.',
+    metaOgShow: 'Show',
+    metaOgHide: 'Hide',
   },
   ja: {
     loading: 'AIが作成したページを読み込み中...',
@@ -346,6 +458,43 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
     complianceMedium: '中',
     complianceShow: '開く',
     complianceHide: '閉じる',
+    channelKitTitle: 'チャネル公開キット',
+    channelKitSub: 'どこで · どう売れるか',
+    channelKitPlatformHint: 'プラットフォーム',
+    channelKitStrategy: 'このチャネルでの役割',
+    channelKitConversion: 'コンバージョンのコツ',
+    channelKitPackaging: 'パッケージングチェック',
+    channelKitHooks: 'フック文',
+    channelKitCopyHook: 'コピー',
+    channelKitToastHook: 'フックをコピーしました',
+    channelKitShow: '開く',
+    channelKitHide: '閉じる',
+    complianceIndustryBadge: (label) => `業種プロフィール: ${label} — 追加ルール適用`,
+    industryGeneral: '一般',
+    industryHealth: '健康・サプリ',
+    industryBeauty: '美容・化粧品',
+    industryFood: '食品',
+    abCopyTitle: 'コンバージョン A/B コピー',
+    abCopySub: 'タイトル・冒頭3案',
+    abCopyTitles: 'タイトル案',
+    abCopyOpeners: '冒頭文',
+    abCopyCopy: 'コピー',
+    abCopyToast: 'コピーしました',
+    abCopyApplyTitle: 'セクション1の見出しに適用',
+    abCopyApplyOpener: 'セクション1本文の先頭に追加',
+    abCopyToastApplyTitle: '先頭セクションの見出しを更新しました',
+    abCopyToastApplyOpener: '先頭に文を追加しました',
+    abCopyShow: '開く',
+    abCopyHide: '閉じる',
+    metaOgTitle: 'メタ・OGパッケージ',
+    metaOgSub: '検索・SNSプレビュー用',
+    metaOgCopyHtml: 'HTMLメタをコピー',
+    metaOgCopyJson: 'JSONをコピー',
+    metaOgToastHtml: 'HTMLメタをコピーしました',
+    metaOgToastJson: 'JSONをコピーしました',
+    metaOgNote: 'og:imageは代表画像URLがある場合に含まれます。NEXT_PUBLIC_SITE_URLで正規URLを設定できます。',
+    metaOgShow: '開く',
+    metaOgHide: '閉じる',
   },
   zh: {
     loading: '正在加载 AI 生成的详情页...',
@@ -427,6 +576,43 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
     complianceMedium: '中',
     complianceShow: '展开',
     complianceHide: '收起',
+    channelKitTitle: '渠道发布套件',
+    channelKitSub: '在哪卖 · 怎么卖',
+    channelKitPlatformHint: '平台',
+    channelKitStrategy: '在该渠道的角色',
+    channelKitConversion: '转化提示',
+    channelKitPackaging: '打包检查',
+    channelKitHooks: '钩子句式',
+    channelKitCopyHook: '复制',
+    channelKitToastHook: '已复制钩子文案',
+    channelKitShow: '展开',
+    channelKitHide: '收起',
+    complianceIndustryBadge: (label) => `行业档案：${label} — 已启用额外规则`,
+    industryGeneral: '通用',
+    industryHealth: '健康营养',
+    industryBeauty: '美妆个护',
+    industryFood: '食品',
+    abCopyTitle: '转化 A/B 文案',
+    abCopySub: '标题与开头 3 套',
+    abCopyTitles: '标题方案',
+    abCopyOpeners: '开头句',
+    abCopyCopy: '复制',
+    abCopyToast: '已复制',
+    abCopyApplyTitle: '应用到第 1 节标题',
+    abCopyApplyOpener: '插入到第 1 节正文开头',
+    abCopyToastApplyTitle: '已更新首节标题',
+    abCopyToastApplyOpener: '已在首节正文前插入',
+    abCopyShow: '展开',
+    abCopyHide: '收起',
+    metaOgTitle: 'Meta · OG 打包',
+    metaOgSub: '搜索与社交预览',
+    metaOgCopyHtml: '复制 HTML meta 块',
+    metaOgCopyJson: '复制 JSON',
+    metaOgToastHtml: '已复制 HTML meta',
+    metaOgToastJson: '已复制 JSON',
+    metaOgNote: '若有首张商品图则写入 og:image。设置 NEXT_PUBLIC_SITE_URL 可生成规范链接。',
+    metaOgShow: '展开',
+    metaOgHide: '收起',
   },
 }
 

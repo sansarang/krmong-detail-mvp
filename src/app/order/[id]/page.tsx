@@ -8,6 +8,7 @@ import { readStoredUiLang, type UiLang } from '@/lib/uiLocale'
 import {
   type PublishPlatform,
   type OrderResultUi,
+  type PlatformRow,
   platformsForLang,
   defaultPlatformForLang,
   ORDER_RESULT_UI,
@@ -16,7 +17,16 @@ import {
   primaryPublishStyle,
 } from '@/lib/orderResultUi'
 import { buildSeoReport, ORDER_PAGE_UI, seoLevelMessage } from '@/lib/orderPageUi'
-import { type ComplianceFinding, flattenContentForScan, scanPostPublishCompliance } from '@/lib/postPublishCheck'
+import {
+  type ComplianceFinding,
+  type IndustryBucket,
+  detectIndustryBucket,
+  flattenContentForScan,
+  scanPostPublishCompliance,
+} from '@/lib/postPublishCheck'
+import { type ChannelPublishKitContent, getChannelPublishKit } from '@/lib/channelPublishKit'
+import { buildConversionAbCopy } from '@/lib/conversionAbCopy'
+import { buildMetaOgPackage, metaOgPackageToHtmlMeta, metaOgPackageToJson } from '@/lib/metaOgPackage'
 
 interface Section {
   id: number
@@ -185,12 +195,14 @@ function ComplianceScanPanel({
   open,
   onToggle,
   ui,
+  industryBadge,
   className = '',
 }: {
   findings: ComplianceFinding[]
   open: boolean
   onToggle: () => void
   ui: OrderResultUi
+  industryBadge?: string | null
   className?: string
 }) {
   return (
@@ -200,6 +212,9 @@ function ComplianceScanPanel({
         onClick={onToggle}
         className="w-full text-left p-3 hover:bg-amber-100/50 transition-colors"
       >
+        {industryBadge && (
+          <p className="text-[10px] font-bold text-amber-800/90 mb-1 leading-snug">{industryBadge}</p>
+        )}
         <p className="text-[10px] font-black text-amber-900/60 uppercase tracking-widest">{ui.complianceSub}</p>
         <p className="text-sm font-black text-amber-950 mt-0.5">{ui.complianceTitle}</p>
         <p className="text-xs text-amber-900/75 mt-1 font-medium">
@@ -227,6 +242,278 @@ function ComplianceScanPanel({
               <p className="text-[10px] text-amber-900/55 leading-relaxed">{ui.complianceDisclaimer}</p>
             </>
           )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ChannelPublishKitPanel({
+  platforms,
+  platform,
+  setPlatform,
+  kit,
+  ui,
+  open,
+  onToggle,
+  onCopyHook,
+  className = '',
+}: {
+  platforms: PlatformRow[]
+  platform: PublishPlatform
+  setPlatform: (p: PublishPlatform) => void
+  kit: ChannelPublishKitContent
+  ui: OrderResultUi
+  open: boolean
+  onToggle: () => void
+  onCopyHook: (line: string) => void
+  className?: string
+}) {
+  return (
+    <div className={`border border-slate-200 bg-slate-50/90 rounded-2xl overflow-hidden ${className}`}>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full text-left p-3 hover:bg-slate-100/80 transition-colors"
+      >
+        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{ui.channelKitSub}</p>
+        <p className="text-sm font-black text-slate-900 mt-0.5">{ui.channelKitTitle}</p>
+        <span className="text-[10px] font-bold text-slate-600 mt-1 inline-block">{open ? ui.channelKitHide : ui.channelKitShow}</span>
+      </button>
+      {open && (
+        <div className="px-3 pb-3 space-y-3 border-t border-slate-200/80 pt-2">
+          <div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5">{ui.channelKitPlatformHint}</p>
+            <div className="flex flex-wrap gap-1">
+              {platforms.map(row => (
+                <button
+                  key={row.id}
+                  type="button"
+                  onClick={() => setPlatform(row.id)}
+                  className={`text-[10px] font-bold px-2 py-1 rounded-lg border transition-all ${
+                    platform === row.id ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                  }`}
+                >
+                  <span className="mr-0.5">{row.icon}</span>
+                  {row.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">{ui.channelKitStrategy}</p>
+            <p className="text-xs text-slate-700 leading-relaxed">{kit.strategy}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">{ui.channelKitConversion}</p>
+            <ul className="text-xs text-slate-700 leading-relaxed list-disc pl-4 space-y-0.5">
+              {kit.conversionBullets.map((line, i) => (
+                <li key={i}>{line}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">{ui.channelKitPackaging}</p>
+            <ul className="text-xs text-slate-700 leading-relaxed list-disc pl-4 space-y-0.5">
+              {kit.packagingBullets.map((line, i) => (
+                <li key={i}>{line}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">{ui.channelKitHooks}</p>
+            <div className="space-y-1.5">
+              {kit.hooks.map((line, i) => (
+                <div key={i} className="flex gap-1.5 items-start">
+                  <p className="text-xs text-slate-800 leading-snug flex-1 min-w-0 break-words">{line}</p>
+                  <button
+                    type="button"
+                    onClick={() => onCopyHook(line)}
+                    className="shrink-0 text-[10px] font-bold text-slate-700 border border-slate-200 bg-white px-2 py-1 rounded-lg hover:bg-slate-50"
+                  >
+                    {ui.channelKitCopyHook}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function industryBucketLabel(ui: OrderResultUi, b: IndustryBucket): string {
+  switch (b) {
+    case 'health':
+      return ui.industryHealth
+    case 'beauty':
+      return ui.industryBeauty
+    case 'food':
+      return ui.industryFood
+    default:
+      return ui.industryGeneral
+  }
+}
+
+function ConversionAbPanel({
+  titles,
+  openers,
+  ui,
+  open,
+  onToggle,
+  onCopyLine,
+  onApplyTitle,
+  onApplyOpener,
+  hasFirst,
+  className = '',
+}: {
+  titles: [string, string, string]
+  openers: [string, string, string]
+  ui: OrderResultUi
+  open: boolean
+  onToggle: () => void
+  onCopyLine: (line: string) => void
+  onApplyTitle: (index: 0 | 1 | 2) => void
+  onApplyOpener: (index: 0 | 1 | 2) => void
+  hasFirst: boolean
+  className?: string
+}) {
+  const labs: ('A' | 'B' | 'C')[] = ['A', 'B', 'C']
+  return (
+    <div className={`border border-violet-200 bg-violet-50/90 rounded-2xl overflow-hidden ${className}`}>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full text-left p-3 hover:bg-violet-100/60 transition-colors"
+      >
+        <p className="text-[10px] font-black text-violet-600 uppercase tracking-widest">{ui.abCopySub}</p>
+        <p className="text-sm font-black text-violet-950 mt-0.5">{ui.abCopyTitle}</p>
+        <span className="text-[10px] font-bold text-violet-800 mt-1 inline-block">{open ? ui.abCopyHide : ui.abCopyShow}</span>
+      </button>
+      {open && (
+        <div className="px-3 pb-3 space-y-4 border-t border-violet-200/80 pt-2">
+          <div>
+            <p className="text-[10px] font-black text-violet-500 uppercase tracking-wider mb-1.5">{ui.abCopyTitles}</p>
+            <div className="space-y-2">
+              {titles.map((line, i) => (
+                <div key={i} className="rounded-xl bg-white/90 border border-violet-100 px-2.5 py-2">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="text-[10px] font-black text-violet-700">{labs[i]}</span>
+                    <div className="flex gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => onCopyLine(line)}
+                        className="text-[10px] font-bold text-violet-800 border border-violet-200 bg-white px-2 py-0.5 rounded-md hover:bg-violet-50"
+                      >
+                        {ui.abCopyCopy}
+                      </button>
+                      {hasFirst && (
+                        <button
+                          type="button"
+                          onClick={() => onApplyTitle(i as 0 | 1 | 2)}
+                          className="text-[10px] font-bold text-white bg-violet-700 px-2 py-0.5 rounded-md hover:bg-violet-800"
+                        >
+                          {ui.abCopyApplyTitle}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-800 leading-snug break-words">{line}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-[10px] font-black text-violet-500 uppercase tracking-wider mb-1.5">{ui.abCopyOpeners}</p>
+            <div className="space-y-2">
+              {openers.map((line, i) => (
+                <div key={i} className="rounded-xl bg-white/90 border border-violet-100 px-2.5 py-2">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="text-[10px] font-black text-violet-700">{labs[i]}</span>
+                    <div className="flex gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => onCopyLine(line)}
+                        className="text-[10px] font-bold text-violet-800 border border-violet-200 bg-white px-2 py-0.5 rounded-md hover:bg-violet-50"
+                      >
+                        {ui.abCopyCopy}
+                      </button>
+                      {hasFirst && (
+                        <button
+                          type="button"
+                          onClick={() => onApplyOpener(i as 0 | 1 | 2)}
+                          className="text-[10px] font-bold text-white bg-violet-700 px-2 py-0.5 rounded-md hover:bg-violet-800"
+                        >
+                          {ui.abCopyApplyOpener}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-800 leading-snug break-words">{line}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MetaOgExportPanel({
+  htmlBlock,
+  jsonBlock,
+  ui,
+  open,
+  onToggle,
+  onCopyHtml,
+  onCopyJson,
+  className = '',
+}: {
+  htmlBlock: string
+  jsonBlock: string
+  ui: OrderResultUi
+  open: boolean
+  onToggle: () => void
+  onCopyHtml: () => void
+  onCopyJson: () => void
+  className?: string
+}) {
+  return (
+    <div className={`border border-emerald-200 bg-emerald-50/90 rounded-2xl overflow-hidden ${className}`}>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full text-left p-3 hover:bg-emerald-100/60 transition-colors"
+      >
+        <p className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">{ui.metaOgSub}</p>
+        <p className="text-sm font-black text-emerald-950 mt-0.5">{ui.metaOgTitle}</p>
+        <span className="text-[10px] font-bold text-emerald-800 mt-1 inline-block">{open ? ui.metaOgHide : ui.metaOgShow}</span>
+      </button>
+      {open && (
+        <div className="px-3 pb-3 space-y-2 border-t border-emerald-200/80 pt-2">
+          <p className="text-[10px] text-emerald-900/70 leading-relaxed">{ui.metaOgNote}</p>
+          <div className="flex flex-col gap-1.5">
+            <button
+              type="button"
+              onClick={onCopyHtml}
+              className="w-full text-left text-xs font-bold text-emerald-950 bg-white border border-emerald-200 rounded-xl px-3 py-2 hover:bg-emerald-50"
+            >
+              {ui.metaOgCopyHtml}
+            </button>
+            <button
+              type="button"
+              onClick={onCopyJson}
+              className="w-full text-left text-xs font-bold text-emerald-950 bg-white border border-emerald-200 rounded-xl px-3 py-2 hover:bg-emerald-50"
+            >
+              {ui.metaOgCopyJson}
+            </button>
+          </div>
+          <pre className="text-[9px] text-gray-600 bg-white/80 border border-emerald-100 rounded-lg p-2 max-h-28 overflow-auto whitespace-pre-wrap break-all">
+            {htmlBlock.slice(0, 400)}
+            {htmlBlock.length > 400 ? '…' : ''}
+          </pre>
         </div>
       )}
     </div>
@@ -261,6 +548,9 @@ export default function OrderResultPage() {
   const chatBottomRef = useRef<HTMLDivElement>(null)
   const [imageBusy, setImageBusy] = useState(false)
   const [complianceOpen, setComplianceOpen] = useState(false)
+  const [channelKitOpen, setChannelKitOpen] = useState(true)
+  const [abCopyOpen, setAbCopyOpen] = useState(true)
+  const [metaOgOpen, setMetaOgOpen] = useState(false)
 
   const PLATFORMS = platformsForLang(uiLang)
   const t = ORDER_RESULT_UI[uiLang]
@@ -289,19 +579,52 @@ export default function OrderResultPage() {
     setSeoReport(buildSeoReport(sections, order.product_name, order.category, uiLang))
   }, [order, sections, uiLang])
 
+  const industryBucket = useMemo((): IndustryBucket => {
+    if (!order) return 'general'
+    return detectIndustryBucket(order.category, order.product_name)
+  }, [order])
+
   const { complianceFindings, complianceHighCount } = useMemo(() => {
     if (!order || sections.length === 0) {
       return { complianceFindings: [] as ComplianceFinding[], complianceHighCount: 0 }
     }
     const text = flattenContentForScan(order.product_name, order.category, sections)
-    const complianceFindings = scanPostPublishCompliance(text, uiLang)
+    const complianceFindings = scanPostPublishCompliance(text, uiLang, industryBucket)
     const complianceHighCount = complianceFindings.filter(f => f.severity === 'high').length
     return { complianceFindings, complianceHighCount }
-  }, [order, sections, uiLang])
+  }, [order, sections, uiLang, industryBucket])
 
   useEffect(() => {
     if (complianceHighCount > 0) setComplianceOpen(true)
   }, [complianceHighCount])
+
+  const channelKitContent = useMemo(() => {
+    if (!order || sections.length === 0) return null
+    const hook = sections[0]?.title ?? order.product_name
+    return getChannelPublishKit(platform, uiLang, {
+      productName: order.product_name,
+      category: order.category,
+      hook,
+    })
+  }, [order, sections, platform, uiLang])
+
+  const abCopySet = useMemo(() => {
+    if (!order || sections.length === 0) return null
+    return buildConversionAbCopy(uiLang, order.product_name, order.category, sections)
+  }, [order, sections, uiLang])
+
+  const metaExportBlocks = useMemo(() => {
+    if (!seoReport || !order) return null
+    const pkg = buildMetaOgPackage({
+      productName: order.product_name,
+      category: order.category,
+      metaTitle: seoReport.metaTitle,
+      metaDescription: seoReport.metaDesc,
+      ogImageUrl: order.image_urls?.[0] ?? null,
+      pathOrSlug: `order/${order.id}`,
+    })
+    return { html: metaOgPackageToHtmlMeta(pkg), json: metaOgPackageToJson(pkg) }
+  }, [seoReport, order])
 
   useEffect(() => {
     if (!orderId) return
@@ -504,6 +827,11 @@ export default function OrderResultPage() {
     ? seoReport.score >= 80 ? 'bg-green-50 border-green-200' : seoReport.score >= 60 ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'
     : ''
 
+  const complianceIndustryBadge =
+    industryBucket !== 'general'
+      ? t.complianceIndustryBadge(industryBucketLabel(t, industryBucket))
+      : null
+
   return (
     <main className="min-h-screen bg-gray-50">
       {/* 헤더 */}
@@ -585,8 +913,80 @@ export default function OrderResultPage() {
                 open={complianceOpen}
                 onToggle={() => setComplianceOpen(o => !o)}
                 ui={t}
+                industryBadge={complianceIndustryBadge}
               />
             </div>
+
+            {channelKitContent && (
+              <div className="print:hidden">
+                <ChannelPublishKitPanel
+                  platforms={PLATFORMS}
+                  platform={platform}
+                  setPlatform={setPlatform}
+                  kit={channelKitContent}
+                  ui={t}
+                  open={channelKitOpen}
+                  onToggle={() => setChannelKitOpen(o => !o)}
+                  onCopyHook={line => {
+                    navigator.clipboard.writeText(line).then(() => {
+                      toast.success(t.channelKitToastHook)
+                    }).catch(() => toast.error(t.toastCopyFail))
+                  }}
+                />
+              </div>
+            )}
+
+            {abCopySet && (
+              <div className="print:hidden">
+                <ConversionAbPanel
+                  titles={abCopySet.titles}
+                  openers={abCopySet.openers}
+                  ui={t}
+                  open={abCopyOpen}
+                  onToggle={() => setAbCopyOpen(o => !o)}
+                  hasFirst={sections.length > 0}
+                  onCopyLine={line => {
+                    navigator.clipboard.writeText(line).then(() => {
+                      toast.success(t.abCopyToast)
+                    }).catch(() => toast.error(t.toastCopyFail))
+                  }}
+                  onApplyTitle={idx => {
+                    const s0 = sections[0]
+                    if (!s0 || !abCopySet) return
+                    updateSection(s0.id, 'title', abCopySet.titles[idx])
+                    toast.success(t.abCopyToastApplyTitle)
+                  }}
+                  onApplyOpener={idx => {
+                    const s0 = sections[0]
+                    if (!s0 || !abCopySet) return
+                    updateSection(s0.id, 'body', `${abCopySet.openers[idx]}\n\n${s0.body}`)
+                    toast.success(t.abCopyToastApplyOpener)
+                  }}
+                />
+              </div>
+            )}
+
+            {metaExportBlocks && (
+              <div className="print:hidden">
+                <MetaOgExportPanel
+                  htmlBlock={metaExportBlocks.html}
+                  jsonBlock={metaExportBlocks.json}
+                  ui={t}
+                  open={metaOgOpen}
+                  onToggle={() => setMetaOgOpen(o => !o)}
+                  onCopyHtml={() => {
+                    navigator.clipboard.writeText(metaExportBlocks.html).then(() => {
+                      toast.success(t.metaOgToastHtml)
+                    }).catch(() => toast.error(t.toastCopyFail))
+                  }}
+                  onCopyJson={() => {
+                    navigator.clipboard.writeText(metaExportBlocks.json).then(() => {
+                      toast.success(t.metaOgToastJson)
+                    }).catch(() => toast.error(t.toastCopyFail))
+                  }}
+                />
+              </div>
+            )}
 
             {/* Primary publish (locale default platform) */}
             <div className="space-y-2">
@@ -688,13 +1088,76 @@ export default function OrderResultPage() {
             </p>
           </div>
 
-          <div className="max-w-[390px] mx-auto w-full mb-4 xl:hidden print:hidden">
+          <div className="max-w-[390px] mx-auto w-full mb-4 xl:hidden print:hidden space-y-3">
             <ComplianceScanPanel
               findings={complianceFindings}
               open={complianceOpen}
               onToggle={() => setComplianceOpen(o => !o)}
               ui={t}
+              industryBadge={complianceIndustryBadge}
             />
+            {channelKitContent && (
+              <ChannelPublishKitPanel
+                platforms={PLATFORMS}
+                platform={platform}
+                setPlatform={setPlatform}
+                kit={channelKitContent}
+                ui={t}
+                open={channelKitOpen}
+                onToggle={() => setChannelKitOpen(o => !o)}
+                onCopyHook={line => {
+                  navigator.clipboard.writeText(line).then(() => {
+                    toast.success(t.channelKitToastHook)
+                  }).catch(() => toast.error(t.toastCopyFail))
+                }}
+              />
+            )}
+            {abCopySet && (
+              <ConversionAbPanel
+                titles={abCopySet.titles}
+                openers={abCopySet.openers}
+                ui={t}
+                open={abCopyOpen}
+                onToggle={() => setAbCopyOpen(o => !o)}
+                hasFirst={sections.length > 0}
+                onCopyLine={line => {
+                  navigator.clipboard.writeText(line).then(() => {
+                    toast.success(t.abCopyToast)
+                  }).catch(() => toast.error(t.toastCopyFail))
+                }}
+                onApplyTitle={idx => {
+                  const s0 = sections[0]
+                  if (!s0 || !abCopySet) return
+                  updateSection(s0.id, 'title', abCopySet.titles[idx])
+                  toast.success(t.abCopyToastApplyTitle)
+                }}
+                onApplyOpener={idx => {
+                  const s0 = sections[0]
+                  if (!s0 || !abCopySet) return
+                  updateSection(s0.id, 'body', `${abCopySet.openers[idx]}\n\n${s0.body}`)
+                  toast.success(t.abCopyToastApplyOpener)
+                }}
+              />
+            )}
+            {metaExportBlocks && (
+              <MetaOgExportPanel
+                htmlBlock={metaExportBlocks.html}
+                jsonBlock={metaExportBlocks.json}
+                ui={t}
+                open={metaOgOpen}
+                onToggle={() => setMetaOgOpen(o => !o)}
+                onCopyHtml={() => {
+                  navigator.clipboard.writeText(metaExportBlocks.html).then(() => {
+                    toast.success(t.metaOgToastHtml)
+                  }).catch(() => toast.error(t.toastCopyFail))
+                }}
+                onCopyJson={() => {
+                  navigator.clipboard.writeText(metaExportBlocks.json).then(() => {
+                    toast.success(t.metaOgToastJson)
+                  }).catch(() => toast.error(t.toastCopyFail))
+                }}
+              />
+            )}
           </div>
 
           {/* PDF 타겟 */}

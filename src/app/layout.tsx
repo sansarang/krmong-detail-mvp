@@ -4,7 +4,7 @@ import Script from 'next/script'
 import './globals.css'
 import { Toaster } from 'sonner'
 import ChatWidget from '@/components/ChatWidget'
-import { Analytics } from '@vercel/analytics/next'
+import { Analytics } from '@vercel/analytics/react'
 
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
