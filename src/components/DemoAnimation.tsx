@@ -57,22 +57,22 @@ export default function DemoAnimation() {
 
     // --- 타이핑 헬퍼 ---
     let cursor = 300
-    const type = (text: string, setter: (v: string) => void, gap = 55) => {
+    const type = (text: string, setter: React.Dispatch<React.SetStateAction<string>>, gap = 55) => {
       ;[...text].forEach((ch, i) => {
         const t = cursor + i * gap
-        T.push(setTimeout(() => setter(prev => prev + ch), t))
+        T.push(setTimeout(() => setter((prev: string) => prev + ch), t))
       })
       cursor += text.length * gap + 500
     }
 
     // 1. 제품명 타이핑
-    type(NAME_TEXT, v => setNameVal(v))
+    type(NAME_TEXT, setNameVal)
 
     // 2. 카테고리 타이핑
-    type(CAT_TEXT, v => setCatVal(v), 65)
+    type(CAT_TEXT, setCatVal, 65)
 
     // 3. 설명 타이핑
-    type(DESC_TEXT, v => setDescVal(v), 50)
+    type(DESC_TEXT, setDescVal, 50)
 
     // 4. 사진 업로드
     add(() => setPhotoAdded(true), cursor)
