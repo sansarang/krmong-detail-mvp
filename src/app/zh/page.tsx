@@ -262,7 +262,7 @@ export default function ZhPage() {
           <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">订阅通讯</p>
           <h2 className="text-2xl md:text-4xl font-black text-black tracking-tight mb-3">每周获取AI内容创作技巧。</h2>
           <p className="text-gray-400 text-sm mb-6">转化率提升技巧、SEO实战、平台最新动态，每周免费送达。</p>
-          <NewsletterForm />
+          <NewsletterForm lang="zh" />
         </div>
       </section>
 

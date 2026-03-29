@@ -262,7 +262,7 @@ export default function JaPage() {
           <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">ニュースレター</p>
           <h2 className="text-2xl md:text-4xl font-black text-black tracking-tight mb-3">AIコンテンツのコツを毎週お届け。</h2>
           <p className="text-gray-400 text-sm mb-6">転換率向上のヒント、SEOテクニック、プラットフォーム最新情報を無料で。</p>
-          <NewsletterForm />
+          <NewsletterForm lang="ja" />
         </div>
       </section>
 

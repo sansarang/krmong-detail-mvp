@@ -413,7 +413,7 @@ export default function Home() {
 
       {/* ─── NEWSLETTER ───────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-5 md:px-6 pb-8">
-        <NewsletterForm />
+        <NewsletterForm lang="ko" />
       </section>
 
       {/* ─── FINAL CTA ────────────────────────────────── */}

@@ -108,13 +108,16 @@ function analyzeSeo(sections: Section[], productName: string, category: string):
 
 // ── 플랫폼별 포맷 ──────────────────────────────────────────
 
-type Platform = 'naver' | 'tistory' | 'brunch' | 'instagram' | 'wordpress'
+type Platform = 'naver' | 'tistory' | 'brunch' | 'instagram' | 'wordpress' | 'medium' | 'shopify' | 'linkedin'
 
 const PLATFORMS: { id: Platform; label: string; icon: string; desc: string }[] = [
   { id: 'naver',     icon: 'N', label: '네이버 블로그', desc: 'HTML 편집 탭에 붙여넣기' },
   { id: 'tistory',   icon: 'T', label: '티스토리',     desc: 'HTML 모드에 붙여넣기' },
   { id: 'brunch',    icon: 'B', label: '브런치',       desc: '일반 텍스트 붙여넣기' },
-  { id: 'wordpress', icon: 'W', label: '워드프레스',   desc: 'HTML 블록에 붙여넣기' },
+  { id: 'wordpress', icon: 'W', label: 'WordPress',   desc: 'HTML / 커스텀 HTML 블록에 붙여넣기' },
+  { id: 'medium',    icon: 'M', label: 'Medium',      desc: '스토리 에디터에 HTML 붙여넣기' },
+  { id: 'shopify',   icon: 'S', label: 'Shopify',     desc: '상품 설명(HTML)에 붙여넣기' },
+  { id: 'linkedin',  icon: 'in', label: 'LinkedIn',   desc: '아티클 에디터에 붙여넣기' },
   { id: 'instagram', icon: '📸', label: '인스타그램',  desc: '캡션에 붙여넣기' },
 ]
 
@@ -252,9 +255,12 @@ ${tags}`
 
 export default function OrderResultPage() {
   const { id } = useParams()
+  const orderId = Array.isArray(id) ? id[0] : id
   const router = useRouter()
   const supabase = createClient()
   const previewRef = useRef<HTMLDivElement>(null)
+  const imageInputRef = useRef<HTMLInputElement>(null)
+  const pendingImageSlot = useRef<number | null>(null)
 
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
@@ -274,10 +280,12 @@ export default function OrderResultPage() {
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
   const chatBottomRef = useRef<HTMLDivElement>(null)
+  const [imageBusy, setImageBusy] = useState(false)
 
   useEffect(() => {
+    if (!orderId) return
     async function fetchOrder() {
-      const { data, error } = await supabase.from('orders').select('*').eq('id', id).single()
+      const { data, error } = await supabase.from('orders').select('*').eq('id', orderId).single()
       if (error || !data) { toast.error('주문을 찾을 수 없습니다'); router.push('/dashboard'); return }
       setOrder(data)
       if (data.result_json?.sections) {
@@ -287,7 +295,7 @@ export default function OrderResultPage() {
       setLoading(false)
     }
     fetchOrder()
-  }, [id])
+  }, [orderId])
 
   function updateSection(sectionId: number, field: 'title' | 'body', value: string) {
     setSections(prev => prev.map(s => s.id === sectionId ? { ...s, [field]: value } : s))
@@ -334,6 +342,7 @@ export default function OrderResultPage() {
   async function handleChatSend() {
     if (!chatInput.trim() || chatLoading || !order) return
     const userMsg = chatInput.trim()
+    const imageUrlsBefore = JSON.stringify(order.image_urls ?? [])
     setChatInput('')
     setChatMessages(prev => [...prev, { role: 'user', text: userMsg }])
     setChatLoading(true)
@@ -348,10 +357,22 @@ export default function OrderResultPage() {
           sections,
           productName: order.product_name,
           category: order.category,
+          orderId: order.id,
+          imageUrls: order.image_urls ?? [],
         }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
+
+      if (Array.isArray(data.image_urls)) {
+        setOrder(prev => (prev ? { ...prev, image_urls: data.image_urls } : prev))
+        if (JSON.stringify(data.image_urls) !== imageUrlsBefore) {
+          toast.success('이미지가 반영됐습니다')
+        }
+      }
+      if (Array.isArray(data.image_errors) && data.image_errors.length > 0) {
+        toast.warning(data.image_errors.join(' · '), { duration: 6000 })
+      }
 
       setChatMessages(prev => [...prev, {
         role: 'ai',
@@ -377,6 +398,34 @@ export default function OrderResultPage() {
     toast.success(`${modified.length}개 섹션이 수정됐습니다!`)
   }
 
+  function pickImageSlot(slot: number) {
+    pendingImageSlot.current = slot
+    imageInputRef.current?.click()
+  }
+
+  async function onProductImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    const slot = pendingImageSlot.current
+    e.target.value = ''
+    pendingImageSlot.current = null
+    if (!file || slot === null || !orderId) return
+    setImageBusy(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('slot', String(slot))
+      const res = await fetch(`/api/orders/${orderId}/images`, { method: 'POST', body: fd })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(typeof data.error === 'string' ? data.error : '업로드 실패')
+      setOrder(prev => (prev ? { ...prev, image_urls: data.image_urls ?? prev.image_urls } : prev))
+      toast.success('이미지가 반영됐습니다')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : '업로드 실패')
+    } finally {
+      setImageBusy(false)
+    }
+  }
+
   function getFormatContent(): string {
     if (!order) return ''
     const imgs = order.image_urls ?? []
@@ -385,6 +434,9 @@ export default function OrderResultPage() {
       case 'tistory':
         return toBlogHTML(sections, order.product_name, order.category, imgs)
       case 'wordpress':
+      case 'medium':
+      case 'shopify':
+      case 'linkedin':
         return toWordPressHTML(sections, order.product_name, order.category, imgs)
       case 'brunch':
         return toBrunchText(sections, order.product_name)
@@ -554,6 +606,52 @@ export default function OrderResultPage() {
                 <span className="text-xs text-gray-500 font-medium">실시간 편집</span>
               </div>
             </div>
+          </div>
+
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            className="hidden"
+            onChange={onProductImageChange}
+          />
+
+          {/* 제품 이미지 교체·추가 (PDF 제외) */}
+          <div className="max-w-[390px] mx-auto w-full mb-3 print:hidden">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">제품 이미지 · 최대 3장</p>
+            <div className="flex flex-wrap items-end gap-2">
+              {(order.image_urls ?? []).map((url, i) => (
+                <div key={`${url}-${i}`} className="relative flex flex-col items-center gap-1">
+                  <img
+                    src={url}
+                    alt={`제품 ${i + 1}`}
+                    className="w-16 h-16 sm:w-[72px] sm:h-[72px] object-cover rounded-xl border border-gray-200 bg-gray-50"
+                  />
+                  <button
+                    type="button"
+                    disabled={imageBusy}
+                    onClick={() => pickImageSlot(i)}
+                    className="text-[10px] font-bold text-gray-500 hover:text-black border border-gray-200 rounded-lg px-2 py-0.5 disabled:opacity-40"
+                  >
+                    교체
+                  </button>
+                </div>
+              ))}
+              {(order.image_urls ?? []).length < 3 && (
+                <button
+                  type="button"
+                  disabled={imageBusy}
+                  onClick={() => pickImageSlot((order.image_urls ?? []).length)}
+                  className="w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-xl border-2 border-dashed border-gray-200 text-gray-400 text-xl font-light hover:border-gray-400 hover:text-gray-600 disabled:opacity-40 flex items-center justify-center"
+                  title="이미지 추가"
+                >
+                  +
+                </button>
+              )}
+            </div>
+            <p className="text-[10px] text-gray-400 mt-2 leading-relaxed">
+              AI 채팅은 글만 수정합니다. 사진은 여기서 교체하거나 추가하세요.
+            </p>
           </div>
 
           {/* PDF 타겟 */}
@@ -746,10 +844,10 @@ export default function OrderResultPage() {
             <div className="flex flex-wrap gap-1.5">
               {[
                 '첫 번째 섹션 더 강렬하게',
+                '첫 번째 제품 사진을 더 밝고 고급스럽게 바꿔줘',
                 'CTA 더 설득력 있게',
                 '전체적으로 더 친근하게',
                 '숫자와 수치 더 추가해줘',
-                '마지막 섹션 할인 내용 추가',
                 '제목들 더 짧고 임팩트 있게',
               ].map(q => (
                 <button
@@ -772,8 +870,12 @@ export default function OrderResultPage() {
               <p className="text-sm font-bold text-gray-700 mb-1">AI에게 수정을 요청하세요</p>
               <p className="text-xs text-gray-400 leading-relaxed">
                 "1번 섹션 더 강하게 바꿔줘"<br />
-                "전체 톤을 더 친근하게"<br />
-                "CTA에 기간 한정 혜택 추가해줘"
+                "첫 번째 사진을 화이트 배경 제품컷으로 바꿔줘"<br />
+                "https://… 이미지로 두 번째 사진 교체해줘" (URL 붙여넣기)
+              </p>
+              <p className="text-[10px] text-amber-700/90 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mt-4 text-left leading-relaxed">
+                <strong>글</strong>은 제안 후 <strong>「섹션 적용하기」</strong>를 눌러 반영하세요.
+                <strong>사진</strong>은 말로 요청하면 AI가 이미지를 생성·저장합니다(최대 3장, 요청당 최대 3작업). 생성에는 시간이 걸릴 수 있어요. 정확한 사진은 URL을 붙이거나 위「제품 이미지」에서 직접 올리는 편이 더 안전합니다.
               </p>
             </div>
           )}

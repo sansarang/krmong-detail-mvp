@@ -43,7 +43,7 @@ const FAQS = [
   { q: 'What categories are supported?', a: 'We support 40+ categories: e-commerce products, automotive services, restaurants, education, real estate, IT/SaaS, government documents, R&D proposals, academic papers, and more.' },
   { q: 'Can I edit the generated content?', a: 'Yes. Click any section to edit it inline. You can also use the AI chat assistant to request revisions in natural language, like "make this more persuasive."' },
   { q: 'What languages are supported?', a: 'Korean, English, Japanese, and Chinese. The AI detects your browser language and automatically sets the output language.' },
-  { q: 'Can I publish to my blog directly?', a: 'Yes! Click the Blog tab after generation and choose your platform — Naver Blog, Tistory, WordPress, or Instagram. Copy the formatted HTML and paste it into your blog editor.' },
+  { q: 'Can I publish to my blog directly?', a: 'Yes! Open the Blog tab after generation and pick WordPress, Shopify, Medium, Instagram, or LinkedIn — copy the HTML and paste it into your editor. (Korean sites: Naver Blog & Tistory are available in the Korean UI.)' },
   { q: 'How much does it cost?', a: 'Free plan includes 5 generations per month. Pro plan is $21/month with unlimited generations, SEO analysis, and multi-platform blog export.' },
 ]
 
@@ -51,7 +51,7 @@ const FEATURES = [
   { icon: '⚡', title: '5-Minute Output', desc: 'From input to download in under 5 minutes. No waiting on agencies or freelancers.' },
   { icon: '✏️', title: 'Click-to-Edit', desc: 'Not happy with a section? Click once to edit inline. No back-and-forth emails.' },
   { icon: '🌏', title: '40+ Categories', desc: 'E-commerce, automotive, hospitality, government, academia — one tool for all industries.' },
-  { icon: '📤', title: 'Multi-Platform Publish', desc: 'Naver Blog, Tistory, WordPress, Instagram — 1-click copy + auto-open.' },
+  { icon: '📤', title: 'Multi-Platform Publish', desc: 'WordPress, Shopify, Medium, Instagram, LinkedIn — one-click copy for your stack.' },
 ]
 
 export default function EnglishHome() {
@@ -269,7 +269,7 @@ export default function EnglishHome() {
           <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">Newsletter</p>
           <h2 className="text-2xl md:text-4xl font-black text-black tracking-tight mb-3">Get AI content tips weekly.</h2>
           <p className="text-gray-400 text-sm mb-6">Conversion tips, SEO tricks, and platform updates. Free, every week.</p>
-          <NewsletterForm />
+          <NewsletterForm lang="en" />
         </div>
       </section>
 

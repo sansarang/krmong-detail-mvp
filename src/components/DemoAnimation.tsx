@@ -123,10 +123,10 @@ const COPY: Record<Lang, Copy> = {
       { name: 'CTA', title: 'Today only — 20% off first order', color: '#8B5CF6' },
     ],
     platforms: [
-      { id: 'naver', label: 'Naver Blog', icon: 'N', bg: '#03C75A', text: '#fff' },
-      { id: 'tistory', label: 'Tistory', icon: 'T', bg: '#F26522', text: '#fff' },
-      { id: 'instagram', label: 'Instagram', icon: '📸', bg: 'linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)', text: '#fff' },
       { id: 'wordpress', label: 'WordPress', icon: 'W', bg: '#21759B', text: '#fff' },
+      { id: 'shopify', label: 'Shopify', icon: 'S', bg: '#96BF48', text: '#fff' },
+      { id: 'medium', label: 'Medium', icon: 'M', bg: '#000000', text: '#fff' },
+      { id: 'instagram', label: 'Instagram', icon: '📸', bg: 'linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)', text: '#fff' },
     ],
   },
   ja: {
@@ -167,10 +167,10 @@ const COPY: Record<Lang, Copy> = {
       { name: 'CTA', title: '初回20%オフ — 本日限定', color: '#8B5CF6' },
     ],
     platforms: [
-      { id: 'naver', label: 'NAVERブログ', icon: 'N', bg: '#03C75A', text: '#fff' },
-      { id: 'tistory', label: 'Tistory', icon: 'T', bg: '#F26522', text: '#fff' },
-      { id: 'instagram', label: 'Instagram', icon: '📸', bg: 'linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)', text: '#fff' },
+      { id: 'ameblo', label: 'アメブロ', icon: 'A', bg: '#FF6B00', text: '#fff' },
+      { id: 'note', label: 'note', icon: 'n', bg: '#000000', text: '#fff' },
       { id: 'wordpress', label: 'WordPress', icon: 'W', bg: '#21759B', text: '#fff' },
+      { id: 'instagram', label: 'Instagram', icon: '📸', bg: 'linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)', text: '#fff' },
     ],
   },
   zh: {
@@ -211,10 +211,10 @@ const COPY: Record<Lang, Copy> = {
       { name: '行动', title: '今日限定 — 首单8折', color: '#8B5CF6' },
     ],
     platforms: [
-      { id: 'naver', label: 'NAVER博客', icon: 'N', bg: '#03C75A', text: '#fff' },
-      { id: 'tistory', label: 'Tistory', icon: 'T', bg: '#F26522', text: '#fff' },
-      { id: 'instagram', label: 'Instagram', icon: '📸', bg: 'linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)', text: '#fff' },
+      { id: 'wechat', label: '微信公众号', icon: '微', bg: '#07C160', text: '#fff' },
+      { id: 'xiaohongshu', label: '小红书', icon: '红', bg: '#FF2442', text: '#fff' },
       { id: 'wordpress', label: 'WordPress', icon: 'W', bg: '#21759B', text: '#fff' },
+      { id: 'instagram', label: 'Instagram', icon: '📸', bg: 'linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)', text: '#fff' },
     ],
   },
 }
