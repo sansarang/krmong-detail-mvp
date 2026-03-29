@@ -911,9 +911,10 @@ export default function OrderResultPage() {
 
       <div className="max-w-6xl mx-auto px-8 py-10 flex gap-10">
         {/* 목차 */}
-        <aside className="hidden xl:block w-48 shrink-0">
-          <div className="sticky top-24 space-y-6">
-            <div>
+        <aside className="hidden min-w-0 w-48 shrink-0 xl:block">
+          <div className="sticky top-24 min-w-0 space-y-6">
+            {/* 편집용 점프 목차 — 발행 미리보기 열림·인쇄 시 숨김 (본문 미리보기에 목차 불필요) */}
+            <div className={`print:hidden ${showBlogPreview ? 'hidden' : ''}`}>
               <p className="text-xs font-bold text-gray-300 uppercase tracking-widest mb-4">{p.toc}</p>
               <div className="space-y-0.5">
                 {sections.map((s, i) => (
