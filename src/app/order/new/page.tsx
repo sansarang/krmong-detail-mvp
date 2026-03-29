@@ -5,9 +5,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import Logo from '@/components/Logo'
-import { readStoredUiLang, loginPathForLang } from '@/lib/uiLocale'
-
-type UiLang = 'ko' | 'en' | 'ja' | 'zh'
+import { readStoredUiLang, persistUiLang, loginPathForLang, type UiLang } from '@/lib/uiLocale'
+import OrderWritingWidgets from '@/components/OrderWritingWidgets'
 
 // ── 카테고리 그룹 (언어별) ──────────────────────────────────────
 const CAT_GROUPS: Record<UiLang, { group: string; items: { value: string; label: string }[] }[]> = {
@@ -244,6 +243,7 @@ const UI: Record<UiLang, {
   nameLabel: string; namePlaceholder: string;
   docNameLabel: string; docNamePlaceholder: string;
   catLabel: string; catPlaceholder: string;
+  screenLangLabel: string; screenLangSub: string;
   langLabel: string; langSub: string;
   descLabel: string; descPlaceholder: string;
   docDescLabel: string; docDescPlaceholder: string;
@@ -268,6 +268,7 @@ const UI: Record<UiLang, {
     nameLabel: '제품/서비스명', namePlaceholder: '예: 제주 유기농 녹차 추출 세럼',
     docNameLabel: '문서/프로젝트 제목', docNamePlaceholder: '예: 2025년 스마트시티 R&D 사업 제안서',
     catLabel: '카테고리', catPlaceholder: '카테고리를 선택해주세요',
+    screenLangLabel: '화면 언어', screenLangSub: '폼·안내 문구 (일본어로 들어와도 여기서 바꿀 수 있어요)',
     langLabel: '출력 언어', langSub: 'AI가 이 언어로 작성합니다',
     descLabel: '제품/서비스 설명', descPlaceholder: '주요 특징, 효능, 성분, 타겟 고객을 자세히 입력해주세요.',
     docDescLabel: '핵심 내용 요약', docDescPlaceholder: '문서의 핵심 내용, 목적, 대상, 주요 성과를 입력하세요.',
@@ -294,6 +295,7 @@ const UI: Record<UiLang, {
     nameLabel: 'Product / Service Name', namePlaceholder: 'e.g. Organic Hyaluronic Acid Serum 50ml',
     docNameLabel: 'Document / Project Title', docNamePlaceholder: 'e.g. 2025 Smart City R&D Proposal',
     catLabel: 'Category', catPlaceholder: 'Select a category',
+    screenLangLabel: 'Screen language', screenLangSub: 'Form labels (change anytime, independent of AI output)',
     langLabel: 'Output Language', langSub: 'AI will write in this language',
     descLabel: 'Product / Service Description', descPlaceholder: 'Describe key features, benefits, ingredients, and target customers. The more detail, the better the result.',
     docDescLabel: 'Key Content Summary', docDescPlaceholder: 'Describe the purpose, audience, key outcomes, or paste the document content here.',
@@ -320,6 +322,7 @@ const UI: Record<UiLang, {
     nameLabel: '商品・サービス名', namePlaceholder: '例：有機ヒアルロン酸セラム 50ml',
     docNameLabel: '文書・プロジェクトタイトル', docNamePlaceholder: '例：2025年スマートシティR&D事業提案書',
     catLabel: 'カテゴリ', catPlaceholder: 'カテゴリを選択してください',
+    screenLangLabel: '画面の言語', screenLangSub: 'フォームの表示（出力言語とは別に変更できます）',
     langLabel: '出力言語', langSub: 'AIがこの言語で作成します',
     descLabel: '商品・サービスの説明', descPlaceholder: '主な特徴、効能、成分、ターゲット顧客を詳しく入力してください。',
     docDescLabel: 'コア内容の要約', docDescPlaceholder: '文書の目的、対象、主な成果などを入力してください。',
@@ -346,6 +349,7 @@ const UI: Record<UiLang, {
     nameLabel: '商品/服务名称', namePlaceholder: '例：有机玻尿酸精华液 50ml',
     docNameLabel: '文档/项目标题', docNamePlaceholder: '例：2025年智慧城市R&D项目提案书',
     catLabel: '分类', catPlaceholder: '请选择分类',
+    screenLangLabel: '界面语言', screenLangSub: '表单与提示文案（可与输出语言不同）',
     langLabel: '输出语言', langSub: 'AI将用此语言撰写',
     descLabel: '商品/服务描述', descPlaceholder: '请详细描述主要特点、功效、成分和目标客户。描述越详细，生成结果越好。',
     docDescLabel: '核心内容摘要', docDescPlaceholder: '请输入文档的目的、受众、主要成果，或直接粘贴文档内容。',
@@ -488,6 +492,7 @@ export default function NewOrderPage() {
         throw new Error(data.message || 'Generation failed')
       }
       toast.success(L.toastDone)
+      persistUiLang(outputLang as UiLang)
       router.push(`/order/${order.id}`)
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Error occurred')
@@ -600,6 +605,34 @@ export default function NewOrderPage() {
             </select>
           </div>
 
+          {/* 화면 언어 (폼 UI만, 랜딩·브라우저와 독립) */}
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+              {L.screenLangLabel}{' '}
+              <span className="text-gray-300 normal-case font-normal">({L.screenLangSub})</span>
+            </label>
+            <div className="grid grid-cols-4 gap-2">
+              {LANGUAGES.map(lang => (
+                <button
+                  key={`ui-${lang.value}`}
+                  type="button"
+                  onClick={() => {
+                    const v = lang.value as UiLang
+                    setUiLang(v)
+                    persistUiLang(v)
+                  }}
+                  className={`py-3 rounded-2xl text-sm font-bold border transition-all ${
+                    uiLang === lang.value
+                      ? 'bg-gray-900 text-white border-gray-900'
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                  }`}
+                >
+                  {lang.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* 출력 언어 */}
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
@@ -637,6 +670,8 @@ export default function NewOrderPage() {
               className="w-full border border-gray-200 rounded-2xl px-5 py-4 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm resize-none"
             />
           </div>
+
+          <OrderWritingWidgets uiLang={uiLang} />
 
           {/* 문서 첨부 (문서 카테고리만) */}
           {isDocCat && (

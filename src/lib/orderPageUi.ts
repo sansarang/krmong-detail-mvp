@@ -287,6 +287,8 @@ export type OrderPageUi = {
   brand: string
   badgeDone: string
   headerHint: string
+  /** 결과 페이지 헤더 언어 전환 */
+  headerUiLangTitle: string
   regen: string
   regenLoading: string
   chatOpen: string
@@ -347,6 +349,7 @@ export const ORDER_PAGE_UI: Record<UiLang, OrderPageUi> = {
     brand: '페이지AI',
     badgeDone: '완료',
     headerHint: '섹션을 클릭해서 바로 편집하세요',
+    headerUiLangTitle: '화면',
     regen: '↺ 다시 생성',
     regenLoading: '재생성 중...',
     chatOpen: '✦ AI 수정 요청',
@@ -413,6 +416,7 @@ export const ORDER_PAGE_UI: Record<UiLang, OrderPageUi> = {
     brand: 'PageAI',
     badgeDone: 'Done',
     headerHint: 'Click a section to edit inline',
+    headerUiLangTitle: 'UI',
     regen: '↺ Regenerate',
     regenLoading: 'Regenerating...',
     chatOpen: '✦ AI edit request',
@@ -479,6 +483,7 @@ export const ORDER_PAGE_UI: Record<UiLang, OrderPageUi> = {
     brand: 'PageAI',
     badgeDone: '完了',
     headerHint: 'セクションをタップしてその場で編集',
+    headerUiLangTitle: '表示',
     regen: '↺ 再生成',
     regenLoading: '再生成中...',
     chatOpen: '✦ AIに修正依頼',
@@ -545,6 +550,7 @@ export const ORDER_PAGE_UI: Record<UiLang, OrderPageUi> = {
     brand: 'PageAI',
     badgeDone: '已完成',
     headerHint: '点击区块即可就地编辑',
+    headerUiLangTitle: '界面',
     regen: '↺ 重新生成',
     regenLoading: '重新生成中...',
     chatOpen: '✦ AI 修改',

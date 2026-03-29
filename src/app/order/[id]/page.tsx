@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { readStoredUiLang, type UiLang } from '@/lib/uiLocale'
+import { readStoredUiLang, persistUiLang, type UiLang } from '@/lib/uiLocale'
 import {
   type PublishPlatform,
   type OrderResultUi,
@@ -42,7 +42,7 @@ interface Order {
   description: string
   image_urls: string[]
   status: string
-  result_json: { sections: Section[] } | null
+  result_json: { sections: Section[]; output_lang?: string } | null
 }
 
 interface SeoReport {
@@ -546,6 +546,7 @@ export default function OrderResultPage() {
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
   const chatBottomRef = useRef<HTMLDivElement>(null)
+  const langSyncedFromOrderRef = useRef(false)
   const [imageBusy, setImageBusy] = useState(false)
   const [complianceOpen, setComplianceOpen] = useState(false)
   const [channelKitOpen, setChannelKitOpen] = useState(true)
@@ -560,6 +561,10 @@ export default function OrderResultPage() {
   const primaryRow = PLATFORMS.find(p => p.id === primaryPlatform) ?? PLATFORMS[0]
 
   useEffect(() => {
+    langSyncedFromOrderRef.current = false
+  }, [orderId])
+
+  useEffect(() => {
     const stored = readStoredUiLang()
     if (stored) {
       setUiLang(stored)
@@ -569,6 +574,16 @@ export default function OrderResultPage() {
     const supported: UiLang[] = ['ko', 'en', 'ja', 'zh']
     setUiLang(supported.includes(nav as UiLang) ? (nav as UiLang) : 'en')
   }, [])
+
+  useEffect(() => {
+    if (!order?.result_json || langSyncedFromOrderRef.current) return
+    const ol = order.result_json.output_lang
+    if (ol === 'ko' || ol === 'en' || ol === 'ja' || ol === 'zh') {
+      langSyncedFromOrderRef.current = true
+      setUiLang(ol)
+      persistUiLang(ol)
+    }
+  }, [order?.result_json?.output_lang, order?.result_json])
 
   useEffect(() => {
     setPlatform(defaultPlatformForLang(uiLang))
@@ -653,7 +668,7 @@ export default function OrderResultPage() {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: order.id }),
+        body: JSON.stringify({ orderId: order.id, outputLang: uiLang }),
       })
       if (!res.ok) throw new Error(p.toastRegenFail)
       const { result } = await res.json()
@@ -846,9 +861,27 @@ export default function OrderResultPage() {
             <span className="text-sm font-semibold text-gray-900">{order.product_name}</span>
             <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full border border-emerald-200">{p.badgeDone}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400 hidden sm:block">{p.headerHint}</span>
-            <div className="w-px h-4 bg-gray-200 hidden sm:block" />
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            <div className="flex items-center gap-1 mr-1">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter hidden sm:inline">{p.headerUiLangTitle}</span>
+              {(['ko', 'en', 'ja', 'zh'] as const).map(code => (
+                <button
+                  key={code}
+                  type="button"
+                  onClick={() => {
+                    setUiLang(code)
+                    persistUiLang(code)
+                  }}
+                  className={`text-[10px] font-black px-2 py-1 rounded-lg border transition-all ${
+                    uiLang === code ? 'bg-black text-white border-black' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                  }`}
+                >
+                  {code.toUpperCase()}
+                </button>
+              ))}
+            </div>
+            <span className="text-xs text-gray-400 hidden lg:block">{p.headerHint}</span>
+            <div className="w-px h-4 bg-gray-200 hidden lg:block" />
             <button
               onClick={handleRegenerate}
               disabled={regenLoading}

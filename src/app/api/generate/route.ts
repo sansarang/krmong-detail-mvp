@@ -220,7 +220,11 @@ JSON만 출력 (다른 텍스트 없이):
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) throw new Error('JSON 파싱 실패')
 
-    const result = JSON.parse(jsonMatch[0])
+    const parsed = JSON.parse(jsonMatch[0])
+    const result = {
+      sections: parsed.sections,
+      output_lang: outputLang,
+    }
 
     await supabase
       .from('orders')
