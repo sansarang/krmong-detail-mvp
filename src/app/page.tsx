@@ -8,6 +8,8 @@ import PricingSection from '@/components/PricingSection'
 import LiveTicker from '@/components/LiveTicker'
 import NewsletterForm from '@/components/NewsletterForm'
 import CountdownBanner from '@/components/CountdownBanner'
+import LangSwitcher from '@/components/LangSwitcher'
+import ProductShowcase from '@/components/ProductShowcase'
 
 const HERO_WORDS = [
   '상세페이지',
@@ -148,9 +150,7 @@ export default function Home() {
             <Link href="/blog" className="text-gray-500 text-sm hover:text-black transition-colors font-medium">블로그</Link>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/en" className="hidden sm:flex items-center gap-1.5 text-sm text-gray-400 hover:text-black font-medium transition-colors border border-gray-200 px-3 py-1.5 rounded-xl hover:border-gray-400">
-              <span>🌐</span> EN
-            </Link>
+            <LangSwitcher current="ko" />
             <Link href="/login" className="text-sm text-gray-500 hover:text-black font-medium transition-colors hidden sm:block">로그인</Link>
             <Link href="/login" className="bg-black text-white text-sm px-5 py-2.5 rounded-xl font-bold hover:bg-gray-800 transition-all hover:scale-105">
               무료 시작
@@ -206,6 +206,9 @@ export default function Home() {
         </div>
         <p className="text-xs text-gray-300 font-medium">신용카드 불필요 · 무료로 시작 · 30초면 충분</p>
       </section>
+
+      {/* ─── PRODUCT SHOWCASE ────────────────────────── */}
+      <ProductShowcase />
 
       {/* ─── DEMO ANIMATION ──────────────────────────── */}
       <section className="max-w-5xl mx-auto px-5 pb-8">

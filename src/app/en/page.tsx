@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import LangSwitcher from '@/components/LangSwitcher'
 
 const HERO_WORDS = [
   'Product Pages',
@@ -69,6 +70,7 @@ export default function EnglishHome() {
             <Link href="/" className="text-gray-500 text-sm hover:text-black transition-colors font-medium">한국어</Link>
           </div>
           <div className="flex items-center gap-3">
+            <LangSwitcher current="en" />
             <Link href="/login" className="text-sm text-gray-500 hover:text-black font-medium transition-colors hidden sm:block">Log in</Link>
             <Link href="/login" className="bg-black text-white text-sm px-5 py-2.5 rounded-xl font-bold hover:bg-gray-800 transition-all hover:scale-105">
               Start Free
