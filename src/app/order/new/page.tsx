@@ -6,7 +6,6 @@ import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import Logo from '@/components/Logo'
 import { readStoredUiLang, persistUiLang, loginPathForLang, type UiLang } from '@/lib/uiLocale'
-import OrderWritingWidgets from '@/components/OrderWritingWidgets'
 
 // ── 카테고리 그룹 (언어별) ──────────────────────────────────────
 const CAT_GROUPS: Record<UiLang, { group: string; items: { value: string; label: string }[] }[]> = {
@@ -670,8 +669,6 @@ export default function NewOrderPage() {
               className="w-full border border-gray-200 rounded-2xl px-5 py-4 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm resize-none"
             />
           </div>
-
-          <OrderWritingWidgets uiLang={uiLang} />
 
           {/* 문서 첨부 (문서 카테고리만) */}
           {isDocCat && (

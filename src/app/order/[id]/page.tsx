@@ -27,6 +27,7 @@ import {
 import { type ChannelPublishKitContent, getChannelPublishKit } from '@/lib/channelPublishKit'
 import { buildConversionAbCopy } from '@/lib/conversionAbCopy'
 import { buildMetaOgPackage, metaOgPackageToHtmlMeta, metaOgPackageToJson } from '@/lib/metaOgPackage'
+import OrderWritingWidgets from '@/components/OrderWritingWidgets'
 
 interface Section {
   id: number
@@ -1021,6 +1022,10 @@ export default function OrderResultPage() {
               </div>
             )}
 
+            <div className="print:hidden">
+              <OrderWritingWidgets uiLang={uiLang} />
+            </div>
+
             {/* Primary publish (locale default platform) */}
             <div className="space-y-2">
               <button
@@ -1191,6 +1196,7 @@ export default function OrderResultPage() {
                 }}
               />
             )}
+            <OrderWritingWidgets uiLang={uiLang} />
           </div>
 
           {/* PDF 타겟 */}
