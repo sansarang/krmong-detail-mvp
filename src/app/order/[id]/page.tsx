@@ -25,8 +25,12 @@ import {
   scanPostPublishCompliance,
 } from '@/lib/postPublishCheck'
 import { type ChannelPublishKitContent, getChannelPublishKit } from '@/lib/channelPublishKit'
-import { buildConversionAbCopy } from '@/lib/conversionAbCopy'
+import { buildConversionAbCopy, type AbRecommendation } from '@/lib/conversionAbCopy'
 import { buildMetaOgPackage, metaOgPackageToHtmlMeta, metaOgPackageToJson } from '@/lib/metaOgPackage'
+import { buildListingPasteBundle, listingBundleUsesPlainText } from '@/lib/listingPasteBundles'
+import { buildListingEvidencePack } from '@/lib/listingEvidenceLayer'
+import { buildListingAssetKit } from '@/lib/listingAssetKit'
+import { buildMarketIntelHeuristics } from '@/lib/marketIntelCopy'
 import OrderWritingWidgets from '@/components/OrderWritingWidgets'
 
 interface Section {
@@ -238,6 +242,12 @@ function ComplianceScanPanel({
                     <code className="text-[10px] text-gray-600 break-all">{f.matched}</code>
                   </div>
                   <p className="text-gray-700">{f.tip}</p>
+                  {f.suggest && (
+                    <p className="mt-1.5 text-[11px] text-emerald-900/90 bg-emerald-50/90 border border-emerald-100 rounded-lg px-2 py-1.5">
+                      <span className="font-black text-emerald-800">{ui.complianceSuggestLabel}: </span>
+                      {f.suggest}
+                    </p>
+                  )}
                 </div>
               ))}
               <p className="text-[10px] text-amber-900/55 leading-relaxed">{ui.complianceDisclaimer}</p>
@@ -258,6 +268,8 @@ function ChannelPublishKitPanel({
   open,
   onToggle,
   onCopyHook,
+  pasteBundle,
+  onCopyPasteBundle,
   className = '',
 }: {
   platforms: PlatformRow[]
@@ -268,6 +280,8 @@ function ChannelPublishKitPanel({
   open: boolean
   onToggle: () => void
   onCopyHook: (line: string) => void
+  pasteBundle: string
+  onCopyPasteBundle: () => void
   className?: string
 }) {
   return (
@@ -305,6 +319,41 @@ function ChannelPublishKitPanel({
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">{ui.channelKitStrategy}</p>
             <p className="text-xs text-slate-700 leading-relaxed">{kit.strategy}</p>
           </div>
+          <div className="rounded-xl bg-white border border-slate-200/80 p-2.5 space-y-2">
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider">{ui.channelKitSpecTitle}</p>
+            <div>
+              <p className="text-[9px] font-bold text-slate-400 mb-0.5">{ui.channelKitSpecTitleLen}</p>
+              <p className="text-[11px] text-slate-700 leading-snug">{kit.specSheet.titleLengthHint}</p>
+            </div>
+            <div>
+              <p className="text-[9px] font-bold text-slate-400 mb-0.5">{ui.channelKitSpecBullets}</p>
+              <p className="text-[11px] text-slate-700 leading-snug">{kit.specSheet.bulletRules}</p>
+            </div>
+            <div>
+              <p className="text-[9px] font-bold text-slate-400 mb-0.5">{ui.channelKitSpecImages}</p>
+              <p className="text-[11px] text-slate-700 leading-snug">{kit.specSheet.imageRatioGuide}</p>
+            </div>
+            <div>
+              <p className="text-[9px] font-bold text-slate-400 mb-0.5">{ui.channelKitSpecFields}</p>
+              <ul className="text-[11px] text-slate-700 space-y-1">
+                {kit.specSheet.extraFields.map((row, i) => (
+                  <li key={i}>
+                    <span className="font-bold text-slate-800">{row.label}: </span>
+                    {row.hint}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          {pasteBundle.trim() && (
+            <button
+              type="button"
+              onClick={onCopyPasteBundle}
+              className="w-full text-left text-xs font-bold text-slate-950 bg-white border border-slate-300 rounded-xl px-3 py-2 hover:bg-slate-50"
+            >
+              {ui.channelKitCopyPasteBundle}
+            </button>
+          )}
           <div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">{ui.channelKitConversion}</p>
             <ul className="text-xs text-slate-700 leading-relaxed list-disc pl-4 space-y-0.5">
@@ -352,6 +401,10 @@ function industryBucketLabel(ui: OrderResultUi, b: IndustryBucket): string {
       return ui.industryBeauty
     case 'food':
       return ui.industryFood
+    case 'finance':
+      return ui.industryFinance
+    case 'medical':
+      return ui.industryMedical
     default:
       return ui.industryGeneral
   }
@@ -360,27 +413,36 @@ function industryBucketLabel(ui: OrderResultUi, b: IndustryBucket): string {
 function ConversionAbPanel({
   titles,
   openers,
+  ctas,
+  recommendation,
   ui,
   open,
   onToggle,
   onCopyLine,
   onApplyTitle,
   onApplyOpener,
+  onApplyCta,
   hasFirst,
+  lastSectionId,
   className = '',
 }: {
   titles: [string, string, string]
   openers: [string, string, string]
+  ctas: [string, string]
+  recommendation: AbRecommendation
   ui: OrderResultUi
   open: boolean
   onToggle: () => void
   onCopyLine: (line: string) => void
   onApplyTitle: (index: 0 | 1 | 2) => void
   onApplyOpener: (index: 0 | 1 | 2) => void
+  onApplyCta: (index: 0 | 1) => void
   hasFirst: boolean
+  lastSectionId: number | null
   className?: string
 }) {
   const labs: ('A' | 'B' | 'C')[] = ['A', 'B', 'C']
+  const ctaLabs: ('A' | 'B')[] = ['A', 'B']
   return (
     <div className={`border border-violet-200 bg-violet-50/90 rounded-2xl overflow-hidden ${className}`}>
       <button
@@ -456,6 +518,185 @@ function ConversionAbPanel({
               ))}
             </div>
           </div>
+          <div className="rounded-xl bg-violet-900/5 border border-violet-200/80 px-2.5 py-2">
+            <p className="text-[10px] font-black text-violet-700 uppercase tracking-wider mb-1">{ui.abCopyRecommend}</p>
+            <p className="text-[11px] text-violet-950 leading-snug font-medium">
+              {['A', 'B', 'C'][recommendation.titleIdx]} + {['A', 'B', 'C'][recommendation.openerIdx]} + CTA {ctaLabs[recommendation.ctaIdx]}
+            </p>
+            <p className="text-[10px] text-violet-900/80 mt-1 leading-relaxed">{recommendation.reason}</p>
+            <p className="text-[9px] text-violet-700/70 mt-1.5 leading-relaxed">{ui.abCopyUtmHint}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-black text-violet-500 uppercase tracking-wider mb-1.5">{ui.abCopyCtas}</p>
+            <div className="space-y-2">
+              {ctas.map((line, i) => (
+                <div key={i} className="rounded-xl bg-white/90 border border-violet-100 px-2.5 py-2">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="text-[10px] font-black text-violet-700">{ctaLabs[i]}</span>
+                    <div className="flex gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => onCopyLine(line)}
+                        className="text-[10px] font-bold text-violet-800 border border-violet-200 bg-white px-2 py-0.5 rounded-md hover:bg-violet-50"
+                      >
+                        {ui.abCopyCopy}
+                      </button>
+                      {lastSectionId !== null && (
+                        <button
+                          type="button"
+                          onClick={() => onApplyCta(i as 0 | 1)}
+                          className="text-[10px] font-bold text-white bg-violet-700 px-2 py-0.5 rounded-md hover:bg-violet-800"
+                        >
+                          {ui.abCopyApplyCta}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-800 leading-snug break-words">{line}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function EvidencePackPanel({
+  copyBlock,
+  ui,
+  open,
+  onToggle,
+  onCopy,
+  className = '',
+}: {
+  copyBlock: string
+  ui: OrderResultUi
+  open: boolean
+  onToggle: () => void
+  onCopy: () => void
+  className?: string
+}) {
+  return (
+    <div className={`border border-cyan-200 bg-cyan-50/90 rounded-2xl overflow-hidden ${className}`}>
+      <button type="button" onClick={onToggle} className="w-full text-left p-3 hover:bg-cyan-100/50 transition-colors">
+        <p className="text-[10px] font-black text-cyan-700 uppercase tracking-widest">{ui.evidenceSub}</p>
+        <p className="text-sm font-black text-cyan-950 mt-0.5">{ui.evidenceTitle}</p>
+        <span className="text-[10px] font-bold text-cyan-900 mt-1 inline-block">{open ? ui.metaOgHide : ui.metaOgShow}</span>
+      </button>
+      {open && (
+        <div className="px-3 pb-3 border-t border-cyan-200/80 pt-2 space-y-2">
+          <button
+            type="button"
+            onClick={onCopy}
+            className="w-full text-left text-xs font-bold bg-white border border-cyan-200 rounded-xl px-3 py-2 hover:bg-cyan-50"
+          >
+            {ui.evidenceCopyAll}
+          </button>
+          <pre className="text-[9px] text-gray-700 bg-white/90 border border-cyan-100 rounded-lg p-2 max-h-36 overflow-auto whitespace-pre-wrap break-words">
+            {copyBlock.slice(0, 900)}
+            {copyBlock.length > 900 ? '…' : ''}
+          </pre>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function AssetKitPanel({
+  copyBlock,
+  ui,
+  open,
+  onToggle,
+  onCopy,
+  className = '',
+}: {
+  copyBlock: string
+  ui: OrderResultUi
+  open: boolean
+  onToggle: () => void
+  onCopy: () => void
+  className?: string
+}) {
+  return (
+    <div className={`border border-fuchsia-200 bg-fuchsia-50/90 rounded-2xl overflow-hidden ${className}`}>
+      <button type="button" onClick={onToggle} className="w-full text-left p-3 hover:bg-fuchsia-100/50 transition-colors">
+        <p className="text-[10px] font-black text-fuchsia-700 uppercase tracking-widest">{ui.assetSub}</p>
+        <p className="text-sm font-black text-fuchsia-950 mt-0.5">{ui.assetTitle}</p>
+        <span className="text-[10px] font-bold text-fuchsia-900 mt-1 inline-block">{open ? ui.metaOgHide : ui.metaOgShow}</span>
+      </button>
+      {open && (
+        <div className="px-3 pb-3 border-t border-fuchsia-200/80 pt-2 space-y-2">
+          <button
+            type="button"
+            onClick={onCopy}
+            className="w-full text-left text-xs font-bold bg-white border border-fuchsia-200 rounded-xl px-3 py-2 hover:bg-fuchsia-50"
+          >
+            {ui.assetCopyAll}
+          </button>
+          <pre className="text-[9px] text-gray-700 bg-white/90 border border-fuchsia-100 rounded-lg p-2 max-h-36 overflow-auto whitespace-pre-wrap break-words">
+            {copyBlock.slice(0, 900)}
+            {copyBlock.length > 900 ? '…' : ''}
+          </pre>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MarketIntelPanel({
+  pack,
+  ui,
+  open,
+  onToggle,
+  onCopy,
+  className = '',
+}: {
+  pack: ReturnType<typeof buildMarketIntelHeuristics>
+  ui: OrderResultUi
+  open: boolean
+  onToggle: () => void
+  onCopy: () => void
+  className?: string
+}) {
+  return (
+    <div className={`border border-amber-200/90 bg-amber-50/80 rounded-2xl overflow-hidden ${className}`}>
+      <button type="button" onClick={onToggle} className="w-full text-left p-3 hover:bg-amber-100/40 transition-colors">
+        <p className="text-[10px] font-black text-amber-800 uppercase tracking-widest">{ui.intelSub}</p>
+        <p className="text-sm font-black text-amber-950 mt-0.5">{ui.intelTitle}</p>
+        <span className="text-[10px] font-bold text-amber-900 mt-1 inline-block">{open ? ui.metaOgHide : ui.metaOgShow}</span>
+      </button>
+      {open && (
+        <div className="px-3 pb-3 border-t border-amber-200/70 pt-2 space-y-2 text-[11px] text-amber-950/90">
+          <div>
+            <p className="text-[9px] font-black text-amber-800 uppercase mb-0.5">{ui.intelCompetitor}</p>
+            <ul className="list-disc pl-4 space-y-0.5">
+              {pack.competitorPatterns.map((s, i) => (
+                <li key={i}>{s}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="text-[9px] font-black text-amber-800 uppercase mb-0.5">{ui.intelKeywords}</p>
+            <p className="leading-snug break-words">{pack.categoryKeywords.join(' · ')}</p>
+          </div>
+          <div>
+            <p className="text-[9px] font-black text-amber-800 uppercase mb-0.5">{ui.intelReviewThemes}</p>
+            <ul className="list-disc pl-4 space-y-0.5">
+              {pack.reviewThemes.map((s, i) => (
+                <li key={i}>{s}</li>
+              ))}
+            </ul>
+          </div>
+          <p className="text-[10px] text-amber-900/75 leading-relaxed">{pack.gapNote}</p>
+          <button
+            type="button"
+            onClick={onCopy}
+            className="w-full text-left text-xs font-bold bg-white border border-amber-200 rounded-xl px-3 py-2 hover:bg-amber-50"
+          >
+            {ui.intelCopyChecklist}
+          </button>
         </div>
       )}
     </div>
@@ -553,6 +794,9 @@ export default function OrderResultPage() {
   const [channelKitOpen, setChannelKitOpen] = useState(true)
   const [abCopyOpen, setAbCopyOpen] = useState(true)
   const [metaOgOpen, setMetaOgOpen] = useState(false)
+  const [evidenceOpen, setEvidenceOpen] = useState(false)
+  const [assetKitOpen, setAssetKitOpen] = useState(false)
+  const [intelOpen, setIntelOpen] = useState(false)
 
   const PLATFORMS = platformsForLang(uiLang)
   const t = ORDER_RESULT_UI[uiLang]
@@ -641,6 +885,35 @@ export default function OrderResultPage() {
     })
     return { html: metaOgPackageToHtmlMeta(pkg), json: metaOgPackageToJson(pkg) }
   }, [seoReport, order])
+
+  const listingPasteBundle = useMemo(() => {
+    if (!order || sections.length === 0) return ''
+    return buildListingPasteBundle(platform, uiLang, {
+      productName: order.product_name,
+      category: order.category,
+      sections,
+      metaTitle: seoReport?.metaTitle,
+      metaDescription: seoReport?.metaDesc,
+    })
+  }, [order, sections, platform, uiLang, seoReport?.metaTitle, seoReport?.metaDesc])
+
+  const evidencePack = useMemo(() => {
+    if (!order || sections.length === 0) return null
+    return buildListingEvidencePack(uiLang, order.product_name, order.category, sections)
+  }, [order, sections, uiLang])
+
+  const assetKit = useMemo(() => {
+    if (!order || sections.length === 0) return null
+    return buildListingAssetKit(uiLang, order.product_name, order.category, sections)
+  }, [order, sections, uiLang])
+
+  const intelPack = useMemo(() => {
+    if (!order || sections.length === 0) return null
+    return buildMarketIntelHeuristics(uiLang, order.product_name, order.category, sections)
+  }, [order, sections, uiLang])
+
+  const copyFormatIsListing = listingBundleUsesPlainText(platform)
+  const lastSectionId = sections.length > 0 ? sections[sections.length - 1]!.id : null
 
   useEffect(() => {
     if (!orderId) return
@@ -788,6 +1061,15 @@ export default function OrderResultPage() {
   function getFormatContent(): string {
     if (!order) return ''
     const imgs = order.image_urls ?? []
+    if (platform === 'smartstore' || platform === 'coupang') {
+      return buildListingPasteBundle(platform, uiLang, {
+        productName: order.product_name,
+        category: order.category,
+        sections,
+        metaTitle: seoReport?.metaTitle,
+        metaDescription: seoReport?.metaDesc,
+      })
+    }
     switch (platform) {
       case 'naver':
       case 'tistory':
@@ -967,6 +1249,13 @@ export default function OrderResultPage() {
                       toast.success(t.channelKitToastHook)
                     }).catch(() => toast.error(t.toastCopyFail))
                   }}
+                  pasteBundle={listingPasteBundle}
+                  onCopyPasteBundle={() => {
+                    if (!listingPasteBundle.trim()) return
+                    navigator.clipboard.writeText(listingPasteBundle).then(() => {
+                      toast.success(t.channelKitToastPasteBundle)
+                    }).catch(() => toast.error(t.toastCopyFail))
+                  }}
                 />
               </div>
             )}
@@ -976,10 +1265,13 @@ export default function OrderResultPage() {
                 <ConversionAbPanel
                   titles={abCopySet.titles}
                   openers={abCopySet.openers}
+                  ctas={abCopySet.ctas}
+                  recommendation={abCopySet.recommendation}
                   ui={t}
                   open={abCopyOpen}
                   onToggle={() => setAbCopyOpen(o => !o)}
                   hasFirst={sections.length > 0}
+                  lastSectionId={lastSectionId}
                   onCopyLine={line => {
                     navigator.clipboard.writeText(line).then(() => {
                       toast.success(t.abCopyToast)
@@ -996,6 +1288,61 @@ export default function OrderResultPage() {
                     if (!s0 || !abCopySet) return
                     updateSection(s0.id, 'body', `${abCopySet.openers[idx]}\n\n${s0.body}`)
                     toast.success(t.abCopyToastApplyOpener)
+                  }}
+                  onApplyCta={idx => {
+                    if (!abCopySet || lastSectionId === null) return
+                    const last = sections.find(s => s.id === lastSectionId)
+                    if (!last) return
+                    updateSection(last.id, 'body', `${last.body}\n\n${abCopySet.ctas[idx]}`)
+                    toast.success(t.abCopyToastApplyCta)
+                  }}
+                />
+              </div>
+            )}
+
+            {evidencePack && (
+              <div className="print:hidden">
+                <EvidencePackPanel
+                  copyBlock={evidencePack.copyBlock}
+                  ui={t}
+                  open={evidenceOpen}
+                  onToggle={() => setEvidenceOpen(o => !o)}
+                  onCopy={() => {
+                    navigator.clipboard.writeText(evidencePack.copyBlock).then(() => {
+                      toast.success(t.evidenceToast)
+                    }).catch(() => toast.error(t.toastCopyFail))
+                  }}
+                />
+              </div>
+            )}
+
+            {assetKit && (
+              <div className="print:hidden">
+                <AssetKitPanel
+                  copyBlock={assetKit.copyBlock}
+                  ui={t}
+                  open={assetKitOpen}
+                  onToggle={() => setAssetKitOpen(o => !o)}
+                  onCopy={() => {
+                    navigator.clipboard.writeText(assetKit.copyBlock).then(() => {
+                      toast.success(t.abCopyToast)
+                    }).catch(() => toast.error(t.toastCopyFail))
+                  }}
+                />
+              </div>
+            )}
+
+            {intelPack && (
+              <div className="print:hidden">
+                <MarketIntelPanel
+                  pack={intelPack}
+                  ui={t}
+                  open={intelOpen}
+                  onToggle={() => setIntelOpen(o => !o)}
+                  onCopy={() => {
+                    navigator.clipboard.writeText(intelPack.checklistBlock).then(() => {
+                      toast.success(t.abCopyToast)
+                    }).catch(() => toast.error(t.toastCopyFail))
                   }}
                 />
               </div>
@@ -1045,7 +1392,7 @@ export default function OrderResultPage() {
                 onClick={handleNaverCopy}
                 className={`w-full border ${primStyle.border} ${primStyle.text} hover:bg-gray-50 rounded-2xl p-2 text-xs font-bold transition-all flex items-center justify-center gap-1.5`}
               >
-                {copyDone ? t.copyDoneCheck : t.copyHtmlShort}
+                {copyDone ? t.copyDoneCheck : copyFormatIsListing ? t.copyListingBundleShort : t.copyHtmlShort}
               </button>
             </div>
           </div>
@@ -1063,7 +1410,7 @@ export default function OrderResultPage() {
                 className={`xl:hidden flex items-center gap-1.5 ${primStyle.bg} ${primStyle.hover} text-white px-3 py-2 rounded-xl text-xs font-black transition-all`}
               >
                 <span className="font-black">{primaryRow?.icon}</span>
-                {copyDone ? t.mobileCopyDone : t.mobileBlogCopy}
+                {copyDone ? t.mobileCopyDone : copyFormatIsListing ? t.mobileListingCopy : t.mobileBlogCopy}
               </button>
               {/* 모바일용 SEO 버튼 */}
               {seoReport && (
@@ -1149,16 +1496,26 @@ export default function OrderResultPage() {
                     toast.success(t.channelKitToastHook)
                   }).catch(() => toast.error(t.toastCopyFail))
                 }}
+                pasteBundle={listingPasteBundle}
+                onCopyPasteBundle={() => {
+                  if (!listingPasteBundle.trim()) return
+                  navigator.clipboard.writeText(listingPasteBundle).then(() => {
+                    toast.success(t.channelKitToastPasteBundle)
+                  }).catch(() => toast.error(t.toastCopyFail))
+                }}
               />
             )}
             {abCopySet && (
               <ConversionAbPanel
                 titles={abCopySet.titles}
                 openers={abCopySet.openers}
+                ctas={abCopySet.ctas}
+                recommendation={abCopySet.recommendation}
                 ui={t}
                 open={abCopyOpen}
                 onToggle={() => setAbCopyOpen(o => !o)}
                 hasFirst={sections.length > 0}
+                lastSectionId={lastSectionId}
                 onCopyLine={line => {
                   navigator.clipboard.writeText(line).then(() => {
                     toast.success(t.abCopyToast)
@@ -1175,6 +1532,52 @@ export default function OrderResultPage() {
                   if (!s0 || !abCopySet) return
                   updateSection(s0.id, 'body', `${abCopySet.openers[idx]}\n\n${s0.body}`)
                   toast.success(t.abCopyToastApplyOpener)
+                }}
+                onApplyCta={idx => {
+                  if (!abCopySet || lastSectionId === null) return
+                  const last = sections.find(s => s.id === lastSectionId)
+                  if (!last) return
+                  updateSection(last.id, 'body', `${last.body}\n\n${abCopySet.ctas[idx]}`)
+                  toast.success(t.abCopyToastApplyCta)
+                }}
+              />
+            )}
+            {evidencePack && (
+              <EvidencePackPanel
+                copyBlock={evidencePack.copyBlock}
+                ui={t}
+                open={evidenceOpen}
+                onToggle={() => setEvidenceOpen(o => !o)}
+                onCopy={() => {
+                  navigator.clipboard.writeText(evidencePack.copyBlock).then(() => {
+                    toast.success(t.evidenceToast)
+                  }).catch(() => toast.error(t.toastCopyFail))
+                }}
+              />
+            )}
+            {assetKit && (
+              <AssetKitPanel
+                copyBlock={assetKit.copyBlock}
+                ui={t}
+                open={assetKitOpen}
+                onToggle={() => setAssetKitOpen(o => !o)}
+                onCopy={() => {
+                  navigator.clipboard.writeText(assetKit.copyBlock).then(() => {
+                    toast.success(t.abCopyToast)
+                  }).catch(() => toast.error(t.toastCopyFail))
+                }}
+              />
+            )}
+            {intelPack && (
+              <MarketIntelPanel
+                pack={intelPack}
+                ui={t}
+                open={intelOpen}
+                onToggle={() => setIntelOpen(o => !o)}
+                onCopy={() => {
+                  navigator.clipboard.writeText(intelPack.checklistBlock).then(() => {
+                    toast.success(t.abCopyToast)
+                  }).catch(() => toast.error(t.toastCopyFail))
                 }}
               />
             )}
@@ -1569,6 +1972,11 @@ export default function OrderResultPage() {
                       <pre className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed font-serif">{getFormatContent()}</pre>
                     </div>
                   )}
+                  {(platform === 'smartstore' || platform === 'coupang') && (
+                    <div className="bg-white p-6 max-h-[520px] overflow-auto">
+                      <pre className="whitespace-pre-wrap text-xs text-gray-800 leading-relaxed font-sans">{getFormatContent()}</pre>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1693,6 +2101,48 @@ export default function OrderResultPage() {
                     {t.brunch.open}
                   </button>
                 </p>
+              )}
+              {platform === 'smartstore' && (
+                <div>
+                  <p className="text-xs font-black text-gray-700 mb-3">{t.smartstore.title}</p>
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    {t.smartstore.steps.map(s => (
+                      <div key={s.step} className="text-center">
+                        <div className="w-7 h-7 bg-[#03C75A] text-white rounded-lg flex items-center justify-center text-xs font-black mx-auto mb-1">{s.step}</div>
+                        <p className="text-[10px] font-bold text-gray-700">{s.label}</p>
+                        <p className="text-[9px] text-gray-400">{s.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { handleNaverCopy(); window.open(editorOpenUrl('smartstore'), '_blank') }}
+                    className="w-full bg-[#03C75A] hover:bg-[#02b050] text-white py-2.5 rounded-xl text-sm font-black transition-all"
+                  >
+                    {copyDone ? t.smartstore.ctaDone : t.smartstore.cta}
+                  </button>
+                </div>
+              )}
+              {platform === 'coupang' && (
+                <div>
+                  <p className="text-xs font-black text-gray-700 mb-3">{t.coupang.title}</p>
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    {t.coupang.steps.map(s => (
+                      <div key={s.step} className="text-center">
+                        <div className="w-7 h-7 bg-[#E65F2E] text-white rounded-lg flex items-center justify-center text-xs font-black mx-auto mb-1">{s.step}</div>
+                        <p className="text-[10px] font-bold text-gray-700">{s.label}</p>
+                        <p className="text-[9px] text-gray-400">{s.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { handleNaverCopy(); window.open(editorOpenUrl('coupang'), '_blank') }}
+                    className="w-full bg-[#E65F2E] hover:bg-[#cf5528] text-white py-2.5 rounded-xl text-sm font-black transition-all"
+                  >
+                    {copyDone ? t.coupang.ctaDone : t.coupang.cta}
+                  </button>
+                </div>
               )}
             </div>
           </div>

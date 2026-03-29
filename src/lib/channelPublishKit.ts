@@ -1,13 +1,22 @@
 import type { UiLang } from '@/lib/uiLocale'
 import type { PublishPlatform } from '@/lib/orderResultUi'
+import { buildChannelSpecSheet, type ChannelSpecSheet } from '@/lib/channelSpecSheet'
 
-export type ChannelKitFamily = 'naver' | 'tistory' | 'wordpress' | 'instagram' | 'brunch'
+export type ChannelKitFamily =
+  | 'naver'
+  | 'tistory'
+  | 'wordpress'
+  | 'instagram'
+  | 'brunch'
+  | 'smartstore'
+  | 'coupang'
 
 export type ChannelPublishKitContent = {
   strategy: string
   conversionBullets: string[]
   packagingBullets: string[]
   hooks: [string, string]
+  specSheet: ChannelSpecSheet
 }
 
 type Ctx = { productName: string; category: string; hook: string }
@@ -27,12 +36,13 @@ function fill(s: string, c: Ctx): string {
     .replace(/\{hook\}/g, c.hook)
 }
 
-function applyKit(tpl: KitTemplate, c: Ctx): ChannelPublishKitContent {
+function applyKit(tpl: KitTemplate, c: Ctx, specSheet: ChannelSpecSheet): ChannelPublishKitContent {
   return {
     strategy: fill(tpl.strategy, c),
     conversionBullets: tpl.conversionBullets.map(line => fill(line, c)),
     packagingBullets: tpl.packagingBullets.map(line => fill(line, c)),
     hooks: [fill(tpl.hook1, c), fill(tpl.hook2, c)],
+    specSheet,
   }
 }
 
@@ -100,6 +110,38 @@ const KO: Record<ChannelKitFamily, KitTemplate> = {
     ],
     hook1: '{hook} 🔥 {productName}',
     hook2: '{category} 고민? {productName} 한눈에',
+  },
+  smartstore: {
+    strategy:
+      '스마트스토어는 **검색·쇼핑 탭 유입**이 핵심입니다. 상품명·대표 문구·상세 상단에 {hook}을 박고, 옵션·불릿은 짧은 명사형으로 정리하세요.',
+    conversionBullets: [
+      '첫 스크린에서 “누구에게 맞는지”를 불릿 3개 이내로.',
+      '가격·배송·혜택은 상단 고정 영역 근처에 두고, 효능 단정은 피하기.',
+      'SEO 검색어는 {category}·{productName}·용도 조합 위주로, 과다 나열은 노출에 불리할 수 있음.',
+    ],
+    packagingBullets: [
+      '“필드 묶음 복사”로 상품명·요약·불릿·상세 초안을 한 번에 가져간 뒤 셀러센터에 붙여넣기.',
+      '대표 이미지와 상세 첫 이미지는 같은 제품 컷으로 통일하면 이탈이 줄어듭니다.',
+      '발행 전 안전 점검에서 걸린 표현은 상세 본문에서도 동일하게 순화하세요.',
+    ],
+    hook1: '{productName} | {category} 정리',
+    hook2: '{hook} — 스마트스토어용 한 줄',
+  },
+  coupang: {
+    strategy:
+      '쿠팡은 **노출 상품명·핵심 사항·상세 가독성**이 전환을 좌우합니다. {hook}을 상세 상단에 두고, 정책상 금지 표현은 미리 걷어내세요.',
+    conversionBullets: [
+      '노출명은 검색 키워드와 혜택을 앞쪽에, 특수문자·과장은 최소화.',
+      '상세는 짧은 문단 + 이미지 교차로 모바일 스크롤 피로를 줄이기.',
+      '리뷰 인용·비교 문구는 기간·출처를 적을수록 리스크가 줄어듭니다.',
+    ],
+    packagingBullets: [
+      '필드 묶음 복사 후 윙 에디터에 붙이고, 필수 고지·배송 문구를 정책에 맞게 보완.',
+      '이미지는 대표 1장을 가장 강한 컷으로, 텍스트와 톤을 맞추기.',
+      '안전 점검 + 업종 프로필 규칙을 상세 본문에도 동일 적용.',
+    ],
+    hook1: '{productName} 쿠팡 등록용 요약',
+    hook2: '{category} 비교 끝 — {hook}',
   },
   brunch: {
     strategy:
@@ -184,6 +226,38 @@ const EN: Record<ChannelKitFamily, KitTemplate> = {
     hook1: '{hook} 🔥 {productName}',
     hook2: '{category}? {productName} at a glance',
   },
+  smartstore: {
+    strategy:
+      'Naver Smartstore is **search + Shopping tab traffic**. Put {hook} in the name, summary, and top of detail; keep option lines short and noun-led.',
+    conversionBullets: [
+      'Who it’s for: max 3 bullets above the fold.',
+      'Price/shipping/deals near the top; avoid absolute medical claims.',
+      'SEO tags: mix {category}, {productName}, and use-case—avoid stuffing.',
+    ],
+    packagingBullets: [
+      'Use “copy field bundle” to grab name, summary, bullets, and detail draft in one pass.',
+      'Match hero and first detail image to the same crop when possible.',
+      'Soften any lines flagged by the safety check in detail text too.',
+    ],
+    hook1: '{productName} | {category} listing',
+    hook2: '{hook} — one-liner for the store',
+  },
+  coupang: {
+    strategy:
+      'Coupang wins on **listing title, key facts, and scannable detail**. Open detail with {hook}; remove policy-risk phrases early.',
+    conversionBullets: [
+      'Front-load keywords and benefits in the title; minimize gimmick punctuation.',
+      'Alternate short paragraphs and images for mobile.',
+      'Quote reviews with timeframe/source when you compare.',
+    ],
+    packagingBullets: [
+      'Paste the bundle into Wing, then add mandatory shipping/returns lines per policy.',
+      'Make the hero image the strongest single crop aligned with copy.',
+      'Apply industry safety rules to detail as well as blog copy.',
+    ],
+    hook1: '{productName} — Wing listing summary',
+    hook2: '{category} pick: {hook}',
+  },
   brunch: {
     strategy:
       'Brunch rewards **cadence and tone**. Open with {hook}; build trust with calm sentences rather than hype.',
@@ -266,6 +340,38 @@ const JA: Record<ChannelKitFamily, KitTemplate> = {
     ],
     hook1: '{hook} 🔥 {productName}',
     hook2: '{category}？ {productName} まとめ',
+  },
+  smartstore: {
+    strategy:
+      'Smartstoreは検索・ショッピングタブ流入が中心です。商品名・要約・詳細冒頭に{hook}を置き、オプションは短い名詞列で。',
+    conversionBullets: [
+      '最初の画面で「向いている人」を箇条書き3つ以内に。',
+      '価格・配送・特典は上段付近に。効果の断定的表現は避ける。',
+      'SEOは{category}・{productName}・用途の組み合わせ中心に。',
+    ],
+    packagingBullets: [
+      'フィールド一式コピーで名前・要約・箇条書き・詳細下書きをまとめて取得。',
+      '代表画像と詳細先頭画像は同じ構図が望ましい。',
+      'チェックで引っかかった表現は詳細にも反映。',
+    ],
+    hook1: '{productName} | {category} 出品',
+    hook2: '{hook} — ストア用1行',
+  },
+  coupang: {
+    strategy:
+      'Coupangは商品名・要点・詳細の読みやすさが成果に直結。{hook}を詳細冒頭に。政策リスク表現は先に削除。',
+    conversionBullets: [
+      '商品名の先頭にキーワードとベネフィット。記号の多用は避ける。',
+      'モバイル向けに短文と画像を交互に。',
+      'レビュー引用は期間・出典を書くと安全。',
+    ],
+    packagingBullets: [
+      '一式をWingに貼り、配送・交換の必須文を追記。',
+      '代表画像を最も強い1カットに。',
+      '業種ルールはブログと同様に詳細にも適用。',
+    ],
+    hook1: '{productName} Wing用要約',
+    hook2: '{category} 比較：{hook}',
   },
   brunch: {
     strategy:
@@ -350,6 +456,38 @@ const ZH: Record<ChannelKitFamily, KitTemplate> = {
     hook1: '{hook} 🔥 {productName}',
     hook2: '{category}？一文看懂 {productName}',
   },
+  smartstore: {
+    strategy:
+      'Smartstore 依赖**搜索与购物 tab 流量**。把 {hook} 放进商品名、摘要和详情首屏，选项用短名词排列。',
+    conversionBullets: [
+      '首屏用不超过三条要点写清适合谁。',
+      '价格·物流·优惠靠上；避免疗效类绝对化表述。',
+      'SEO 用 {category}、{productName}、场景词组合，避免堆砌。',
+    ],
+    packagingBullets: [
+      '用字段包一次复制名称、摘要、要点与详情草稿。',
+      '代表图与详情首张图尽量同一构图。',
+      '安全检查提示的用语在详情里也要同步弱化。',
+    ],
+    hook1: '{productName} | {category} 上架',
+    hook2: '{hook} — 店铺一句话',
+  },
+  coupang: {
+    strategy:
+      'Coupang 看重**商品名、要点与详情可读性**。详情开头放 {hook}；先删掉可能违规的对比或保证类表述。',
+    conversionBullets: [
+      '标题前部放关键词与利益点，少用过密符号。',
+      '短段落配图片，方便手机扫读。',
+      '引用评价时写清时间与来源更安全。',
+    ],
+    packagingBullets: [
+      '粘贴字段包后按政策补配送/售后必填句。',
+      '代表图选最强单张并与文案语气一致。',
+      '行业规则同样适用于详情正文。',
+    ],
+    hook1: '{productName} Wing 摘要',
+    hook2: '{category} 选购：{hook}',
+  },
   brunch: {
     strategy:
       'Brunch 吃**语气与节奏**。用 {hook} 开场，用事实与体验堆信任，少用喊口号式夸张。',
@@ -377,6 +515,8 @@ function tableForLang(lang: UiLang): Record<ChannelKitFamily, KitTemplate> {
 
 export function channelKitFamily(platform: PublishPlatform): ChannelKitFamily {
   if (platform === 'medium' || platform === 'shopify' || platform === 'linkedin') return 'wordpress'
+  if (platform === 'smartstore') return 'smartstore'
+  if (platform === 'coupang') return 'coupang'
   return platform as ChannelKitFamily
 }
 
@@ -387,5 +527,6 @@ export function getChannelPublishKit(
 ): ChannelPublishKitContent {
   const family = channelKitFamily(platform)
   const tpl = tableForLang(lang)[family]
-  return applyKit(tpl, ctx)
+  const specSheet = buildChannelSpecSheet(family, lang, ctx)
+  return applyKit(tpl, ctx, specSheet)
 }
