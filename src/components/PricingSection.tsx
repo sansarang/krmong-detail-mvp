@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import { loginPathForLang } from '@/lib/uiLocale'
 
 type Lang = 'ko' | 'en' | 'ja' | 'zh'
 
@@ -78,6 +79,7 @@ export default function PricingSection({ lang = 'ko' }: { lang?: Lang }) {
   const [yearly, setYearly] = useState(false)
   const C = CURRENCY[lang]
   const L = LABELS[lang]
+  const loginHref = loginPathForLang(lang)
   const prices = [0, yearly ? C.proY : C.pro, yearly ? C.bizY : C.biz]
 
   function fmt(v: number) {
@@ -151,7 +153,7 @@ export default function PricingSection({ lang = 'ko' }: { lang?: Lang }) {
                   )
                 })}
               </ul>
-              <Link href="/login" className={`w-full py-4 rounded-2xl text-sm font-black text-center transition-all hover:scale-[1.02] block ${featured ? 'bg-white text-black hover:bg-gray-100' : 'bg-black text-white hover:bg-gray-800'}`}>
+              <Link href={loginHref} className={`w-full py-4 rounded-2xl text-sm font-black text-center transition-all hover:scale-[1.02] block ${featured ? 'bg-white text-black hover:bg-gray-100' : 'bg-black text-white hover:bg-gray-800'}`}>
                 {plan.cta}
               </Link>
             </div>

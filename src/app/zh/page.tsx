@@ -69,7 +69,7 @@ export default function ZhPage() {
         <span>⚡ 早鸟优惠 — 专业版</span>
         <span className="line-through text-gray-400">¥198</span>
         <span className="text-yellow-400 text-base font-black">¥99</span>
-        <Link href="/login" className="bg-white text-black px-3 py-1 rounded-lg text-xs font-black hover:bg-gray-100 transition-all">立即开始 →</Link>
+        <Link href="/zh/login" className="bg-white text-black px-3 py-1 rounded-lg text-xs font-black hover:bg-gray-100 transition-all">立即开始 →</Link>
       </div>
 
       {/* ── NAV ── */}
@@ -84,8 +84,8 @@ export default function ZhPage() {
           </div>
           <div className="flex items-center gap-3">
             <LangSwitcher current="zh" />
-            <Link href="/login" className="text-sm text-gray-500 hover:text-black font-medium transition-colors hidden sm:block">登录</Link>
-            <Link href="/login" className="bg-black text-white text-sm px-5 py-2.5 rounded-xl font-bold hover:bg-gray-800 transition-all hover:scale-105">免费开始</Link>
+            <Link href="/zh/login" className="text-sm text-gray-500 hover:text-black font-medium transition-colors hidden sm:block">登录</Link>
+            <Link href="/zh/login" className="bg-black text-white text-sm px-5 py-2.5 rounded-xl font-bold hover:bg-gray-800 transition-all hover:scale-105">免费开始</Link>
           </div>
         </div>
       </nav>
@@ -118,7 +118,7 @@ export default function ZhPage() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4 px-4 sm:px-0">
-          <Link href="/login" className="bg-black text-white px-8 md:px-10 py-4 rounded-2xl text-base md:text-lg font-black hover:bg-gray-800 transition-all hover:scale-[1.03] hover:shadow-xl">
+          <Link href="/zh/login" className="bg-black text-white px-8 md:px-10 py-4 rounded-2xl text-base md:text-lg font-black hover:bg-gray-800 transition-all hover:scale-[1.03] hover:shadow-xl">
             免费开始 →
           </Link>
         </div>
@@ -277,7 +277,7 @@ export default function ZhPage() {
               <span className="text-gray-400">全年24小时在线。</span>
             </h2>
             <p className="text-gray-400 mb-7 text-base md:text-lg">无需信用卡 · 免费开始</p>
-            <Link href="/login" className="inline-block bg-white text-black px-8 md:px-12 py-4 md:py-5 rounded-2xl text-base md:text-lg font-black hover:bg-gray-100 transition-all hover:scale-105">
+            <Link href="/zh/login" className="inline-block bg-white text-black px-8 md:px-12 py-4 md:py-5 rounded-2xl text-base md:text-lg font-black hover:bg-gray-100 transition-all hover:scale-105">
               免费开始 →
             </Link>
           </div>
@@ -298,7 +298,7 @@ export default function ZhPage() {
               <a href="#reviews" className="hover:text-black transition-colors">评价</a>
               <a href="#pricing" className="hover:text-black transition-colors">定价</a>
               <Link href="/" className="hover:text-black transition-colors">한국어</Link>
-              <Link href="/login" className="hover:text-black transition-colors">登录</Link>
+              <Link href="/zh/login" className="hover:text-black transition-colors">登录</Link>
             </div>
           </div>
           <div className="border-t border-gray-100 pt-6 flex flex-col md:flex-row justify-between items-center gap-3">

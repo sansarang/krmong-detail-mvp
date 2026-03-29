@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { loginPathForLang } from '@/lib/uiLocale'
 
 type Lang = 'ko' | 'en' | 'ja' | 'zh'
 
@@ -151,6 +152,7 @@ export default function CompareSection({ lang = 'ko' }: { lang?: Lang }) {
   const ref = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(false)
   const D = DATA[lang] ?? DATA.ko
+  const loginHref = loginPathForLang(lang)
 
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -250,7 +252,7 @@ export default function CompareSection({ lang = 'ko' }: { lang?: Lang }) {
               ))}
             </div>
             <Link
-              href="/login"
+              href={loginHref}
               className="mt-8 w-full bg-white text-black py-4 rounded-2xl text-sm font-black hover:bg-gray-100 transition-all text-center block hover:scale-[1.02]"
             >
               {D.cta}

@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { loginPathForLang } from '@/lib/uiLocale'
 
 type Lang = 'ko' | 'en' | 'ja' | 'zh'
 
@@ -134,6 +135,7 @@ const SECTIONS: Record<Lang, Block[]> = {
 }
 
 export default function BeforeAfterSection({ lang = 'ko' }: { lang?: Lang }) {
+  const loginHref = loginPathForLang(lang)
   const ref = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(false)
   const [revealed, setRevealed] = useState(0)
@@ -234,7 +236,7 @@ export default function BeforeAfterSection({ lang = 'ko' }: { lang?: Lang }) {
                   <p className="text-white font-black text-sm">{L.doneTitle}</p>
                   <p className="text-gray-400 text-xs mt-0.5">{L.doneSub}</p>
                 </div>
-                <Link href="/login" className="bg-white text-black text-xs font-black px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors">
+                <Link href={loginHref} className="bg-white text-black text-xs font-black px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors">
                   {L.cta}
                 </Link>
               </div>

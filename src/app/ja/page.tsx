@@ -69,7 +69,7 @@ export default function JaPage() {
         <span>⚡ 早期割引 — プロプラン</span>
         <span className="line-through text-gray-400">¥4,980</span>
         <span className="text-yellow-400 text-base font-black">¥2,480</span>
-        <Link href="/login" className="bg-white text-black px-3 py-1 rounded-lg text-xs font-black hover:bg-gray-100 transition-all">今すぐ始める →</Link>
+        <Link href="/ja/login" className="bg-white text-black px-3 py-1 rounded-lg text-xs font-black hover:bg-gray-100 transition-all">今すぐ始める →</Link>
       </div>
 
       {/* ── NAV ── */}
@@ -84,8 +84,8 @@ export default function JaPage() {
           </div>
           <div className="flex items-center gap-3">
             <LangSwitcher current="ja" />
-            <Link href="/login" className="text-sm text-gray-500 hover:text-black font-medium transition-colors hidden sm:block">ログイン</Link>
-            <Link href="/login" className="bg-black text-white text-sm px-5 py-2.5 rounded-xl font-bold hover:bg-gray-800 transition-all hover:scale-105">無料で始める</Link>
+            <Link href="/ja/login" className="text-sm text-gray-500 hover:text-black font-medium transition-colors hidden sm:block">ログイン</Link>
+            <Link href="/ja/login" className="bg-black text-white text-sm px-5 py-2.5 rounded-xl font-bold hover:bg-gray-800 transition-all hover:scale-105">無料で始める</Link>
           </div>
         </div>
       </nav>
@@ -118,7 +118,7 @@ export default function JaPage() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4 px-4 sm:px-0">
-          <Link href="/login" className="bg-black text-white px-8 md:px-10 py-4 rounded-2xl text-base md:text-lg font-black hover:bg-gray-800 transition-all hover:scale-[1.03] hover:shadow-xl">
+          <Link href="/ja/login" className="bg-black text-white px-8 md:px-10 py-4 rounded-2xl text-base md:text-lg font-black hover:bg-gray-800 transition-all hover:scale-[1.03] hover:shadow-xl">
             無料で始める →
           </Link>
         </div>
@@ -277,7 +277,7 @@ export default function JaPage() {
               <span className="text-gray-400">24時間365日稼働。</span>
             </h2>
             <p className="text-gray-400 mb-7 text-base md:text-lg">クレジットカード不要 · 無料で始める</p>
-            <Link href="/login" className="inline-block bg-white text-black px-8 md:px-12 py-4 md:py-5 rounded-2xl text-base md:text-lg font-black hover:bg-gray-100 transition-all hover:scale-105">
+            <Link href="/ja/login" className="inline-block bg-white text-black px-8 md:px-12 py-4 md:py-5 rounded-2xl text-base md:text-lg font-black hover:bg-gray-100 transition-all hover:scale-105">
               無料で始める →
             </Link>
           </div>
@@ -298,7 +298,7 @@ export default function JaPage() {
               <a href="#reviews" className="hover:text-black transition-colors">レビュー</a>
               <a href="#pricing" className="hover:text-black transition-colors">料金</a>
               <Link href="/" className="hover:text-black transition-colors">한국어</Link>
-              <Link href="/login" className="hover:text-black transition-colors">ログイン</Link>
+              <Link href="/ja/login" className="hover:text-black transition-colors">ログイン</Link>
             </div>
           </div>
           <div className="border-t border-gray-100 pt-6 flex flex-col md:flex-row justify-between items-center gap-3">

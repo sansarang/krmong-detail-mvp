@@ -1,6 +1,7 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
+import { persistUiLang, type UiLang } from '@/lib/uiLocale'
 
 const LANGS = [
   { code: 'ko', label: '한국어', flag: '🇰🇷', href: '/' },
@@ -39,7 +40,10 @@ export default function LangSwitcher({ current }: { current: 'ko' | 'en' | 'ja' 
             <Link
               key={lang.code}
               href={lang.href}
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                persistUiLang(lang.code as UiLang)
+                setOpen(false)
+              }}
               className={`flex items-center gap-2.5 px-4 py-3 text-sm hover:bg-gray-50 transition-colors ${
                 lang.code === current ? 'font-black text-black bg-gray-50' : 'text-gray-600'
               }`}

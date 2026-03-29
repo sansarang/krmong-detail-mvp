@@ -75,7 +75,7 @@ export default function EnglishHome() {
         <span>⚡ Early Bird Deal — Pro Plan</span>
         <span className="line-through text-gray-400">$29</span>
         <span className="text-yellow-400 text-base font-black">$14.50</span>
-        <Link href="/login" className="bg-white text-black px-3 py-1 rounded-lg text-xs font-black hover:bg-gray-100 transition-all">Start Now →</Link>
+        <Link href="/en/login" className="bg-white text-black px-3 py-1 rounded-lg text-xs font-black hover:bg-gray-100 transition-all">Start Now →</Link>
       </div>
 
       {/* ── NAV ── */}
@@ -90,8 +90,8 @@ export default function EnglishHome() {
           </div>
           <div className="flex items-center gap-3">
             <LangSwitcher current="en" />
-            <Link href="/login" className="text-sm text-gray-500 hover:text-black font-medium transition-colors hidden sm:block">Log in</Link>
-            <Link href="/login" className="bg-black text-white text-sm px-5 py-2.5 rounded-xl font-bold hover:bg-gray-800 transition-all hover:scale-105">Start Free</Link>
+            <Link href="/en/login" className="text-sm text-gray-500 hover:text-black font-medium transition-colors hidden sm:block">Log in</Link>
+            <Link href="/en/login" className="bg-black text-white text-sm px-5 py-2.5 rounded-xl font-bold hover:bg-gray-800 transition-all hover:scale-105">Start Free</Link>
           </div>
         </div>
       </nav>
@@ -125,7 +125,7 @@ export default function EnglishHome() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4 px-4 sm:px-0">
-          <Link href="/login" className="bg-black text-white px-8 md:px-10 py-4 rounded-2xl text-base md:text-lg font-black hover:bg-gray-800 transition-all hover:scale-[1.03] hover:shadow-xl">
+          <Link href="/en/login" className="bg-black text-white px-8 md:px-10 py-4 rounded-2xl text-base md:text-lg font-black hover:bg-gray-800 transition-all hover:scale-[1.03] hover:shadow-xl">
             Start for Free →
           </Link>
         </div>
@@ -284,7 +284,7 @@ export default function EnglishHome() {
               <span className="text-gray-400">available 24/7.</span>
             </h2>
             <p className="text-gray-400 mb-7 text-base md:text-lg">No credit card · Free to start</p>
-            <Link href="/login" className="inline-block bg-white text-black px-8 md:px-12 py-4 md:py-5 rounded-2xl text-base md:text-lg font-black hover:bg-gray-100 transition-all hover:scale-105">
+            <Link href="/en/login" className="inline-block bg-white text-black px-8 md:px-12 py-4 md:py-5 rounded-2xl text-base md:text-lg font-black hover:bg-gray-100 transition-all hover:scale-105">
               Start for Free →
             </Link>
           </div>
@@ -305,7 +305,7 @@ export default function EnglishHome() {
               <a href="#reviews" className="hover:text-black transition-colors">Reviews</a>
               <a href="#pricing" className="hover:text-black transition-colors">Pricing</a>
               <Link href="/" className="hover:text-black transition-colors">한국어</Link>
-              <Link href="/login" className="hover:text-black transition-colors">Login</Link>
+              <Link href="/en/login" className="hover:text-black transition-colors">Login</Link>
             </div>
           </div>
           <div className="border-t border-gray-100 pt-6 flex flex-col md:flex-row justify-between items-center gap-3">

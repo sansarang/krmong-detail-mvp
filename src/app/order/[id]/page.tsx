@@ -4,6 +4,16 @@ import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import { readStoredUiLang, type UiLang } from '@/lib/uiLocale'
+import {
+  type PublishPlatform,
+  platformsForLang,
+  defaultPlatformForLang,
+  ORDER_RESULT_UI,
+  editorOpenUrl,
+  previewFakeHost,
+  primaryPublishStyle,
+} from '@/lib/orderResultUi'
 
 interface Section {
   id: number
@@ -107,19 +117,6 @@ function analyzeSeo(sections: Section[], productName: string, category: string):
 }
 
 // ── 플랫폼별 포맷 ──────────────────────────────────────────
-
-type Platform = 'naver' | 'tistory' | 'brunch' | 'instagram' | 'wordpress' | 'medium' | 'shopify' | 'linkedin'
-
-const PLATFORMS: { id: Platform; label: string; icon: string; desc: string }[] = [
-  { id: 'naver',     icon: 'N', label: '네이버 블로그', desc: 'HTML 편집 탭에 붙여넣기' },
-  { id: 'tistory',   icon: 'T', label: '티스토리',     desc: 'HTML 모드에 붙여넣기' },
-  { id: 'brunch',    icon: 'B', label: '브런치',       desc: '일반 텍스트 붙여넣기' },
-  { id: 'wordpress', icon: 'W', label: 'WordPress',   desc: 'HTML / 커스텀 HTML 블록에 붙여넣기' },
-  { id: 'medium',    icon: 'M', label: 'Medium',      desc: '스토리 에디터에 HTML 붙여넣기' },
-  { id: 'shopify',   icon: 'S', label: 'Shopify',     desc: '상품 설명(HTML)에 붙여넣기' },
-  { id: 'linkedin',  icon: 'in', label: 'LinkedIn',   desc: '아티클 에디터에 붙여넣기' },
-  { id: 'instagram', icon: '📸', label: '인스타그램',  desc: '캡션에 붙여넣기' },
-]
 
 // 이미지를 섹션 사이에 배치하는 헬퍼
 function imgTag(url: string, alt: string, style = '') {
@@ -272,15 +269,35 @@ export default function OrderResultPage() {
   const [showSeo, setShowSeo] = useState(false)
   const [showBlogPreview, setShowBlogPreview] = useState(false)
   const [copyDone, setCopyDone] = useState(false)
-  const [platform, setPlatform] = useState<Platform>('naver')
-
-  // 채팅 관련 state
+  const [platform, setPlatform] = useState<PublishPlatform>('naver')
+  const [uiLang, setUiLang] = useState<UiLang>('ko')
   const [showChat, setShowChat] = useState(false)
   const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'ai'; text: string; sections?: { id: number; name: string; title: string; body: string }[] }[]>([])
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
   const chatBottomRef = useRef<HTMLDivElement>(null)
   const [imageBusy, setImageBusy] = useState(false)
+
+  const PLATFORMS = platformsForLang(uiLang)
+  const t = ORDER_RESULT_UI[uiLang]
+  const primaryPlatform = defaultPlatformForLang(uiLang)
+  const primStyle = primaryPublishStyle(primaryPlatform)
+  const primaryRow = PLATFORMS.find(p => p.id === primaryPlatform) ?? PLATFORMS[0]
+
+  useEffect(() => {
+    const stored = readStoredUiLang()
+    if (stored) {
+      setUiLang(stored)
+      return
+    }
+    const nav = navigator.language?.slice(0, 2) ?? 'ko'
+    const supported: UiLang[] = ['ko', 'en', 'ja', 'zh']
+    setUiLang(supported.includes(nav as UiLang) ? (nav as UiLang) : 'en')
+  }, [])
+
+  useEffect(() => {
+    setPlatform(defaultPlatformForLang(uiLang))
+  }, [uiLang])
 
   useEffect(() => {
     if (!orderId) return
@@ -450,9 +467,9 @@ export default function OrderResultPage() {
     const content = getFormatContent()
     navigator.clipboard.writeText(content).then(() => {
       setCopyDone(true)
-      toast.success(`${PLATFORMS.find(p => p.id === platform)?.label} 형식으로 복사됐습니다!`)
+      toast.success(t.toastCopied(PLATFORMS.find(p => p.id === platform)?.label ?? ''))
       setTimeout(() => setCopyDone(false), 3000)
-    }).catch(() => toast.error('복사 실패. 다시 시도해주세요.'))
+    }).catch(() => toast.error(t.toastCopyFail))
   }
 
   if (loading) {
@@ -460,7 +477,7 @@ export default function OrderResultPage() {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="w-10 h-10 border-2 border-gray-100 border-t-black rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-400 text-sm font-medium">AI가 만든 상세페이지를 불러오는 중...</p>
+          <p className="text-gray-400 text-sm font-medium">{t.loading}</p>
         </div>
       </div>
     )
@@ -557,23 +574,25 @@ export default function OrderResultPage() {
               </button>
             )}
 
-            {/* 네이버 블로그 복사 */}
+            {/* Primary publish (locale default platform) */}
             <div className="space-y-2">
               <button
+                type="button"
                 onClick={() => {
-                  setPlatform('naver')
+                  setPlatform(primaryPlatform)
                   setShowBlogPreview(true)
                 }}
-                className="w-full bg-[#03C75A] hover:bg-[#02b050] text-white rounded-2xl p-3 text-sm font-black transition-all hover:shadow-md flex items-center gap-2"
+                className={`w-full ${primStyle.bg} ${primStyle.hover} text-white rounded-2xl p-3 text-sm font-black transition-all hover:shadow-md flex items-center gap-2`}
               >
-                <span className="text-lg font-black leading-none">N</span>
-                네이버 블로그 발행
+                <span className="text-lg font-black leading-none">{primaryRow?.icon}</span>
+                {t.primaryPublishLabel}
               </button>
               <button
+                type="button"
                 onClick={handleNaverCopy}
-                className="w-full border border-[#03C75A] text-[#03C75A] hover:bg-green-50 rounded-2xl p-2 text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+                className={`w-full border ${primStyle.border} ${primStyle.text} hover:bg-gray-50 rounded-2xl p-2 text-xs font-bold transition-all flex items-center justify-center gap-1.5`}
               >
-                {copyDone ? '✓ 복사됨' : '↗ HTML 복사'}
+                {copyDone ? t.copyDoneCheck : t.copyHtmlShort}
               </button>
             </div>
           </div>
@@ -586,11 +605,12 @@ export default function OrderResultPage() {
             <div className="flex items-center gap-2">
               {/* 모바일용 네이버 버튼 */}
               <button
+                type="button"
                 onClick={handleNaverCopy}
-                className="xl:hidden flex items-center gap-1.5 bg-[#03C75A] hover:bg-[#02b050] text-white px-3 py-2 rounded-xl text-xs font-black transition-all"
+                className={`xl:hidden flex items-center gap-1.5 ${primStyle.bg} ${primStyle.hover} text-white px-3 py-2 rounded-xl text-xs font-black transition-all`}
               >
-                <span className="font-black">N</span>
-                {copyDone ? '복사됨 ✓' : '블로그 복사'}
+                <span className="font-black">{primaryRow?.icon}</span>
+                {copyDone ? t.mobileCopyDone : t.mobileBlogCopy}
               </button>
               {/* 모바일용 SEO 버튼 */}
               {seoReport && (
@@ -736,11 +756,12 @@ export default function OrderResultPage() {
               다시 생성
             </button>
             <button
+              type="button"
               onClick={handleNaverCopy}
-              className="bg-[#03C75A] hover:bg-[#02b050] text-white px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2"
+              className={`${primStyle.bg} ${primStyle.hover} text-white px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2`}
             >
-              <span className="font-black">N</span>
-              {copyDone ? '복사됨 ✓' : '네이버 블로그 복사'}
+              <span className="font-black">{primaryRow?.icon}</span>
+              {copyDone ? t.mobileCopyDone : t.bottomCopyLabel}
             </button>
             <button onClick={handleDownloadPDF} disabled={pdfLoading} className="bg-black text-white px-10 py-3 rounded-xl text-sm font-bold hover:bg-gray-800 transition-all disabled:opacity-40">
               {pdfLoading ? 'PDF 생성 중...' : 'PDF 다운로드'}
@@ -808,11 +829,16 @@ export default function OrderResultPage() {
             </div>
 
             <button
-              onClick={() => { setShowSeo(false); setShowBlogPreview(true) }}
-              className="w-full mt-5 bg-[#03C75A] hover:bg-[#02b050] text-white py-4 rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2"
+              type="button"
+              onClick={() => {
+                setShowSeo(false)
+                setPlatform(primaryPlatform)
+                setShowBlogPreview(true)
+              }}
+              className={`w-full mt-5 ${primStyle.bg} ${primStyle.hover} text-white py-4 rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2`}
             >
-              <span className="font-black text-base">N</span>
-              블로그 포스팅 미리보기
+              <span className="font-black text-base">{primaryRow?.icon}</span>
+              {t.openBlogPreview}
             </button>
           </div>
         </div>
@@ -952,15 +978,16 @@ export default function OrderResultPage() {
             {/* 헤더 */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
               <div>
-                <p className="text-xs font-black text-gray-400 uppercase tracking-wider">블로그 발행 미리보기</p>
-                <p className="text-xs text-gray-400 mt-0.5">플랫폼을 선택하면 실제 발행 후 모습으로 미리봅니다</p>
+                <p className="text-xs font-black text-gray-400 uppercase tracking-wider">{t.blogModalTitle}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{t.blogModalSub}</p>
               </div>
               <div className="flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={handleNaverCopy}
                   className="flex items-center gap-1.5 bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-black transition-all"
                 >
-                  {copyDone ? '복사됨 ✓' : '↗ 복사'}
+                  {copyDone ? t.copyBtnDone : t.copyBtn}
                 </button>
                 <button onClick={() => setShowBlogPreview(false)} className="text-gray-300 hover:text-black text-2xl leading-none">×</button>
               </div>
@@ -986,7 +1013,7 @@ export default function OrderResultPage() {
 
             {/* 미리보기 영역 */}
             <div className="flex-1 overflow-auto p-4">
-              {(platform === 'naver' || platform === 'tistory' || platform === 'wordpress') ? (
+              {(platform === 'naver' || platform === 'tistory' || platform === 'wordpress' || platform === 'medium' || platform === 'shopify' || platform === 'linkedin') ? (
                 <div className="border border-gray-200 rounded-2xl overflow-hidden">
                   <div className="bg-gray-100 px-4 py-2.5 flex items-center gap-2 border-b border-gray-200">
                     <div className="flex gap-1.5">
@@ -994,8 +1021,8 @@ export default function OrderResultPage() {
                       <span className="w-3 h-3 rounded-full bg-yellow-400" />
                       <span className="w-3 h-3 rounded-full bg-green-400" />
                     </div>
-                    <div className="flex-1 bg-white rounded-lg px-3 py-1 text-xs text-gray-400 ml-2">
-                      {platform === 'naver' ? 'blog.naver.com' : platform === 'tistory' ? 'yourblog.tistory.com' : 'yoursite.wordpress.com'}
+                    <div className="flex-1 bg-white rounded-lg px-3 py-1 text-xs text-gray-400 ml-2 truncate">
+                      {previewFakeHost(platform)}
                     </div>
                   </div>
                   <iframe
@@ -1003,7 +1030,7 @@ export default function OrderResultPage() {
                     srcDoc={getFormatContent()}
                     className="w-full"
                     style={{ height: '520px', border: 'none' }}
-                    title="블로그 미리보기"
+                    title={t.iframeTitle}
                   />
                 </div>
               ) : (
@@ -1032,13 +1059,9 @@ export default function OrderResultPage() {
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 rounded-b-3xl shrink-0">
               {platform === 'naver' && (
                 <div>
-                  <p className="text-xs font-black text-gray-700 mb-3">🚀 네이버 블로그 발행 (3단계)</p>
+                  <p className="text-xs font-black text-gray-700 mb-3">{t.naver.title}</p>
                   <div className="grid grid-cols-3 gap-2 mb-3">
-                    {[
-                      { step: '1', label: 'HTML 복사', desc: '아래 버튼' },
-                      { step: '2', label: 'HTML 편집 탭', desc: '블로그 글쓰기' },
-                      { step: '3', label: '붙여넣기 → 발행', desc: 'Ctrl+V' },
-                    ].map(s => (
+                    {t.naver.steps.map(s => (
                       <div key={s.step} className="text-center">
                         <div className="w-7 h-7 bg-[#03C75A] text-white rounded-lg flex items-center justify-center text-xs font-black mx-auto mb-1">{s.step}</div>
                         <p className="text-[10px] font-bold text-gray-700">{s.label}</p>
@@ -1047,23 +1070,20 @@ export default function OrderResultPage() {
                     ))}
                   </div>
                   <button
-                    onClick={() => { handleNaverCopy(); window.open('https://blog.naver.com/write.naver', '_blank') }}
+                    type="button"
+                    onClick={() => { handleNaverCopy(); window.open(editorOpenUrl('naver'), '_blank') }}
                     className="w-full bg-[#03C75A] hover:bg-[#02b050] text-white py-2.5 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2"
                   >
                     <span className="font-black text-base">N</span>
-                    {copyDone ? 'HTML 복사됨 ✓ — 네이버 열렸어요' : '1-click: HTML 복사 + 네이버 블로그 열기'}
+                    {copyDone ? t.naver.ctaDone : t.naver.cta}
                   </button>
                 </div>
               )}
               {platform === 'tistory' && (
                 <div>
-                  <p className="text-xs font-black text-gray-700 mb-3">🟠 티스토리 발행 (3단계)</p>
+                  <p className="text-xs font-black text-gray-700 mb-3">{t.tistory.title}</p>
                   <div className="grid grid-cols-3 gap-2 mb-3">
-                    {[
-                      { step: '1', label: 'HTML 복사', desc: '아래 버튼' },
-                      { step: '2', label: '새 글 쓰기', desc: '티스토리 열기' },
-                      { step: '3', label: 'HTML 모드 붙여넣기', desc: '<> 아이콘 클릭' },
-                    ].map(s => (
+                    {t.tistory.steps.map(s => (
                       <div key={s.step} className="text-center">
                         <div className="w-7 h-7 bg-orange-500 text-white rounded-lg flex items-center justify-center text-xs font-black mx-auto mb-1">{s.step}</div>
                         <p className="text-[10px] font-bold text-gray-700">{s.label}</p>
@@ -1072,22 +1092,19 @@ export default function OrderResultPage() {
                     ))}
                   </div>
                   <button
-                    onClick={() => { handleNaverCopy(); window.open('https://www.tistory.com/manage/newpost/', '_blank') }}
+                    type="button"
+                    onClick={() => { handleNaverCopy(); window.open(editorOpenUrl('tistory'), '_blank') }}
                     className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2.5 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2"
                   >
-                    {copyDone ? 'HTML 복사됨 ✓ — 티스토리 열렸어요' : '1-click: HTML 복사 + 티스토리 열기'}
+                    {copyDone ? t.tistory.ctaDone : t.tistory.cta}
                   </button>
                 </div>
               )}
               {platform === 'wordpress' && (
                 <div>
-                  <p className="text-xs font-black text-gray-700 mb-3">🔵 워드프레스 발행 (3단계)</p>
+                  <p className="text-xs font-black text-gray-700 mb-3">{t.wordpress.title}</p>
                   <div className="grid grid-cols-3 gap-2 mb-3">
-                    {[
-                      { step: '1', label: 'HTML 복사', desc: '아래 버튼' },
-                      { step: '2', label: '새 글 추가', desc: 'WP 관리자' },
-                      { step: '3', label: 'HTML 블록 붙여넣기', desc: '/html 입력' },
-                    ].map(s => (
+                    {t.wordpress.steps.map(s => (
                       <div key={s.step} className="text-center">
                         <div className="w-7 h-7 bg-blue-600 text-white rounded-lg flex items-center justify-center text-xs font-black mx-auto mb-1">{s.step}</div>
                         <p className="text-[10px] font-bold text-gray-700">{s.label}</p>
@@ -1096,22 +1113,19 @@ export default function OrderResultPage() {
                     ))}
                   </div>
                   <button
-                    onClick={() => { handleNaverCopy(); window.open('https://wordpress.com/post', '_blank') }}
+                    type="button"
+                    onClick={() => { handleNaverCopy(); window.open(editorOpenUrl('wordpress'), '_blank') }}
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2"
                   >
-                    {copyDone ? 'HTML 복사됨 ✓ — 워드프레스 열렸어요' : '1-click: HTML 복사 + 워드프레스 열기'}
+                    {copyDone ? t.wordpress.ctaDone : t.wordpress.cta}
                   </button>
                 </div>
               )}
               {platform === 'instagram' && (
                 <div>
-                  <p className="text-xs font-black text-gray-700 mb-3">📸 인스타그램 업로드 (3단계)</p>
+                  <p className="text-xs font-black text-gray-700 mb-3">{t.instagram.title}</p>
                   <div className="grid grid-cols-3 gap-2 mb-3">
-                    {[
-                      { step: '1', label: '캡션 복사', desc: '아래 버튼' },
-                      { step: '2', label: '새 게시물', desc: '인스타 앱 열기' },
-                      { step: '3', label: '캡션 붙여넣기', desc: '이미지 + 캡션' },
-                    ].map(s => (
+                    {t.instagram.steps.map(s => (
                       <div key={s.step} className="text-center">
                         <div className="w-7 h-7 bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-lg flex items-center justify-center text-xs font-black mx-auto mb-1">{s.step}</div>
                         <p className="text-[10px] font-bold text-gray-700">{s.label}</p>
@@ -1120,18 +1134,46 @@ export default function OrderResultPage() {
                     ))}
                   </div>
                   <button
-                    onClick={() => { handleNaverCopy(); window.open('https://www.instagram.com', '_blank') }}
+                    type="button"
+                    onClick={() => { handleNaverCopy(); window.open(editorOpenUrl('instagram'), '_blank') }}
                     className="w-full text-white py-2.5 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2"
                     style={{ background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' }}
                   >
-                    {copyDone ? '캡션 복사됨 ✓ — 인스타그램 열렸어요' : '1-click: 캡션 복사 + 인스타그램 열기'}
+                    {copyDone ? t.instagram.ctaDone : t.instagram.cta}
+                  </button>
+                </div>
+              )}
+              {(platform === 'medium' || platform === 'shopify' || platform === 'linkedin') && (
+                <div>
+                  <p className="text-xs font-black text-gray-700 mb-3">{t.genericHtml.title}</p>
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    {t.genericHtml.steps.map(s => (
+                      <div key={s.step} className="text-center">
+                        <div className="w-7 h-7 bg-black text-white rounded-lg flex items-center justify-center text-xs font-black mx-auto mb-1">{s.step}</div>
+                        <p className="text-[10px] font-bold text-gray-700">{s.label}</p>
+                        <p className="text-[9px] text-gray-400">{s.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { handleNaverCopy(); window.open(editorOpenUrl(platform), '_blank') }}
+                    className="w-full bg-black hover:bg-gray-800 text-white py-2.5 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2"
+                  >
+                    {copyDone ? t.genericHtml.ctaDone : t.genericHtml.cta}
                   </button>
                 </div>
               )}
               {platform === 'brunch' && (
                 <p className="text-xs text-gray-500">
-                  <span className="font-bold text-gray-700">📋 브런치 붙여넣기:</span> 일반 텍스트 형식으로 복사 후 브런치 편집기에 붙여넣기
-                  <button onClick={() => { handleNaverCopy(); window.open('https://brunch.co.kr/write', '_blank') }} className="ml-2 underline text-black font-bold">브런치 열기 →</button>
+                  <span className="font-bold text-gray-700">{t.brunch.line}</span> {t.brunch.desc}
+                  <button
+                    type="button"
+                    onClick={() => { handleNaverCopy(); window.open(editorOpenUrl('brunch'), '_blank') }}
+                    className="ml-2 underline text-black font-bold"
+                  >
+                    {t.brunch.open}
+                  </button>
                 </p>
               )}
             </div>

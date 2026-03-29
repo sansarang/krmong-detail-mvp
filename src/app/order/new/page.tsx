@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import Logo from '@/components/Logo'
+import { readStoredUiLang, loginPathForLang } from '@/lib/uiLocale'
 
 type UiLang = 'ko' | 'en' | 'ja' | 'zh'
 
@@ -380,8 +381,14 @@ export default function NewOrderPage() {
   const [showUpgrade, setShowUpgrade] = useState(false)
   const docInputRef = useRef<HTMLInputElement>(null)
 
-  // 브라우저 언어 감지 → UI + 출력 언어 자동 설정
+  // 저장된 UI 언어(랜딩에서 선택) 우선, 없으면 브라우저 언어
   useEffect(() => {
+    const stored = readStoredUiLang()
+    if (stored) {
+      setUiLang(stored)
+      setOutputLang(stored)
+      return
+    }
     const lang = navigator.language?.slice(0, 2) ?? 'ko'
     const supported: UiLang[] = ['ko', 'en', 'ja', 'zh']
     const detected = supported.includes(lang as UiLang) ? (lang as UiLang) : 'en'
@@ -443,7 +450,11 @@ export default function NewOrderPage() {
     setLoading(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/login'); return }
+      if (!user) {
+        const lang = readStoredUiLang() ?? uiLang
+        router.push(loginPathForLang(lang))
+        return
+      }
 
       const imageUrls: string[] = []
       for (const image of images) {

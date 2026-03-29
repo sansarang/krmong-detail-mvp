@@ -38,6 +38,13 @@ type Copy = {
   footer: string
   sections: Sec[]
   platforms: Plat[]
+  blogSceneTitle: string
+  blogSceneSub: string
+  blogCopyChip: string
+  blogOneClick: string
+  blogMockBuy: string
+  blogMockBtn: string
+  blogDisclaimer: string
 }
 
 const COPY: Record<Lang, Copy> = {
@@ -84,6 +91,13 @@ const COPY: Record<Lang, Copy> = {
       { id: 'instagram', label: '인스타그램', icon: '📸', bg: 'linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)', text: '#fff' },
       { id: 'wordpress', label: '워드프레스', icon: 'W', bg: '#21759B', text: '#fff' },
     ],
+    blogSceneTitle: '블로그 발행 미리보기',
+    blogSceneSub: '플랫폼을 선택하면 실제 발행 후 모습으로 미리봅니다',
+    blogCopyChip: '복사',
+    blogOneClick: '1-click: HTML 복사 + 네이버 블로그 열기',
+    blogMockBuy: '지금 바로 구매하러 가기 →',
+    blogMockBtn: '구매 링크 바로가기',
+    blogDisclaimer: '본 포스팅은 페이지AI로 자동 생성된 콘텐츠입니다',
   },
   en: {
     name: 'Jeju Organic Green Tea Serum',
@@ -128,6 +142,13 @@ const COPY: Record<Lang, Copy> = {
       { id: 'medium', label: 'Medium', icon: 'M', bg: '#000000', text: '#fff' },
       { id: 'instagram', label: 'Instagram', icon: '📸', bg: 'linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)', text: '#fff' },
     ],
+    blogSceneTitle: 'Blog publish preview',
+    blogSceneSub: 'Pick a platform to preview how it will look after publishing',
+    blogCopyChip: 'Copy',
+    blogOneClick: '1-click: Copy HTML + Open WordPress',
+    blogMockBuy: 'Shop now →',
+    blogMockBtn: 'Go to purchase link',
+    blogDisclaimer: 'This post was auto-generated with PageAI',
   },
   ja: {
     name: '済州オーガニック緑茶セラム',
@@ -172,6 +193,13 @@ const COPY: Record<Lang, Copy> = {
       { id: 'wordpress', label: 'WordPress', icon: 'W', bg: '#21759B', text: '#fff' },
       { id: 'instagram', label: 'Instagram', icon: '📸', bg: 'linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)', text: '#fff' },
     ],
+    blogSceneTitle: 'ブログ公開プレビュー',
+    blogSceneSub: 'プラットフォームを選ぶと公開後の見え方を確認できます',
+    blogCopyChip: 'コピー',
+    blogOneClick: '1クリック: HTMLコピー + WordPressを開く',
+    blogMockBuy: '今すぐ購入へ →',
+    blogMockBtn: '購入リンクへ',
+    blogDisclaimer: '本投稿はPageAIで自動生成されたコンテンツです',
   },
   zh: {
     name: '济州有机绿茶精华',
@@ -216,10 +244,15 @@ const COPY: Record<Lang, Copy> = {
       { id: 'wordpress', label: 'WordPress', icon: 'W', bg: '#21759B', text: '#fff' },
       { id: 'instagram', label: 'Instagram', icon: '📸', bg: 'linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)', text: '#fff' },
     ],
+    blogSceneTitle: '博客发布预览',
+    blogSceneSub: '选择平台即可预览发布后的效果',
+    blogCopyChip: '复制',
+    blogOneClick: '一键：复制 HTML + 打开 WordPress',
+    blogMockBuy: '立即去购买 →',
+    blogMockBtn: '购买链接',
+    blogDisclaimer: '本文由 PageAI 自动生成',
   },
 }
-
-const TOTAL_MS = 18000
 
 export default function DemoAnimation({ lang = 'ko' }: { lang?: Lang }) {
   const C = COPY[lang] ?? COPY.ko
@@ -240,12 +273,16 @@ export default function DemoAnimation({ lang = 'ko' }: { lang?: Lang }) {
   const [seoVisible, setSeoVisible]   = useState(false)
   const [publishStep, setPublishStep] = useState(0)
   const [activePlatform, setActivePlatform] = useState(-1)
+  const [blogScene, setBlogScene] = useState(false)
+  const [blogTab, setBlogTab] = useState(0)
+  const [blogCopyPulse, setBlogCopyPulse] = useState(false)
 
   useEffect(() => {
     setNameVal(''); setCatVal(''); setDescVal('')
     setPhotoAdded(false); setGenerating(false)
     setSections(0); setSeoScore(0); setSeoVisible(false)
     setPublishStep(0); setActivePlatform(-1)
+    setBlogScene(false); setBlogTab(0); setBlogCopyPulse(false)
 
     const T: ReturnType<typeof setTimeout>[] = []
     const add = (fn: () => void, ms: number) => T.push(setTimeout(fn, ms))
@@ -285,7 +322,19 @@ export default function DemoAnimation({ lang = 'ko' }: { lang?: Lang }) {
     PLATFORMS.forEach((_, i) => add(() => setActivePlatform(i), cursor + i * 500))
     cursor += PLATFORMS.length * 500
 
-    add(() => setLoop(l => l + 1), TOTAL_MS)
+    add(() => setBlogScene(true), cursor + 350)
+    cursor += 350 + 500
+    const nTabs = Math.min(PLATFORMS.length, 4)
+    for (let i = 0; i < nTabs; i++) {
+      add(() => setBlogTab(i), cursor + i * 420)
+    }
+    cursor += nTabs * 420 + 350
+    add(() => setBlogCopyPulse(true), cursor)
+    add(() => setBlogCopyPulse(false), cursor + 700)
+    cursor += 1100
+    add(() => setBlogScene(false), cursor)
+    cursor += 450
+    add(() => setLoop(l => l + 1), cursor + 200)
 
     return () => T.forEach(clearTimeout)
   }, [loop, lang])
@@ -508,6 +557,58 @@ export default function DemoAnimation({ lang = 'ko' }: { lang?: Lang }) {
             )}
           </div>
         </div>
+
+        {blogScene && (
+          <div className="md:col-span-2 bg-white rounded-3xl border border-gray-200 shadow-xl overflow-hidden transition-all duration-500">
+            <div className="flex items-start justify-between px-4 py-3 border-b border-gray-100 gap-3">
+              <div className="min-w-0">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">{C.blogSceneTitle}</p>
+                <p className="text-[10px] text-gray-400 mt-0.5 leading-snug">{C.blogSceneSub}</p>
+              </div>
+              <span
+                className={`shrink-0 text-[10px] font-black px-3 py-1.5 rounded-lg transition-all duration-200 ${
+                  blogCopyPulse ? 'bg-black text-white scale-105 shadow-lg' : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {C.blogCopyChip} ↗
+              </span>
+            </div>
+            <div className="flex gap-1.5 px-3 py-2 border-b border-gray-50 overflow-x-auto">
+              {PLATFORMS.slice(0, 4).map((p, i) => (
+                <span
+                  key={p.id}
+                  className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[9px] font-bold whitespace-nowrap shrink-0 transition-all ${
+                    blogTab === i ? 'bg-black text-white' : 'bg-gray-100 text-gray-500'
+                  }`}
+                >
+                  <span>{p.icon}</span>
+                  {p.label}
+                </span>
+              ))}
+            </div>
+            <div className="p-3">
+              <div className="rounded-xl border border-gray-200 overflow-hidden">
+                <div className="bg-gray-100 px-3 py-2 flex items-center gap-2 border-b border-gray-200">
+                  <div className="flex gap-1">
+                    <span className="w-2 h-2 rounded-full bg-red-400" />
+                    <span className="w-2 h-2 rounded-full bg-yellow-400" />
+                    <span className="w-2 h-2 rounded-full bg-green-400" />
+                  </div>
+                  <span className="text-[9px] text-gray-400 flex-1 truncate">
+                    {lang === 'ko' ? 'blog.naver.com' : lang === 'ja' ? 'ameblo.jp' : lang === 'zh' ? 'mp.weixin.qq.com' : 'wordpress.com'}
+                  </span>
+                </div>
+                <div className="h-24 bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center text-2xl">🖼️</div>
+                <div className="bg-black text-white px-3 py-2.5 text-center">
+                  <p className="text-[10px] font-black">{C.blogMockBuy}</p>
+                  <div className="mt-1.5 inline-block bg-white text-black text-[9px] font-black px-3 py-1 rounded-full">{C.blogMockBtn}</div>
+                </div>
+                <p className="text-[8px] text-gray-400 text-center py-2 px-2">{C.blogDisclaimer}</p>
+              </div>
+              <p className="text-[10px] font-black text-center mt-3 text-gray-800">{C.blogOneClick}</p>
+            </div>
+          </div>
+        )}
       </div>
 
       <p className="text-center text-xs text-gray-300 mt-5 font-medium">{C.footer}</p>

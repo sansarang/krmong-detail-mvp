@@ -4,11 +4,11 @@ import Logo from '@/components/Logo'
 import Link from 'next/link'
 import LoginForm from '@/components/LoginForm'
 
-export default function LoginPage() {
+export default function ZhLoginPage() {
   return (
     <main className="min-h-screen bg-white flex flex-col">
       <nav className="px-8 py-5 border-b border-gray-100">
-        <Link href="/" className="flex items-center gap-2 w-fit">
+        <Link href="/zh" className="flex items-center gap-2 w-fit">
           <Logo size={28} />
         </Link>
       </nav>
@@ -17,7 +17,7 @@ export default function LoginPage() {
           <div className="w-8 h-8 border-2 border-gray-200 border-t-black rounded-full animate-spin" />
         </div>
       }>
-        <LoginForm lang="ko" homeHref="/" />
+        <LoginForm lang="zh" homeHref="/zh" />
       </Suspense>
     </main>
   )
