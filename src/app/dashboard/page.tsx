@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import ReferralWidget from '@/components/ReferralWidget'
+import Logo from '@/components/Logo'
 
 const TIPS = [
   {
@@ -83,10 +84,7 @@ export default async function DashboardPage() {
       {/* NAV */}
       <nav className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-black rounded-lg flex items-center justify-center">
-            <span className="text-white text-[10px] font-black">AI</span>
-          </div>
-          <span className="font-black text-lg tracking-tight">페이지AI</span>
+          <Logo size={28} />
         </Link>
         <div className="flex items-center gap-4">
           <span className="text-gray-400 text-sm hidden sm:block">{user.email}</span>

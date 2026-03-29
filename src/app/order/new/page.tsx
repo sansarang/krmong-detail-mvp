@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
+import Logo from '@/components/Logo'
 
 const CATEGORIES = [
   { group: '📦 제품·쇼핑몰', items: [
@@ -279,10 +280,7 @@ export default function NewOrderPage() {
 
       <nav className="flex items-center justify-between px-8 py-5 border-b border-gray-100">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-black rounded-lg flex items-center justify-center">
-            <span className="text-white text-[10px] font-black">AI</span>
-          </div>
-          <span className="font-bold text-lg tracking-tight">페이지AI</span>
+          <Logo size={28} />
         </Link>
         <Link href="/dashboard" className="text-gray-400 text-sm hover:text-black transition-colors">← 대시보드</Link>
       </nav>

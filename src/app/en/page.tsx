@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import LangSwitcher from '@/components/LangSwitcher'
+import { LogoEn } from '@/components/Logo'
 
 const HERO_WORDS = [
   'Product Pages',
@@ -58,10 +59,7 @@ export default function EnglishHome() {
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-5 md:px-6 py-4 flex justify-between items-center">
           <Link href="/en" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-black rounded-xl flex items-center justify-center">
-              <span className="text-white text-xs font-black">AI</span>
-            </div>
-            <span className="font-black text-xl tracking-tight">PageAI</span>
+            <LogoEn size={32} />
           </Link>
           <div className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-gray-500 text-sm hover:text-black transition-colors font-medium">Features</a>
@@ -243,12 +241,7 @@ export default function EnglishHome() {
         <div className="max-w-5xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-8">
             <div>
-              <div className="flex items-center gap-2.5 mb-3">
-                <div className="w-7 h-7 bg-black rounded-xl flex items-center justify-center">
-                  <span className="text-white text-xs font-black">AI</span>
-                </div>
-                <span className="font-black text-lg tracking-tight">PageAI</span>
-              </div>
+              <LogoEn size={28} className="mb-3" />
               <p className="text-gray-400 text-sm max-w-xs leading-relaxed">Any document. AI. 5 minutes.</p>
             </div>
             <div className="grid grid-cols-2 gap-x-12 gap-y-3 text-sm text-gray-400">

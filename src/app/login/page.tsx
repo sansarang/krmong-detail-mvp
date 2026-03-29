@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import Logo from '@/components/Logo'
 
 function LoginForm() {
   const router = useRouter()
@@ -116,10 +117,7 @@ export default function LoginPage() {
     <main className="min-h-screen bg-white flex flex-col">
       <nav className="px-8 py-5 border-b border-gray-100">
         <Link href="/" className="flex items-center gap-2 w-fit">
-          <div className="w-7 h-7 bg-black rounded-lg flex items-center justify-center">
-            <span className="text-white text-[10px] font-black">AI</span>
-          </div>
-          <span className="font-bold text-lg tracking-tight">페이지AI</span>
+          <Logo size={28} />
         </Link>
       </nav>
       <Suspense fallback={

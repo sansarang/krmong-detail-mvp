@@ -10,6 +10,7 @@ import NewsletterForm from '@/components/NewsletterForm'
 import CountdownBanner from '@/components/CountdownBanner'
 import LangSwitcher from '@/components/LangSwitcher'
 import ProductShowcase from '@/components/ProductShowcase'
+import Logo from '@/components/Logo'
 
 const HERO_WORDS = [
   '상세페이지',
@@ -137,10 +138,7 @@ export default function Home() {
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-black rounded-xl flex items-center justify-center">
-              <span className="text-white text-xs font-black">AI</span>
-            </div>
-            <span className="font-black text-xl tracking-tight">페이지AI</span>
+            <Logo size={32} />
           </Link>
           <div className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-gray-500 text-sm hover:text-black transition-colors font-medium">주요 기능</a>
@@ -439,12 +437,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-8 md:mb-10">
             <div>
-              <div className="flex items-center gap-2.5 mb-3">
-                <div className="w-7 h-7 bg-black rounded-xl flex items-center justify-center">
-                  <span className="text-white text-xs font-black">AI</span>
-                </div>
-                <span className="font-black text-lg tracking-tight">페이지AI</span>
-              </div>
+              <Logo size={28} className="mb-3" />
               <p className="text-gray-400 text-sm max-w-xs leading-relaxed">어떤 글이든 AI가 5분 만에 완성.</p>
             </div>
             <div className="grid grid-cols-2 gap-x-12 md:gap-x-16 gap-y-3 text-sm text-gray-400">

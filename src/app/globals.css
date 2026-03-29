@@ -3,6 +3,11 @@
 @import "shadcn/tailwind.css";
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
 
+/* Pretendard 전역 적용 */
+*, *::before, *::after {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
