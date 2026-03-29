@@ -10,6 +10,7 @@ import NewsletterForm from '@/components/NewsletterForm'
 import LangSwitcher from '@/components/LangSwitcher'
 import ProductShowcase from '@/components/ProductShowcase'
 import Logo from '@/components/Logo'
+import TrendWidget from '@/components/TrendWidget'
 
 const HERO_WORDS = [
   'Product Pages',
@@ -130,6 +131,8 @@ export default function EnglishHome() {
         </div>
         <p className="text-xs text-gray-300 font-medium">No credit card · Free to start · Takes 30 seconds</p>
       </section>
+
+      <TrendWidget variant="strip" geo="US" uiLocale="en" />
 
       {/* ── LIVE TICKER ── */}
       <LiveTicker lang="en" />

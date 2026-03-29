@@ -10,6 +10,7 @@ import NewsletterForm from '@/components/NewsletterForm'
 import LangSwitcher from '@/components/LangSwitcher'
 import ProductShowcase from '@/components/ProductShowcase'
 import Logo from '@/components/Logo'
+import TrendWidget from '@/components/TrendWidget'
 
 const HERO_WORDS = [
   '商品详情页', '新闻稿', '商业计划书', '论文摘要',
@@ -123,6 +124,8 @@ export default function ZhPage() {
         </div>
         <p className="text-xs text-gray-300 font-medium">无需信用卡 · 30秒即可开始</p>
       </section>
+
+      <TrendWidget variant="strip" geo="CN" uiLocale="zh" />
 
       {/* ── LIVE TICKER ── */}
       <LiveTicker lang="zh" />

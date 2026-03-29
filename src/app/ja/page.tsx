@@ -10,6 +10,7 @@ import NewsletterForm from '@/components/NewsletterForm'
 import LangSwitcher from '@/components/LangSwitcher'
 import ProductShowcase from '@/components/ProductShowcase'
 import Logo from '@/components/Logo'
+import TrendWidget from '@/components/TrendWidget'
 
 const HERO_WORDS = [
   '商品詳細ページ', 'プレスリリース', '事業計画書', '論文要約',
@@ -123,6 +124,8 @@ export default function JaPage() {
         </div>
         <p className="text-xs text-gray-300 font-medium">クレジットカード不要 · 30秒で始める</p>
       </section>
+
+      <TrendWidget variant="strip" geo="JP" uiLocale="ja" />
 
       {/* ── LIVE TICKER ── */}
       <LiveTicker lang="ja" />

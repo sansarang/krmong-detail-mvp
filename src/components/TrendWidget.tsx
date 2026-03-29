@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 
 interface Trend {
   title: string
@@ -7,34 +7,106 @@ interface Trend {
   related: string[]
 }
 
+/** API 실패·빈 응답 시에도 스트립에 항상 표시 (Vercel 등 RSS 차단 대비) */
+const CLIENT_STRIP_FALLBACK: Record<string, Trend[]> = {
+  KR: [
+    { title: '스마트스토어 상세페이지', traffic: '50,000+', related: [] },
+    { title: 'AI 글쓰기 도구', traffic: '30,000+', related: [] },
+    { title: '쿠팡 상품 등록', traffic: '40,000+', related: [] },
+    { title: '보도자료 작성법', traffic: '10,000+', related: [] },
+    { title: '블로그 글쓰기 SEO', traffic: '60,000+', related: [] },
+  ],
+  US: [
+    { title: 'AI content writing tools', traffic: '100K+', related: [] },
+    { title: 'Amazon product listing', traffic: '80K+', related: [] },
+    { title: 'Shopify store setup', traffic: '60K+', related: [] },
+    { title: 'press release template', traffic: '40K+', related: [] },
+    { title: 'blog post ideas', traffic: '50K+', related: [] },
+  ],
+  JP: [
+    { title: 'AI文章生成ツール', traffic: '30,000+', related: [] },
+    { title: 'ネットショップ集客', traffic: '20,000+', related: [] },
+    { title: 'ブログ収益化', traffic: '25,000+', related: [] },
+    { title: 'プレスリリース書き方', traffic: '8,000+', related: [] },
+    { title: '商品ページCV率改善', traffic: '15,000+', related: [] },
+  ],
+  CN: [
+    { title: 'AI写作工具', traffic: '200,000+', related: [] },
+    { title: '电商商品描述', traffic: '150,000+', related: [] },
+    { title: '内容营销策略', traffic: '80,000+', related: [] },
+    { title: '商业计划书模板', traffic: '60,000+', related: [] },
+    { title: 'SEO关键词优化', traffic: '90,000+', related: [] },
+  ],
+}
+
+type UiLocale = 'ko' | 'en' | 'ja' | 'zh'
+
+function uiLocaleFromGeo(geo: string, override?: UiLocale): UiLocale {
+  if (override) return override
+  if (geo === 'US') return 'en'
+  if (geo === 'JP') return 'ja'
+  if (geo === 'CN' || geo === 'TW') return 'zh'
+  return 'ko'
+}
+
+const STRIP_UI: Record<UiLocale, { badge: string; trendsCta: string }> = {
+  ko: { badge: '급상승', trendsCta: 'Trends →' },
+  en: { badge: 'Trending', trendsCta: 'Trends →' },
+  ja: { badge: '急上昇', trendsCta: 'Trends →' },
+  zh: { badge: '热搜', trendsCta: 'Google 趋势 →' },
+}
+
 interface Props {
   geo?: string // 'KR' | 'US' | 'JP' etc.
+  /** 스트립 라벨 언어 (미지정 시 geo로 추정) */
+  uiLocale?: UiLocale
   /** @deprecated use variant */
   compact?: boolean
   variant?: 'default' | 'compact' | 'strip'
 }
 
-export default function TrendWidget({ geo = 'KR', compact = false, variant }: Props) {
+export default function TrendWidget({ geo = 'KR', uiLocale, compact = false, variant }: Props) {
   const v = variant ?? (compact ? 'compact' : 'default')
   const [trends, setTrends] = useState<Trend[]>([])
   const [loading, setLoading] = useState(true)
   const [updatedAt, setUpdatedAt] = useState('')
   const [error, setError] = useState(false)
 
+  const stripLoc = uiLocaleFromGeo(geo, uiLocale)
+  const stripLabels = STRIP_UI[stripLoc]
+
   useEffect(() => {
+    let cancelled = false
+    const timeOpts: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' }
+    const locales: Record<UiLocale, string> = { ko: 'ko-KR', en: 'en-US', ja: 'ja-JP', zh: 'zh-CN' }
+
     fetch(`/api/trends?geo=${geo}`)
-      .then(r => r.json())
+      .then(async r => {
+        if (!r.ok) throw new Error(String(r.status))
+        return r.json() as Promise<{ trends?: Trend[]; updatedAt?: string }>
+      })
       .then(data => {
-        if (data.trends?.length > 0) {
+        if (cancelled) return
+        if (data.trends?.length) {
           setTrends(data.trends)
-          setUpdatedAt(data.updatedAt ? new Date(data.updatedAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : '')
+          setUpdatedAt(data.updatedAt ? new Date(data.updatedAt).toLocaleTimeString(locales[stripLoc], timeOpts) : '')
+          setError(false)
         } else {
+          setTrends([])
           setError(true)
         }
       })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false))
-  }, [geo])
+      .catch(() => {
+        if (!cancelled) {
+          setTrends([])
+          setError(true)
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [geo, uiLocale])
 
   const geoLabel: Record<string, string> = {
     KR: '🇰🇷 한국', US: '🇺🇸 미국', JP: '🇯🇵 일본', TW: '🇹🇼 대만', CN: '🇨🇳 中国',
@@ -42,34 +114,37 @@ export default function TrendWidget({ geo = 'KR', compact = false, variant }: Pr
 
   const trendsUrl = `https://trends.google.com/trending?geo=${geo}`
 
+  const stripFbKey = geo === 'TW' ? 'CN' : geo
+  const stripFallback = CLIENT_STRIP_FALLBACK[stripFbKey] ?? CLIENT_STRIP_FALLBACK.KR
+  const effectiveStripTrends = useMemo(() => {
+    if (loading) return []
+    return trends.length > 0 ? trends : stripFallback
+  }, [loading, trends, stripFallback])
+
   if (v === 'strip') {
-    const loop = trends.length > 0 ? [...trends, ...trends] : []
+    const loop = effectiveStripTrends.length > 0 ? [...effectiveStripTrends, ...effectiveStripTrends] : []
     return (
-      <div className="w-full border-y border-amber-200/40 bg-gradient-to-r from-rose-50/60 via-white to-amber-50/50 shadow-sm">
-        <div className="max-w-6xl mx-auto px-3 sm:px-5 py-2 flex items-center gap-2 sm:gap-3">
-          <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-black text-white text-[10px] sm:text-xs font-black px-2 sm:px-3 py-1 tracking-tight">
-            <span className="text-amber-300">🔥</span>
-            급상승
+      <div className="w-full border-y border-amber-100/50 bg-gradient-to-r from-amber-50/40 via-white to-rose-50/30">
+        <div className="max-w-6xl mx-auto px-2 sm:px-4 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2">
+          <span className="shrink-0 inline-flex items-center gap-0.5 rounded-full bg-black text-white text-[9px] font-black px-1.5 py-0.5 tracking-tight">
+            <span className="text-amber-300 text-[8px]">🔥</span>
+            {stripLabels.badge}
           </span>
-          <div className="flex-1 min-w-0 overflow-hidden relative h-7 flex items-center">
+          <div className="flex-1 min-w-0 overflow-hidden relative h-5 sm:h-5 flex items-center">
             {loading ? (
-              <div className="flex gap-3 w-full">
-                <div className="h-2.5 flex-1 bg-gray-100 rounded-full animate-pulse" />
-              </div>
-            ) : error || loop.length === 0 ? (
-              <p className="text-[11px] text-gray-400 truncate">트렌드를 불러오는 중…</p>
+              <div className="h-1.5 w-full max-w-[min(100%,320px)] bg-gray-100 rounded-full animate-pulse" />
             ) : (
-              <div className="flex gap-8 whitespace-nowrap animate-marquee items-center">
+              <div className="flex gap-6 sm:gap-8 whitespace-nowrap animate-marquee items-center">
                 {loop.map((t, i) => (
                   <a
                     key={`${t.title}-${i}`}
                     href={`https://www.google.com/search?q=${encodeURIComponent(t.title)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[11px] sm:text-xs font-bold text-gray-700 hover:text-black hover:underline shrink-0"
+                    className="text-[9px] sm:text-[10px] font-semibold text-gray-600 hover:text-black hover:underline shrink-0"
                   >
                     {t.title}
-                    {t.traffic ? <span className="text-gray-300 font-medium ml-1">{t.traffic}</span> : null}
+                    {t.traffic ? <span className="text-gray-300 font-medium ml-0.5">{t.traffic}</span> : null}
                   </a>
                 ))}
               </div>
@@ -79,9 +154,9 @@ export default function TrendWidget({ geo = 'KR', compact = false, variant }: Pr
             href={trendsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 text-[10px] sm:text-xs font-black text-gray-500 hover:text-black whitespace-nowrap"
+            className="shrink-0 text-[9px] font-bold text-gray-400 hover:text-black whitespace-nowrap"
           >
-            Trends →
+            {stripLabels.trendsCta}
           </a>
         </div>
       </div>
