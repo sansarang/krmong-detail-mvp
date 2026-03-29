@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import ReferralWidget from '@/components/ReferralWidget'
+import TrendWidget from '@/components/TrendWidget'
 import Logo from '@/components/Logo'
 
 const TIPS = [
@@ -218,6 +219,9 @@ export default async function DashboardPage() {
 
             {/* 래퍼럴 위젯 */}
             <ReferralWidget />
+
+            {/* 실시간 트렌드 */}
+            <TrendWidget compact />
 
             {/* 오늘의 팁 */}
             <div className="bg-white border border-gray-100 rounded-2xl p-5">

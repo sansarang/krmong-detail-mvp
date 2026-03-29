@@ -508,11 +508,14 @@ export default function OrderResultPage() {
             {/* 네이버 블로그 복사 */}
             <div className="space-y-2">
               <button
-                onClick={() => setShowBlogPreview(true)}
+                onClick={() => {
+                  setPlatform('naver')
+                  setShowBlogPreview(true)
+                }}
                 className="w-full bg-[#03C75A] hover:bg-[#02b050] text-white rounded-2xl p-3 text-sm font-black transition-all hover:shadow-md flex items-center gap-2"
               >
-                <span className="text-lg leading-none">N</span>
-                블로그 미리보기
+                <span className="text-lg font-black leading-none">N</span>
+                네이버 블로그 발행
               </button>
               <button
                 onClick={handleNaverCopy}
@@ -924,11 +927,43 @@ export default function OrderResultPage() {
             </div>
 
             {/* 붙여넣기 안내 */}
-            <div className="px-6 py-3 bg-gray-50 border-t border-gray-100 rounded-b-3xl shrink-0">
-              <p className="text-xs text-gray-500">
-                <span className="font-bold text-gray-700">📋 {PLATFORMS.find(p => p.id === platform)?.label} 붙여넣기:</span>
-                {' '}{PLATFORMS.find(p => p.id === platform)?.desc}
-              </p>
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 rounded-b-3xl shrink-0">
+              {platform === 'naver' ? (
+                <div>
+                  <p className="text-xs font-black text-gray-700 mb-3">🚀 네이버 블로그 1-click 발행 방법</p>
+                  <div className="grid grid-cols-4 gap-2 mb-3">
+                    {[
+                      { step: '1', icon: '📋', label: 'HTML 복사', desc: '아래 버튼 클릭' },
+                      { step: '2', icon: '✏️', label: '새 글 작성', desc: '네이버 블로그 열기' },
+                      { step: '3', icon: '🔧', label: 'HTML 편집', desc: '편집 모드 전환' },
+                      { step: '4', icon: '📤', label: '붙여넣기', desc: 'Ctrl+V 후 발행' },
+                    ].map(s => (
+                      <div key={s.step} className="text-center">
+                        <div className="w-8 h-8 bg-[#03C75A] text-white rounded-xl flex items-center justify-center text-xs font-black mx-auto mb-1">{s.step}</div>
+                        <p className="text-[10px] font-bold text-gray-700">{s.label}</p>
+                        <p className="text-[9px] text-gray-400">{s.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        handleNaverCopy()
+                        window.open('https://blog.naver.com/write.naver', '_blank')
+                      }}
+                      className="flex-1 bg-[#03C75A] hover:bg-[#02b050] text-white py-2.5 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2"
+                    >
+                      <span className="font-black">N</span>
+                      {copyDone ? 'HTML 복사됨 ✓ — 블로그 열림' : '1-click: 복사 + 네이버 열기'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-gray-500">
+                  <span className="font-bold text-gray-700">📋 {PLATFORMS.find(p => p.id === platform)?.label} 붙여넣기:</span>
+                  {' '}{PLATFORMS.find(p => p.id === platform)?.desc}
+                </p>
+              )}
             </div>
           </div>
         </div>
