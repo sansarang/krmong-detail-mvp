@@ -14,6 +14,7 @@ import {
   previewFakeHost,
   primaryPublishStyle,
 } from '@/lib/orderResultUi'
+import { buildSeoReport, ORDER_PAGE_UI, seoLevelMessage } from '@/lib/orderPageUi'
 
 interface Section {
   id: number
@@ -42,79 +43,6 @@ interface SeoReport {
 
 const ACCENT_COLORS = ['#FF5C35','#6366F1','#0EA5E9','#10B981','#F59E0B','#8B5CF6']
 const BG_COLORS = ['#ffffff','#fafafa','#fff8f5','#f0f7ff','#f5fff8','#fdf4ff']
-
-// ── SEO 분석 (클라이언트 사이드) ──────────────────────────────
-function analyzeSeo(sections: Section[], productName: string, category: string): SeoReport {
-  const fullText = sections.map(s => s.title + ' ' + s.body).join(' ')
-  // 한국어는 글자 수 기준으로 측정
-  const charCount = fullText.replace(/\s/g, '').length
-  const titleLengths = sections.map(s => s.title.length)
-  const avgTitleLen = titleLengths.reduce((a, b) => a + b, 0) / titleLengths.length
-  const hasNumbers = sections.filter(s => /\d/.test(s.title)).length >= 3
-  const hasQuestion = sections.some(s => /[?？]|인가요|나요|까요|세요/.test(s.title))
-  const hasCta = /지금|바로|구매|시작|할인|무료/.test(sections[sections.length - 1]?.body ?? '')
-  const ctaCount = (sections[sections.length - 1]?.body ?? '').split(/지금|바로|구매|시작|할인|무료/).length - 1
-  const keywordInTitles = sections.filter(s => {
-    // 제품명 단어 분리 후 2글자 이상 토큰이 제목에 포함되는지 체크
-    const tokens = productName.split(/[\s,·]+/).filter(t => t.length >= 2)
-    return tokens.some(token => s.title.includes(token)) || s.title.includes(category)
-  }).length
-  const bodyLengths = sections.map(s => s.body.replace(/\s/g, '').length)
-  const allBodySufficient = bodyLengths.every(l => l >= 100)
-
-  const items = [
-    {
-      label: '키워드 제목 포함 (3개 이상)',
-      ok: keywordInTitles >= 3,
-      tip: `제목에 제품명·카테고리 키워드가 ${keywordInTitles}개만 있어요. 최소 3개 이상 포함해야 검색 노출에 유리합니다.`,
-    },
-    {
-      label: '충분한 본문량 (900자 이상)',
-      ok: charCount >= 900,
-      tip: `현재 본문 총 ${charCount}자입니다. 900자 이상이어야 검색 엔진이 풍부한 콘텐츠로 평가합니다. "다시 생성" 버튼을 눌러보세요.`,
-    },
-    {
-      label: '제목 길이 최적화 (15~40자)',
-      ok: avgTitleLen >= 15 && avgTitleLen <= 40,
-      tip: `평균 제목 길이 ${Math.round(avgTitleLen)}자입니다. 15~40자가 검색 결과에서 가장 잘 표시됩니다.`,
-    },
-    {
-      label: '숫자 활용 제목 (3개 이상)',
-      ok: hasNumbers,
-      tip: `숫자가 포함된 제목이 ${sections.filter(s => /\d/.test(s.title)).length}개입니다. "3가지", "100%", "2주" 같은 수치가 클릭률을 높입니다.`,
-    },
-    {
-      label: '의문형 제목 사용',
-      ok: hasQuestion,
-      tip: '"~하고 계신가요?", "~때문인가요?" 형식의 제목은 공감도를 높이고 체류 시간을 늘립니다.',
-    },
-    {
-      label: 'CTA 문구 2개 이상 (마지막 섹션)',
-      ok: hasCta && ctaCount >= 2,
-      tip: `마지막 섹션에 "지금", "바로", "구매" 등 행동 유도 키워드가 ${ctaCount}개입니다. 최소 2개 이상 포함하세요.`,
-    },
-    {
-      label: '섹션별 본문 충분 (각 100자 이상)',
-      ok: allBodySufficient,
-      tip: `본문이 짧은 섹션이 있습니다. 최소값: ${Math.min(...bodyLengths)}자. 각 섹션을 100자 이상으로 작성해야 블로그·SEO에 효과적입니다.`,
-    },
-  ]
-
-  const score = Math.round((items.filter(i => i.ok).length / items.length) * 100)
-
-  const tags = [
-    productName.split(' ')[0],
-    category,
-    ...productName.split(' ').slice(1, 3),
-    '스마트스토어',
-    '쿠팡',
-  ].filter(Boolean).slice(0, 8)
-
-  const metaTitle = `${productName} | ${category} 전문 쇼핑몰`
-  const metaDesc = sections[0]?.body.slice(0, 80).replace(/\n/g, ' ') + '...'
-
-  return { score, items, tags, metaTitle, metaDesc }
-}
 
 // ── 플랫폼별 포맷 ──────────────────────────────────────────
 
@@ -280,6 +208,7 @@ export default function OrderResultPage() {
 
   const PLATFORMS = platformsForLang(uiLang)
   const t = ORDER_RESULT_UI[uiLang]
+  const p = ORDER_PAGE_UI[uiLang]
   const primaryPlatform = defaultPlatformForLang(uiLang)
   const primStyle = primaryPublishStyle(primaryPlatform)
   const primaryRow = PLATFORMS.find(p => p.id === primaryPlatform) ?? PLATFORMS[0]
@@ -300,19 +229,24 @@ export default function OrderResultPage() {
   }, [uiLang])
 
   useEffect(() => {
+    if (!order || sections.length === 0) return
+    setSeoReport(buildSeoReport(sections, order.product_name, order.category, uiLang))
+  }, [order, sections, uiLang])
+
+  useEffect(() => {
     if (!orderId) return
     async function fetchOrder() {
       const { data, error } = await supabase.from('orders').select('*').eq('id', orderId).single()
-      if (error || !data) { toast.error('주문을 찾을 수 없습니다'); router.push('/dashboard'); return }
+      if (error || !data) { toast.error(ORDER_PAGE_UI[uiLang].errOrder); router.push('/dashboard'); return }
       setOrder(data)
       if (data.result_json?.sections) {
         setSections(data.result_json.sections)
-        setSeoReport(analyzeSeo(data.result_json.sections, data.product_name, data.category))
       }
       setLoading(false)
     }
     fetchOrder()
-  }, [orderId])
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- supabase stable; router stable
+  }, [orderId, uiLang])
 
   function updateSection(sectionId: number, field: 'title' | 'body', value: string) {
     setSections(prev => prev.map(s => s.id === sectionId ? { ...s, [field]: value } : s))
@@ -328,13 +262,12 @@ export default function OrderResultPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderId: order.id }),
       })
-      if (!res.ok) throw new Error('재생성 실패')
+      if (!res.ok) throw new Error(p.toastRegenFail)
       const { result } = await res.json()
       setSections(result.sections)
-      setSeoReport(analyzeSeo(result.sections, order.product_name, order.category))
       setOrder(prev => prev ? { ...prev, result_json: result, status: 'done' } : prev)
-      toast.success('다시 생성됐습니다!')
-    } catch { toast.error('재생성 중 오류') }
+      toast.success(p.toastRegenOk)
+    } catch { toast.error(p.toastRegenFail) }
     finally { setRegenLoading(false) }
   }
 
@@ -345,14 +278,14 @@ export default function OrderResultPage() {
       const html2pdf = (await import('html2pdf.js')).default
       const opt = {
         margin: 0,
-        filename: `상품상세페이지_${order.product_name}.pdf`,
+        filename: p.pdfFilename(order.product_name),
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
         jsPDF: { unit: 'px' as const, format: [390, 10000] as [number, number], orientation: 'portrait' as const },
       }
       await html2pdf().set(opt).from(previewRef.current).save()
-      toast.success('PDF 다운로드 완료!')
-    } catch { toast.error('PDF 생성 오류') }
+      toast.success(p.toastPdfOk)
+    } catch { toast.error(p.toastPdfFail) }
     finally { setPdfLoading(false) }
   }
 
@@ -384,7 +317,7 @@ export default function OrderResultPage() {
       if (Array.isArray(data.image_urls)) {
         setOrder(prev => (prev ? { ...prev, image_urls: data.image_urls } : prev))
         if (JSON.stringify(data.image_urls) !== imageUrlsBefore) {
-          toast.success('이미지가 반영됐습니다')
+          toast.success(p.toastImgOk)
         }
       }
       if (Array.isArray(data.image_errors) && data.image_errors.length > 0) {
@@ -399,7 +332,7 @@ export default function OrderResultPage() {
 
       setTimeout(() => chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
     } catch {
-      setChatMessages(prev => [...prev, { role: 'ai', text: '오류가 발생했습니다. 다시 시도해주세요.' }])
+      setChatMessages(prev => [...prev, { role: 'ai', text: p.toastChatErr }])
     } finally {
       setChatLoading(false)
     }
@@ -412,7 +345,7 @@ export default function OrderResultPage() {
         return found ? { ...s, title: found.title, body: found.body, name: found.name } : s
       })
     )
-    toast.success(`${modified.length}개 섹션이 수정됐습니다!`)
+    toast.success(p.toastSections(modified.length))
   }
 
   function pickImageSlot(slot: number) {
@@ -433,11 +366,11 @@ export default function OrderResultPage() {
       fd.append('slot', String(slot))
       const res = await fetch(`/api/orders/${orderId}/images`, { method: 'POST', body: fd })
       const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(typeof data.error === 'string' ? data.error : '업로드 실패')
+      if (!res.ok) throw new Error(typeof data.error === 'string' ? data.error : p.toastUploadFail)
       setOrder(prev => (prev ? { ...prev, image_urls: data.image_urls ?? prev.image_urls } : prev))
-      toast.success('이미지가 반영됐습니다')
+      toast.success(p.toastImgOk)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : '업로드 실패')
+      toast.error(err instanceof Error ? err.message : p.toastUploadFail)
     } finally {
       setImageBusy(false)
     }
@@ -487,8 +420,8 @@ export default function OrderResultPage() {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-500 mb-4">생성된 결과가 없습니다</p>
-          <button onClick={() => router.push('/dashboard')} className="bg-black text-white px-6 py-3 rounded-xl text-sm font-semibold">대시보드로</button>
+          <p className="text-gray-500 mb-4">{p.noResult}</p>
+          <button type="button" onClick={() => router.push('/dashboard')} className="bg-black text-white px-6 py-3 rounded-xl text-sm font-semibold">{p.dashboard}</button>
         </div>
       </div>
     )
@@ -509,34 +442,36 @@ export default function OrderResultPage() {
           <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center gap-2">
               <div className="w-6 h-6 bg-black rounded-md" />
-              <span className="font-bold text-sm tracking-tight">페이지AI</span>
+              <span className="font-bold text-sm tracking-tight">{p.brand}</span>
             </Link>
             <div className="w-px h-4 bg-gray-200" />
             <span className="text-sm font-semibold text-gray-900">{order.product_name}</span>
-            <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full border border-emerald-200">완료</span>
+            <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full border border-emerald-200">{p.badgeDone}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400 hidden sm:block">섹션을 클릭해서 바로 편집하세요</span>
+            <span className="text-xs text-gray-400 hidden sm:block">{p.headerHint}</span>
             <div className="w-px h-4 bg-gray-200 hidden sm:block" />
             <button
               onClick={handleRegenerate}
               disabled={regenLoading}
               className="border border-gray-200 text-gray-600 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition-all disabled:opacity-40 flex items-center gap-1.5"
             >
-              {regenLoading ? <><span className="w-3 h-3 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />재생성 중...</> : '↺ 다시 생성'}
+              {regenLoading ? <><span className="w-3 h-3 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />{p.regenLoading}</> : p.regen}
             </button>
             <button
+              type="button"
               onClick={() => setShowChat(true)}
               className="border border-indigo-200 bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-indigo-100 transition-all flex items-center gap-1.5"
             >
-              ✦ AI 수정 요청
+              {p.chatOpen}
             </button>
             <button
+              type="button"
               onClick={handleDownloadPDF}
               disabled={pdfLoading}
               className="bg-black text-white px-5 py-2 rounded-xl text-sm font-semibold hover:bg-gray-800 transition-all disabled:opacity-40 flex items-center gap-1.5"
             >
-              {pdfLoading ? <><span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />생성 중...</> : '↓ PDF 다운로드'}
+              {pdfLoading ? <><span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />{p.pdfLoading}</> : p.pdf}
             </button>
           </div>
         </div>
@@ -547,7 +482,7 @@ export default function OrderResultPage() {
         <aside className="hidden xl:block w-48 shrink-0">
           <div className="sticky top-24 space-y-6">
             <div>
-              <p className="text-xs font-bold text-gray-300 uppercase tracking-widest mb-4">섹션 목차</p>
+              <p className="text-xs font-bold text-gray-300 uppercase tracking-widest mb-4">{p.toc}</p>
               <div className="space-y-0.5">
                 {sections.map((s, i) => (
                   <a
@@ -568,9 +503,9 @@ export default function OrderResultPage() {
                 onClick={() => setShowSeo(true)}
                 className={`w-full text-left border rounded-2xl p-3 transition-all hover:shadow-md ${scoreBg}`}
               >
-                <p className="text-xs font-black text-gray-400 uppercase tracking-wider mb-1">SEO 점수</p>
+                <p className="text-xs font-black text-gray-400 uppercase tracking-wider mb-1">{p.seoScore}</p>
                 <p className={`text-3xl font-black ${scoreColor}`}>{seoReport.score}</p>
-                <p className="text-xs text-gray-400 mt-0.5">자세히 보기 →</p>
+                <p className="text-xs text-gray-400 mt-0.5">{p.seoSeeMore}</p>
               </button>
             )}
 
@@ -601,7 +536,7 @@ export default function OrderResultPage() {
         {/* 미리보기 */}
         <div className="flex-1">
           <div className="flex items-center justify-between mb-6">
-            <p className="text-xs text-gray-400 font-medium">모바일 미리보기 (390px) · 클릭해서 직접 수정 가능</p>
+            <p className="text-xs text-gray-400 font-medium">{p.previewBar}</p>
             <div className="flex items-center gap-2">
               {/* 모바일용 네이버 버튼 */}
               <button
@@ -618,12 +553,12 @@ export default function OrderResultPage() {
                   onClick={() => setShowSeo(true)}
                   className={`xl:hidden flex items-center gap-1.5 border px-3 py-2 rounded-xl text-xs font-black transition-all ${scoreBg} ${scoreColor}`}
                 >
-                  SEO {seoReport.score}점
+                  {p.seoPts(seoReport.score)}
                 </button>
               )}
               <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-full px-3 py-1">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-xs text-gray-500 font-medium">실시간 편집</span>
+                <span className="text-xs text-gray-500 font-medium">{p.liveEdit}</span>
               </div>
             </div>
           </div>
@@ -638,13 +573,13 @@ export default function OrderResultPage() {
 
           {/* 제품 이미지 교체·추가 (PDF 제외) */}
           <div className="max-w-[390px] mx-auto w-full mb-3 print:hidden">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">제품 이미지 · 최대 3장</p>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">{p.prodImages}</p>
             <div className="flex flex-wrap items-end gap-2">
               {(order.image_urls ?? []).map((url, i) => (
                 <div key={`${url}-${i}`} className="relative flex flex-col items-center gap-1">
                   <img
                     src={url}
-                    alt={`제품 ${i + 1}`}
+                    alt={p.imgAlt(i)}
                     className="w-16 h-16 sm:w-[72px] sm:h-[72px] object-cover rounded-xl border border-gray-200 bg-gray-50"
                   />
                   <button
@@ -653,7 +588,7 @@ export default function OrderResultPage() {
                     onClick={() => pickImageSlot(i)}
                     className="text-[10px] font-bold text-gray-500 hover:text-black border border-gray-200 rounded-lg px-2 py-0.5 disabled:opacity-40"
                   >
-                    교체
+                    {p.replace}
                   </button>
                 </div>
               ))}
@@ -663,14 +598,14 @@ export default function OrderResultPage() {
                   disabled={imageBusy}
                   onClick={() => pickImageSlot((order.image_urls ?? []).length)}
                   className="w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-xl border-2 border-dashed border-gray-200 text-gray-400 text-xl font-light hover:border-gray-400 hover:text-gray-600 disabled:opacity-40 flex items-center justify-center"
-                  title="이미지 추가"
+                  title={p.addImgTitle}
                 >
-                  +
+                  {p.addImg}
                 </button>
               )}
             </div>
             <p className="text-[10px] text-gray-400 mt-2 leading-relaxed">
-              AI 채팅은 글만 수정합니다. 사진은 여기서 교체하거나 추가하세요.
+              {p.imageHint}
             </p>
           </div>
 
@@ -688,7 +623,7 @@ export default function OrderResultPage() {
             {order.image_urls && order.image_urls.length > 0 && (
               <div>
                 {order.image_urls.map((url, i) => (
-                  <img key={i} src={url} alt={`제품 ${i+1}`} className="w-full object-cover" crossOrigin="anonymous" />
+                  <img key={i} src={url} alt={p.imgAlt(i)} className="w-full object-cover" crossOrigin="anonymous" />
                 ))}
               </div>
             )}
@@ -713,7 +648,7 @@ export default function OrderResultPage() {
                     </span>
                   </div>
                   {editingId === section.id && (
-                    <span className="text-xs text-gray-400 font-medium bg-white border border-gray-200 px-2 py-0.5 rounded-full">편집 중</span>
+                    <span className="text-xs text-gray-400 font-medium bg-white border border-gray-200 px-2 py-0.5 rounded-full">{p.editing}</span>
                   )}
                 </div>
 
@@ -743,17 +678,17 @@ export default function OrderResultPage() {
             ))}
 
             <div className="px-6 py-8 bg-gray-50 text-center border-t border-gray-100">
-              <p className="text-gray-300 text-xs font-medium">AI 자동 생성 상세페이지</p>
+              <p className="text-gray-300 text-xs font-medium">{p.footerAi}</p>
             </div>
           </div>
 
           {/* 하단 버튼 */}
           <div className="mt-8 flex flex-wrap justify-center gap-3 print:hidden">
-            <button onClick={() => router.push('/order/new')} className="border border-gray-200 text-gray-400 px-6 py-3 rounded-xl text-sm hover:bg-white transition-all">
-              + 새 주문
+            <button type="button" onClick={() => router.push('/order/new')} className="border border-gray-200 text-gray-400 px-6 py-3 rounded-xl text-sm hover:bg-white transition-all">
+              {p.newOrder}
             </button>
-            <button onClick={handleRegenerate} disabled={regenLoading} className="border border-gray-200 text-gray-700 px-6 py-3 rounded-xl text-sm font-semibold hover:bg-white transition-all disabled:opacity-40">
-              다시 생성
+            <button type="button" onClick={handleRegenerate} disabled={regenLoading} className="border border-gray-200 text-gray-700 px-6 py-3 rounded-xl text-sm font-semibold hover:bg-white transition-all disabled:opacity-40">
+              {p.regenBottom}
             </button>
             <button
               type="button"
@@ -763,11 +698,11 @@ export default function OrderResultPage() {
               <span className="font-black">{primaryRow?.icon}</span>
               {copyDone ? t.mobileCopyDone : t.bottomCopyLabel}
             </button>
-            <button onClick={handleDownloadPDF} disabled={pdfLoading} className="bg-black text-white px-10 py-3 rounded-xl text-sm font-bold hover:bg-gray-800 transition-all disabled:opacity-40">
-              {pdfLoading ? 'PDF 생성 중...' : 'PDF 다운로드'}
+            <button type="button" onClick={handleDownloadPDF} disabled={pdfLoading} className="bg-black text-white px-10 py-3 rounded-xl text-sm font-bold hover:bg-gray-800 transition-all disabled:opacity-40">
+              {pdfLoading ? p.pdfGen : p.pdfBottom}
             </button>
           </div>
-          <p className="text-center text-xs text-gray-300 mt-4">섹션을 클릭해서 제목과 본문을 자유롭게 수정하세요</p>
+          <p className="text-center text-xs text-gray-300 mt-4">{p.bottomHint}</p>
         </div>
       </div>
 
@@ -778,13 +713,13 @@ export default function OrderResultPage() {
             {/* 점수 헤더 */}
             <div className="flex items-start justify-between mb-6">
               <div>
-                <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">SEO 분석 리포트</p>
+                <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">{p.seoModalTitle}</p>
                 <div className="flex items-end gap-2">
                   <span className={`text-6xl font-black ${scoreColor}`}>{seoReport.score}</span>
-                  <span className="text-gray-400 text-sm mb-2 font-medium">/ 100</span>
+                  <span className="text-gray-400 text-sm mb-2 font-medium">{p.scoreOf}</span>
                 </div>
                 <p className={`text-sm font-bold mt-1 ${scoreColor}`}>
-                  {seoReport.score >= 80 ? '🟢 우수 — 블로그·검색 최적화 완료' : seoReport.score >= 60 ? '🟡 보통 — 일부 개선이 필요합니다' : '🔴 미흡 — 수정 후 블로그에 발행하세요'}
+                  {seoLevelMessage(uiLang, seoReport.score)}
                 </p>
               </div>
               <button onClick={() => setShowSeo(false)} className="text-gray-300 hover:text-black text-2xl leading-none mt-1">×</button>
@@ -807,7 +742,7 @@ export default function OrderResultPage() {
 
             {/* 추천 태그 */}
             <div className="mb-6">
-              <p className="text-xs font-black text-gray-400 uppercase tracking-wider mb-2">추천 검색 태그</p>
+              <p className="text-xs font-black text-gray-400 uppercase tracking-wider mb-2">{p.recoTags}</p>
               <div className="flex flex-wrap gap-2">
                 {seoReport.tags.map((tag, i) => (
                   <span key={i} className="text-xs font-bold bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full">#{tag}</span>
@@ -817,13 +752,13 @@ export default function OrderResultPage() {
 
             {/* 메타 정보 */}
             <div className="bg-gray-50 rounded-2xl p-4 space-y-3">
-              <p className="text-xs font-black text-gray-400 uppercase tracking-wider">블로그 포스팅 추천 설정</p>
+              <p className="text-xs font-black text-gray-400 uppercase tracking-wider">{p.blogRec}</p>
               <div>
-                <p className="text-xs font-bold text-gray-500 mb-1">제목</p>
+                <p className="text-xs font-bold text-gray-500 mb-1">{p.metaTitleLbl}</p>
                 <p className="text-sm text-gray-800 font-medium">{seoReport.metaTitle}</p>
               </div>
               <div>
-                <p className="text-xs font-bold text-gray-500 mb-1">설명 (메타 디스크립션)</p>
+                <p className="text-xs font-bold text-gray-500 mb-1">{p.metaDescLbl}</p>
                 <p className="text-xs text-gray-600 leading-relaxed">{seoReport.metaDesc}</p>
               </div>
             </div>
@@ -856,7 +791,7 @@ export default function OrderResultPage() {
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-white">
           <div>
             <p className="font-black text-sm text-black flex items-center gap-1.5">
-              <span className="text-indigo-500">✦</span> AI 수정 어시스턴트
+              <span className="text-indigo-500">✦</span> {p.chatAssistant}
             </p>
             <p className="text-xs text-gray-400 mt-0.5">{order?.product_name}</p>
           </div>
@@ -866,16 +801,9 @@ export default function OrderResultPage() {
         {/* 빠른 명령어 */}
         {chatMessages.length === 0 && (
           <div className="px-4 py-4 border-b border-gray-50">
-            <p className="text-xs font-bold text-gray-400 mb-2">빠른 요청</p>
+            <p className="text-xs font-bold text-gray-400 mb-2">{p.quickReq}</p>
             <div className="flex flex-wrap gap-1.5">
-              {[
-                '첫 번째 섹션 더 강렬하게',
-                '첫 번째 제품 사진을 더 밝고 고급스럽게 바꿔줘',
-                'CTA 더 설득력 있게',
-                '전체적으로 더 친근하게',
-                '숫자와 수치 더 추가해줘',
-                '제목들 더 짧고 임팩트 있게',
-              ].map(q => (
+              {p.quickChips.map(q => (
                 <button
                   key={q}
                   onClick={() => { setChatInput(q) }}
@@ -893,15 +821,14 @@ export default function OrderResultPage() {
           {chatMessages.length === 0 && (
             <div className="text-center py-12">
               <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3">✦</div>
-              <p className="text-sm font-bold text-gray-700 mb-1">AI에게 수정을 요청하세요</p>
+              <p className="text-sm font-bold text-gray-700 mb-1">{p.chatEmptyTitle}</p>
               <p className="text-xs text-gray-400 leading-relaxed">
-                "1번 섹션 더 강하게 바꿔줘"<br />
-                "첫 번째 사진을 화이트 배경 제품컷으로 바꿔줘"<br />
-                "https://… 이미지로 두 번째 사진 교체해줘" (URL 붙여넣기)
+                {p.chatEmptyL1}<br />
+                {p.chatEmptyL2}<br />
+                {p.chatEmptyL3}
               </p>
               <p className="text-[10px] text-amber-700/90 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mt-4 text-left leading-relaxed">
-                <strong>글</strong>은 제안 후 <strong>「섹션 적용하기」</strong>를 눌러 반영하세요.
-                <strong>사진</strong>은 말로 요청하면 AI가 이미지를 생성·저장합니다(최대 3장, 요청당 최대 3작업). 생성에는 시간이 걸릴 수 있어요. 정확한 사진은 URL을 붙이거나 위「제품 이미지」에서 직접 올리는 편이 더 안전합니다.
+                {p.chatEmptyNote}
               </p>
             </div>
           )}
@@ -923,7 +850,7 @@ export default function OrderResultPage() {
                     onClick={() => applyModifiedSections(msg.sections!)}
                     className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black px-4 py-2 rounded-xl transition-all"
                   >
-                    ✓ {msg.sections.length}개 섹션 적용하기
+                    {p.applySections(msg.sections.length)}
                   </button>
                 )}
               </div>
@@ -952,7 +879,7 @@ export default function OrderResultPage() {
               value={chatInput}
               onChange={e => setChatInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleChatSend()}
-              placeholder="수정 요청을 입력하세요..."
+              placeholder={p.chatPh}
               disabled={chatLoading}
               className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent disabled:opacity-50"
             />
@@ -967,7 +894,7 @@ export default function OrderResultPage() {
               }
             </button>
           </div>
-          <p className="text-xs text-gray-300 mt-2 text-center">Enter로 전송 · 수정 후 섹션에 바로 적용됩니다</p>
+          <p className="text-xs text-gray-300 mt-2 text-center">{p.chatEnterHint}</p>
         </div>
       </div>
 

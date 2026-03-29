@@ -38,10 +38,17 @@ type Copy = {
   footer: string
   sections: Sec[]
   platforms: Plat[]
-  blogSceneTitle: string
-  blogSceneSub: string
-  blogCopyChip: string
-  blogOneClick: string
+  blogPublishTitle: string
+  blogPublishLead: string
+  blogFlow1: string
+  blogFlow2: string
+  blogFlow3: string
+  blogCodeLabel: string
+  blogRenderedLabel: string
+  blogKeyPoint: string
+  blogCopyHint: string
+  /** 짧은 HTML 조각 — 타이핑 연출용 */
+  blogHtmlSample: string
   blogMockBuy: string
   blogMockBtn: string
   blogDisclaimer: string
@@ -91,10 +98,16 @@ const COPY: Record<Lang, Copy> = {
       { id: 'instagram', label: '인스타그램', icon: '📸', bg: 'linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)', text: '#fff' },
       { id: 'wordpress', label: '워드프레스', icon: 'W', bg: '#21759B', text: '#fff' },
     ],
-    blogSceneTitle: '블로그 발행 미리보기',
-    blogSceneSub: '플랫폼을 선택하면 실제 발행 후 모습으로 미리봅니다',
-    blogCopyChip: '복사',
-    blogOneClick: '1-click: HTML 복사 + 네이버 블로그 열기',
+    blogPublishTitle: 'HTML로 붙여넣으면, AI가 쓴 글이 그대로 보입니다',
+    blogPublishLead: '네이버는 글쓰기 화면에서 「HTML」 탭에 코드를 붙입니다. 임시저장함에 초안이 쌓이고, 붙여넣은 뒤에는 코드가 아니라 완성된 글이 보입니다.',
+    blogFlow1: '① PageAI에서 생성된 HTML 전체 복사',
+    blogFlow2: '② 네이버 블로그 글쓰기 → HTML 편집 탭',
+    blogFlow3: '③ Ctrl+V 붙여넣기 → 임시저장 후 발행',
+    blogCodeLabel: 'HTML 편집 탭에 붙는 코드',
+    blogRenderedLabel: '붙여넣은 직후 화면에 보이는 글',
+    blogKeyPoint: '핵심: <div>, <p> 같은 태그 대신 AI가 작성한 제목·본문·레이아웃이 그대로 렌더링됩니다.',
+    blogCopyHint: 'HTML 복사',
+    blogHtmlSample: '<div class="post">\n  <h1>제주 유기농 녹차 세럼</h1>\n  <p>피부 진정과 보습...</p>\n  <div class="cta">지금 구매하기 →</div>\n</div>',
     blogMockBuy: '지금 바로 구매하러 가기 →',
     blogMockBtn: '구매 링크 바로가기',
     blogDisclaimer: '본 포스팅은 페이지AI로 자동 생성된 콘텐츠입니다',
@@ -142,10 +155,16 @@ const COPY: Record<Lang, Copy> = {
       { id: 'medium', label: 'Medium', icon: 'M', bg: '#000000', text: '#fff' },
       { id: 'instagram', label: 'Instagram', icon: '📸', bg: 'linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)', text: '#fff' },
     ],
-    blogSceneTitle: 'Blog publish preview',
-    blogSceneSub: 'Pick a platform to preview how it will look after publishing',
-    blogCopyChip: 'Copy',
-    blogOneClick: '1-click: Copy HTML + Open WordPress',
+    blogPublishTitle: 'Paste HTML — your AI draft becomes a real post',
+    blogPublishLead: 'In WordPress, use a Custom HTML block (or the code editor). You paste markup once; what readers see is the formatted story, not raw tags.',
+    blogFlow1: '① Copy the full HTML from PageAI',
+    blogFlow2: '② Open your blog editor → HTML / code view',
+    blogFlow3: '③ Paste (Ctrl+V) → preview shows the styled content → publish',
+    blogCodeLabel: 'What you paste (code)',
+    blogRenderedLabel: 'What readers see after paste',
+    blogKeyPoint: 'The point: tags turn into headings, paragraphs, and CTAs — the AI-written layout, not source code.',
+    blogCopyHint: 'Copy HTML',
+    blogHtmlSample: '<article>\n  <h1>Jeju Organic Green Tea Serum</h1>\n  <p>Soothes sensitive skin...</p>\n  <a class="btn">Shop now →</a>\n</article>',
     blogMockBuy: 'Shop now →',
     blogMockBtn: 'Go to purchase link',
     blogDisclaimer: 'This post was auto-generated with PageAI',
@@ -193,10 +212,16 @@ const COPY: Record<Lang, Copy> = {
       { id: 'wordpress', label: 'WordPress', icon: 'W', bg: '#21759B', text: '#fff' },
       { id: 'instagram', label: 'Instagram', icon: '📸', bg: 'linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)', text: '#fff' },
     ],
-    blogSceneTitle: 'ブログ公開プレビュー',
-    blogSceneSub: 'プラットフォームを選ぶと公開後の見え方を確認できます',
-    blogCopyChip: 'コピー',
-    blogOneClick: '1クリック: HTMLコピー + WordPressを開く',
+    blogPublishTitle: 'HTMLを貼ると、AIが書いた記事がそのまま表示されます',
+    blogPublishLead: 'ブログは「HTMLモード」に貼り付けます。コードの羅列ではなく、見出し・本文・ボタンが整形された状態で表示されるのがポイントです。',
+    blogFlow1: '① PageAIで生成したHTMLをすべてコピー',
+    blogFlow2: '② 記事作成 → HTML編集（またはコードビュー）',
+    blogFlow3: '③ 貼り付け → 下書き保存のあと公開',
+    blogCodeLabel: '貼り付けるコード',
+    blogRenderedLabel: '貼り付け後に見える表示',
+    blogKeyPoint: 'ポイント: タグではなく、AIが作った見出し・本文・レイアウトがレンダリングされます。',
+    blogCopyHint: 'HTMLコピー',
+    blogHtmlSample: '<div>\n  <h1>済州オーガニック緑茶セラム</h1>\n  <p>肌を落ち着かせ...</p>\n  <div class="cta">今すぐ購入</div>\n</div>',
     blogMockBuy: '今すぐ購入へ →',
     blogMockBtn: '購入リンクへ',
     blogDisclaimer: '本投稿はPageAIで自動生成されたコンテンツです',
@@ -244,10 +269,16 @@ const COPY: Record<Lang, Copy> = {
       { id: 'wordpress', label: 'WordPress', icon: 'W', bg: '#21759B', text: '#fff' },
       { id: 'instagram', label: 'Instagram', icon: '📸', bg: 'linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)', text: '#fff' },
     ],
-    blogSceneTitle: '博客发布预览',
-    blogSceneSub: '选择平台即可预览发布后的效果',
-    blogCopyChip: '复制',
-    blogOneClick: '一键：复制 HTML + 打开 WordPress',
+    blogPublishTitle: '粘贴 HTML 后，看到的是 AI 生成的正文而不是代码',
+    blogPublishLead: '在编辑器里打开「HTML / 代码」视图，整段粘贴。保存草稿后，预览里会是排版好的标题、段落和按钮。',
+    blogFlow1: '① 在 PageAI 复制完整 HTML',
+    blogFlow2: '② 进入发文页 → 切换到 HTML 或代码模式',
+    blogFlow3: '③ 粘贴 → 存草稿 → 正式发布',
+    blogCodeLabel: '粘贴区（源码）',
+    blogRenderedLabel: '粘贴后渲染出的效果',
+    blogKeyPoint: '重点：浏览器会把标签解析成 AI 写好的版式与文案，而不是显示一堆尖括号。',
+    blogCopyHint: '复制 HTML',
+    blogHtmlSample: '<section>\n  <h1>济州有机绿茶精华</h1>\n  <p>舒缓保湿...</p>\n  <button>立即购买</button>\n</section>',
     blogMockBuy: '立即去购买 →',
     blogMockBtn: '购买链接',
     blogDisclaimer: '本文由 PageAI 自动生成',
@@ -274,15 +305,18 @@ export default function DemoAnimation({ lang = 'ko' }: { lang?: Lang }) {
   const [publishStep, setPublishStep] = useState(0)
   const [activePlatform, setActivePlatform] = useState(-1)
   const [blogScene, setBlogScene] = useState(false)
-  const [blogTab, setBlogTab] = useState(0)
-  const [blogCopyPulse, setBlogCopyPulse] = useState(false)
+  const [blogFlowHi, setBlogFlowHi] = useState(0)
+  const [blogCodeText, setBlogCodeText] = useState('')
+  const [blogShowRendered, setBlogShowRendered] = useState(false)
+  const [blogCopyFlash, setBlogCopyFlash] = useState(false)
 
   useEffect(() => {
     setNameVal(''); setCatVal(''); setDescVal('')
     setPhotoAdded(false); setGenerating(false)
     setSections(0); setSeoScore(0); setSeoVisible(false)
     setPublishStep(0); setActivePlatform(-1)
-    setBlogScene(false); setBlogTab(0); setBlogCopyPulse(false)
+    setBlogScene(false); setBlogFlowHi(0); setBlogCodeText('')
+    setBlogShowRendered(false); setBlogCopyFlash(false)
 
     const T: ReturnType<typeof setTimeout>[] = []
     const add = (fn: () => void, ms: number) => T.push(setTimeout(fn, ms))
@@ -322,17 +356,29 @@ export default function DemoAnimation({ lang = 'ko' }: { lang?: Lang }) {
     PLATFORMS.forEach((_, i) => add(() => setActivePlatform(i), cursor + i * 500))
     cursor += PLATFORMS.length * 500
 
+    const blogSample = (COPY[lang] ?? COPY.ko).blogHtmlSample
+
     add(() => setBlogScene(true), cursor + 350)
-    cursor += 350 + 500
-    const nTabs = Math.min(PLATFORMS.length, 4)
-    for (let i = 0; i < nTabs; i++) {
-      add(() => setBlogTab(i), cursor + i * 420)
-    }
-    cursor += nTabs * 420 + 350
-    add(() => setBlogCopyPulse(true), cursor)
-    add(() => setBlogCopyPulse(false), cursor + 700)
-    cursor += 1100
-    add(() => setBlogScene(false), cursor)
+    cursor += 450
+    add(() => setBlogFlowHi(1), cursor)
+    add(() => setBlogFlowHi(2), cursor + 450)
+    add(() => setBlogFlowHi(3), cursor + 900)
+    cursor += 1400
+    add(() => setBlogCopyFlash(true), cursor)
+    add(() => setBlogCopyFlash(false), cursor + 550)
+    cursor += 700
+    ;[...blogSample].forEach((ch, i) => {
+      add(() => setBlogCodeText(prev => prev + ch), cursor + i * 28)
+    })
+    cursor += blogSample.length * 28 + 900
+    add(() => setBlogShowRendered(true), cursor)
+    cursor += 4200
+    add(() => {
+      setBlogScene(false)
+      setBlogCodeText('')
+      setBlogShowRendered(false)
+      setBlogFlowHi(0)
+    }, cursor)
     cursor += 450
     add(() => setLoop(l => l + 1), cursor + 200)
 
@@ -560,53 +606,88 @@ export default function DemoAnimation({ lang = 'ko' }: { lang?: Lang }) {
 
         {blogScene && (
           <div className="md:col-span-2 bg-white rounded-3xl border border-gray-200 shadow-xl overflow-hidden transition-all duration-500">
-            <div className="flex items-start justify-between px-4 py-3 border-b border-gray-100 gap-3">
+            <div className="flex items-start justify-between gap-3 px-4 py-3 border-b border-gray-100">
               <div className="min-w-0">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">{C.blogSceneTitle}</p>
-                <p className="text-[10px] text-gray-400 mt-0.5 leading-snug">{C.blogSceneSub}</p>
+                <p className="text-xs font-black text-gray-900 leading-snug">{C.blogPublishTitle}</p>
+                <p className="text-[10px] text-gray-500 mt-1.5 leading-relaxed">{C.blogPublishLead}</p>
               </div>
               <span
-                className={`shrink-0 text-[10px] font-black px-3 py-1.5 rounded-lg transition-all duration-200 ${
-                  blogCopyPulse ? 'bg-black text-white scale-105 shadow-lg' : 'bg-gray-100 text-gray-600'
+                className={`shrink-0 text-[10px] font-black px-3 py-1.5 rounded-lg border transition-all duration-200 ${
+                  blogCopyFlash ? 'bg-black text-white border-black scale-105 shadow-md' : 'bg-white text-gray-600 border-gray-200'
                 }`}
               >
-                {C.blogCopyChip} ↗
+                {C.blogCopyHint} ↗
               </span>
             </div>
-            <div className="flex gap-1.5 px-3 py-2 border-b border-gray-50 overflow-x-auto">
-              {PLATFORMS.slice(0, 4).map((p, i) => (
-                <span
-                  key={p.id}
-                  className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[9px] font-bold whitespace-nowrap shrink-0 transition-all ${
-                    blogTab === i ? 'bg-black text-white' : 'bg-gray-100 text-gray-500'
-                  }`}
-                >
-                  <span>{p.icon}</span>
-                  {p.label}
-                </span>
-              ))}
+
+            <div className="px-4 py-2.5 space-y-1 border-b border-gray-100 bg-gray-50/80">
+              <p className={`text-[10px] leading-snug transition-colors duration-300 ${blogFlowHi >= 1 ? 'text-gray-900 font-bold' : 'text-gray-400'}`}>
+                {C.blogFlow1}
+              </p>
+              <p className={`text-[10px] leading-snug transition-colors duration-300 ${blogFlowHi >= 2 ? 'text-gray-900 font-bold' : 'text-gray-400'}`}>
+                {C.blogFlow2}
+              </p>
+              <p className={`text-[10px] leading-snug transition-colors duration-300 ${blogFlowHi >= 3 ? 'text-gray-900 font-bold' : 'text-gray-400'}`}>
+                {C.blogFlow3}
+              </p>
             </div>
-            <div className="p-3">
-              <div className="rounded-xl border border-gray-200 overflow-hidden">
-                <div className="bg-gray-100 px-3 py-2 flex items-center gap-2 border-b border-gray-200">
-                  <div className="flex gap-1">
-                    <span className="w-2 h-2 rounded-full bg-red-400" />
-                    <span className="w-2 h-2 rounded-full bg-yellow-400" />
-                    <span className="w-2 h-2 rounded-full bg-green-400" />
-                  </div>
-                  <span className="text-[9px] text-gray-400 flex-1 truncate">
-                    {lang === 'ko' ? 'blog.naver.com' : lang === 'ja' ? 'ameblo.jp' : lang === 'zh' ? 'mp.weixin.qq.com' : 'wordpress.com'}
-                  </span>
+
+            <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div
+                className={`rounded-xl border border-gray-200 overflow-hidden flex flex-col transition-all duration-700 ease-out ${
+                  blogShowRendered ? 'opacity-45 md:scale-[0.98]' : 'opacity-100'
+                }`}
+              >
+                <div className="text-[9px] font-black uppercase tracking-wider text-gray-500 bg-gray-100 px-3 py-1.5 border-b border-gray-200">
+                  {C.blogCodeLabel}
                 </div>
-                <div className="h-24 bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center text-2xl">🖼️</div>
-                <div className="bg-black text-white px-3 py-2.5 text-center">
-                  <p className="text-[10px] font-black">{C.blogMockBuy}</p>
-                  <div className="mt-1.5 inline-block bg-white text-black text-[9px] font-black px-3 py-1 rounded-full">{C.blogMockBtn}</div>
-                </div>
-                <p className="text-[8px] text-gray-400 text-center py-2 px-2">{C.blogDisclaimer}</p>
+                <pre className="bg-[#1a1d21] text-[8px] leading-relaxed text-emerald-300/95 font-mono p-3 min-h-[150px] whitespace-pre-wrap break-all flex-1">
+                  {blogCodeText}
+                  {!blogShowRendered && blogCodeText.length > 0 && blogCodeText.length < C.blogHtmlSample.length && (
+                    <span className="inline-block w-1 h-3 bg-emerald-400/80 ml-0.5 animate-pulse align-middle" />
+                  )}
+                </pre>
               </div>
-              <p className="text-[10px] font-black text-center mt-3 text-gray-800">{C.blogOneClick}</p>
+
+              <div
+                className={`rounded-xl border overflow-hidden flex flex-col transition-all duration-700 ease-out ${
+                  blogShowRendered
+                    ? `opacity-100 ring-2 shadow-lg ${lang === 'ko' ? 'ring-[#03C75A]' : 'ring-[#21759B]'}`
+                    : 'opacity-35 border-gray-200'
+                }`}
+                style={{
+                  borderColor: blogShowRendered ? (lang === 'ko' ? 'rgba(3,199,90,0.45)' : 'rgba(33,117,155,0.45)') : undefined,
+                  boxShadow: blogShowRendered && lang === 'ko' ? '0 8px 30px -8px rgba(3,199,90,0.25)' : blogShowRendered ? '0 8px 30px -8px rgba(33,117,155,0.2)' : undefined,
+                }}
+              >
+                <div
+                  className="text-[9px] font-black uppercase tracking-wider text-white px-3 py-1.5"
+                  style={{ backgroundColor: lang === 'ko' ? '#03C75A' : '#21759B' }}
+                >
+                  {C.blogRenderedLabel}
+                </div>
+                <div className="p-3 bg-white flex-1 flex flex-col">
+                  <div className="h-16 rounded-lg bg-gradient-to-br from-emerald-50 to-teal-100 mb-2 flex items-center justify-center text-lg shrink-0">
+                    🖼️
+                  </div>
+                  <h3 className="text-[11px] font-black text-gray-900 leading-tight">{SECTIONS[0]?.title}</h3>
+                  <p className="text-[9px] text-gray-600 mt-1.5 leading-relaxed line-clamp-3">{SECTIONS[1]?.title}</p>
+                  <div className="mt-auto pt-3">
+                    <div className="bg-black text-white rounded-lg px-3 py-2 text-center">
+                      <p className="text-[9px] font-black">{C.blogMockBuy}</p>
+                      <span className="inline-block mt-1.5 bg-white text-black text-[8px] font-black px-2.5 py-0.5 rounded-full">
+                        {C.blogMockBtn}
+                      </span>
+                    </div>
+                    <p className="text-[7px] text-gray-400 text-center mt-2">{C.blogDisclaimer}</p>
+                  </div>
+                </div>
+              </div>
             </div>
+
+            <p className="mx-4 mb-4 text-[9px] text-indigo-900 leading-relaxed bg-indigo-50 border border-indigo-100 rounded-xl px-3 py-2.5">
+              {C.blogKeyPoint}
+            </p>
           </div>
         )}
       </div>
