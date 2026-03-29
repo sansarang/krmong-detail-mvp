@@ -12,6 +12,8 @@ import LangSwitcher from '@/components/LangSwitcher'
 import ProductShowcase from '@/components/ProductShowcase'
 import Logo from '@/components/Logo'
 import TrendWidget from '@/components/TrendWidget'
+import InternalSeoPills from '@/components/InternalSeoPills'
+import HomeJsonLd from '@/components/HomeJsonLd'
 
 const HERO_WORDS = [
   '상세페이지',
@@ -131,6 +133,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-white overflow-x-hidden">
+      <HomeJsonLd />
 
       {/* ─── 얼리버드 배너 ───────────────────────────── */}
       <CountdownBanner />
@@ -205,6 +208,10 @@ export default function Home() {
         </div>
         <p className="text-xs text-gray-300 font-medium">신용카드 불필요 · 무료로 시작 · 30초면 충분</p>
       </section>
+
+      {/* ─── 실시간 트렌드 티커(슬림) + 내부 링크 ───── */}
+      <TrendWidget variant="strip" />
+      <InternalSeoPills />
 
       {/* ─── PRODUCT SHOWCASE ────────────────────────── */}
       <ProductShowcase />
@@ -402,18 +409,6 @@ export default function Home() {
             </Link>
           ))}
         </div>
-      </section>
-
-      {/* ─── 구글 트렌드 실시간 위젯 ──────────────────── */}
-      <section className="max-w-5xl mx-auto px-5 md:px-6 pb-8">
-        <div className="text-center mb-6">
-          <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-2">실시간 트렌드</p>
-          <h2 className="text-2xl md:text-3xl font-black text-black tracking-tight">
-            지금 뜨는 키워드로<br />
-            <span className="text-gray-300">상세페이지를 만들어보세요.</span>
-          </h2>
-        </div>
-        <TrendWidget />
       </section>
 
       {/* ─── NEWSLETTER ───────────────────────────────── */}

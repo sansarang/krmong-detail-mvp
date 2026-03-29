@@ -8,11 +8,14 @@ interface Trend {
 }
 
 interface Props {
-  geo?: string       // 'KR' | 'US' | 'JP' etc.
-  compact?: boolean  // 작은 사이즈
+  geo?: string // 'KR' | 'US' | 'JP' etc.
+  /** @deprecated use variant */
+  compact?: boolean
+  variant?: 'default' | 'compact' | 'strip'
 }
 
-export default function TrendWidget({ geo = 'KR', compact = false }: Props) {
+export default function TrendWidget({ geo = 'KR', compact = false, variant }: Props) {
+  const v = variant ?? (compact ? 'compact' : 'default')
   const [trends, setTrends] = useState<Trend[]>([])
   const [loading, setLoading] = useState(true)
   const [updatedAt, setUpdatedAt] = useState('')
@@ -34,10 +37,58 @@ export default function TrendWidget({ geo = 'KR', compact = false }: Props) {
   }, [geo])
 
   const geoLabel: Record<string, string> = {
-    KR: '🇰🇷 한국', US: '🇺🇸 미국', JP: '🇯🇵 일본', TW: '🇹🇼 대만'
+    KR: '🇰🇷 한국', US: '🇺🇸 미국', JP: '🇯🇵 일본', TW: '🇹🇼 대만', CN: '🇨🇳 中国',
   }
 
-  if (compact) {
+  const trendsUrl = `https://trends.google.com/trending?geo=${geo}`
+
+  if (v === 'strip') {
+    const loop = trends.length > 0 ? [...trends, ...trends] : []
+    return (
+      <div className="w-full border-y border-amber-200/40 bg-gradient-to-r from-rose-50/60 via-white to-amber-50/50 shadow-sm">
+        <div className="max-w-6xl mx-auto px-3 sm:px-5 py-2 flex items-center gap-2 sm:gap-3">
+          <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-black text-white text-[10px] sm:text-xs font-black px-2 sm:px-3 py-1 tracking-tight">
+            <span className="text-amber-300">🔥</span>
+            급상승
+          </span>
+          <div className="flex-1 min-w-0 overflow-hidden relative h-7 flex items-center">
+            {loading ? (
+              <div className="flex gap-3 w-full">
+                <div className="h-2.5 flex-1 bg-gray-100 rounded-full animate-pulse" />
+              </div>
+            ) : error || loop.length === 0 ? (
+              <p className="text-[11px] text-gray-400 truncate">트렌드를 불러오는 중…</p>
+            ) : (
+              <div className="flex gap-8 whitespace-nowrap animate-marquee items-center">
+                {loop.map((t, i) => (
+                  <a
+                    key={`${t.title}-${i}`}
+                    href={`https://www.google.com/search?q=${encodeURIComponent(t.title)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] sm:text-xs font-bold text-gray-700 hover:text-black hover:underline shrink-0"
+                  >
+                    {t.title}
+                    {t.traffic ? <span className="text-gray-300 font-medium ml-1">{t.traffic}</span> : null}
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+          <a
+            href={trendsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 text-[10px] sm:text-xs font-black text-gray-500 hover:text-black whitespace-nowrap"
+          >
+            Trends →
+          </a>
+        </div>
+      </div>
+    )
+  }
+
+  if (v === 'compact') {
     return (
       <div className="bg-white border border-gray-200 rounded-2xl p-4">
         <div className="flex items-center justify-between mb-3">
@@ -153,7 +204,7 @@ export default function TrendWidget({ geo = 'KR', compact = false }: Props) {
       {!loading && !error && (
         <div className="px-5 py-3 border-t border-gray-100">
           <a
-            href="https://trends.google.com/trending?geo=KR"
+            href={trendsUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-gray-400 hover:text-black font-medium transition-colors"
