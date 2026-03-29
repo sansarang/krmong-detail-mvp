@@ -160,6 +160,14 @@ export type OrderResultUi = {
   abCopyApplyCta: string
   abCopyToastApplyCta: string
   abCopyUtmHint: string
+  abCopyRunnerUp: string
+  abCopyApplyRecommended: string
+  abCopyApplyRunnerUp: string
+  abCopyToastApplyRecommended: string
+  abCopyCopyUtm: string
+  abCopyToastUtm: string
+  abCopyCopyExperimentSheet: string
+  abCopyToastExperimentSheet: string
   evidenceTitle: string
   evidenceSub: string
   evidenceCopyAll: string
@@ -334,6 +342,14 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
     abCopyApplyCta: '마지막 섹션 끝에 CTA 붙이기',
     abCopyToastApplyCta: '마지막 섹션에 CTA를 추가했습니다',
     abCopyUtmHint: '랜딩 A/B 시 UTM에 variant=ab_title1 등으로 구분해 두면 나중에 전환을 묶어 볼 수 있어요.',
+    abCopyRunnerUp: '2차로 시도할 조합 (전환 강화)',
+    abCopyApplyRecommended: '추천 조합 한 번에 적용',
+    abCopyApplyRunnerUp: '2차 조합 적용',
+    abCopyToastApplyRecommended: '추천 제목·첫문장·CTA를 반영했습니다',
+    abCopyCopyUtm: '추천 UTM 쿼리 복사',
+    abCopyToastUtm: 'UTM 쿼리를 복사했습니다',
+    abCopyCopyExperimentSheet: '실험 시트 전체 복사',
+    abCopyToastExperimentSheet: '실험 시트를 복사했습니다',
     evidenceTitle: '근거·출처 레이어',
     evidenceSub: 'B2B·제안서용 (한 줄 근거 + 각주 힌트)',
     evidenceCopyAll: '근거 블록 전체 복사',
@@ -506,6 +522,14 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
     abCopyApplyCta: 'Append CTA to last section',
     abCopyToastApplyCta: 'CTA added to last section',
     abCopyUtmHint: 'For landing A/B, tag UTMs (e.g. variant=ab_title2) to compare later.',
+    abCopyRunnerUp: 'Second combo (conversion push)',
+    abCopyApplyRecommended: 'Apply recommended combo',
+    abCopyApplyRunnerUp: 'Apply 2nd combo',
+    abCopyToastApplyRecommended: 'Applied recommended title, opener & CTA',
+    abCopyCopyUtm: 'Copy recommended UTM query',
+    abCopyToastUtm: 'UTM query copied',
+    abCopyCopyExperimentSheet: 'Copy full experiment sheet',
+    abCopyToastExperimentSheet: 'Experiment sheet copied',
     evidenceTitle: 'Evidence & sources',
     evidenceSub: 'For B2B decks (one-line rationale + footnote hints)',
     evidenceCopyAll: 'Copy evidence block',
@@ -678,6 +702,14 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
     abCopyApplyCta: '最終セクション末尾にCTAを追加',
     abCopyToastApplyCta: '最終セクションにCTAを追加しました',
     abCopyUtmHint: 'ランディングA/BではUTMに variant=ab_title1 などを付けると後から集計しやすいです。',
+    abCopyRunnerUp: '第2の組み合わせ（CV強化）',
+    abCopyApplyRecommended: '推奨セットを一括適用',
+    abCopyApplyRunnerUp: '第2セットを適用',
+    abCopyToastApplyRecommended: '推奨のタイトル・冒頭・CTAを反映しました',
+    abCopyCopyUtm: '推奨UTMクエリをコピー',
+    abCopyToastUtm: 'UTMクエリをコピーしました',
+    abCopyCopyExperimentSheet: '実験シート全体をコピー',
+    abCopyToastExperimentSheet: '実験シートをコピーしました',
     evidenceTitle: '根拠・出典レイヤー',
     evidenceSub: 'B2B・提案用（1行の根拠＋脚注ヒント）',
     evidenceCopyAll: '根拠ブロックをすべてコピー',
@@ -850,6 +882,14 @@ export const ORDER_RESULT_UI: Record<UiLang, OrderResultUi> = {
     abCopyApplyCta: '在最后一节末尾追加 CTA',
     abCopyToastApplyCta: '已在最后一节追加 CTA',
     abCopyUtmHint: '落地页 A/B 时可在 UTM 中加 variant=ab_title1 等，便于后续归因。',
+    abCopyRunnerUp: '第二轮组合（偏转化）',
+    abCopyApplyRecommended: '一键应用推荐组合',
+    abCopyApplyRunnerUp: '应用第二轮组合',
+    abCopyToastApplyRecommended: '已应用推荐标题、开头与 CTA',
+    abCopyCopyUtm: '复制推荐 UTM 参数',
+    abCopyToastUtm: '已复制 UTM',
+    abCopyCopyExperimentSheet: '复制完整实验表',
+    abCopyToastExperimentSheet: '已复制实验表',
     evidenceTitle: '依据与出处',
     evidenceSub: 'B2B/投标用（一句依据 + 脚注提示）',
     evidenceCopyAll: '复制依据全文',

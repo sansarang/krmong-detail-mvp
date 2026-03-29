@@ -25,7 +25,7 @@ import {
   scanPostPublishCompliance,
 } from '@/lib/postPublishCheck'
 import { type ChannelPublishKitContent, getChannelPublishKit } from '@/lib/channelPublishKit'
-import { buildConversionAbCopy, type AbRecommendation } from '@/lib/conversionAbCopy'
+import { buildConversionAbCopy, type AbRecommendation, type AbRunnerUp } from '@/lib/conversionAbCopy'
 import { buildMetaOgPackage, metaOgPackageToHtmlMeta, metaOgPackageToJson } from '@/lib/metaOgPackage'
 import { buildListingPasteBundle, listingBundleUsesPlainText } from '@/lib/listingPasteBundles'
 import { buildListingEvidencePack } from '@/lib/listingEvidenceLayer'
@@ -415,6 +415,8 @@ function ConversionAbPanel({
   openers,
   ctas,
   recommendation,
+  runnerUp,
+  utmRecommendedQuery,
   ui,
   open,
   onToggle,
@@ -422,6 +424,9 @@ function ConversionAbPanel({
   onApplyTitle,
   onApplyOpener,
   onApplyCta,
+  onApplyCombo,
+  onCopyUtm,
+  onCopyExperimentSheet,
   hasFirst,
   lastSectionId,
   className = '',
@@ -430,6 +435,8 @@ function ConversionAbPanel({
   openers: [string, string, string]
   ctas: [string, string]
   recommendation: AbRecommendation
+  runnerUp: AbRunnerUp
+  utmRecommendedQuery: string
   ui: OrderResultUi
   open: boolean
   onToggle: () => void
@@ -437,6 +444,9 @@ function ConversionAbPanel({
   onApplyTitle: (index: 0 | 1 | 2) => void
   onApplyOpener: (index: 0 | 1 | 2) => void
   onApplyCta: (index: 0 | 1) => void
+  onApplyCombo: (rec: AbRecommendation | AbRunnerUp) => void
+  onCopyUtm: () => void
+  onCopyExperimentSheet: () => void
   hasFirst: boolean
   lastSectionId: number | null
   className?: string
@@ -518,13 +528,57 @@ function ConversionAbPanel({
               ))}
             </div>
           </div>
-          <div className="rounded-xl bg-violet-900/5 border border-violet-200/80 px-2.5 py-2">
-            <p className="text-[10px] font-black text-violet-700 uppercase tracking-wider mb-1">{ui.abCopyRecommend}</p>
+          <div className="rounded-xl bg-violet-900/5 border border-violet-200/80 px-2.5 py-2 space-y-2">
+            <p className="text-[10px] font-black text-violet-700 uppercase tracking-wider">{ui.abCopyRecommend}</p>
             <p className="text-[11px] text-violet-950 leading-snug font-medium">
               {['A', 'B', 'C'][recommendation.titleIdx]} + {['A', 'B', 'C'][recommendation.openerIdx]} + CTA {ctaLabs[recommendation.ctaIdx]}
             </p>
-            <p className="text-[10px] text-violet-900/80 mt-1 leading-relaxed">{recommendation.reason}</p>
-            <p className="text-[9px] text-violet-700/70 mt-1.5 leading-relaxed">{ui.abCopyUtmHint}</p>
+            <p className="text-[10px] text-violet-900/80 leading-relaxed">{recommendation.reason}</p>
+            <p className="text-[9px] text-violet-700/70 leading-relaxed">{ui.abCopyUtmHint}</p>
+            <pre className="text-[9px] text-violet-900/90 bg-white/80 border border-violet-100 rounded-lg p-2 overflow-x-auto whitespace-pre-wrap break-all">
+              ?{utmRecommendedQuery}
+            </pre>
+            <div className="flex flex-col gap-1.5">
+              {hasFirst && lastSectionId !== null && (
+                <button
+                  type="button"
+                  onClick={() => onApplyCombo(recommendation)}
+                  className="w-full text-center text-[10px] font-black text-white bg-violet-800 py-2 rounded-xl hover:bg-violet-900"
+                >
+                  {ui.abCopyApplyRecommended}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={onCopyUtm}
+                className="w-full text-center text-[10px] font-bold text-violet-900 border border-violet-300 bg-white py-1.5 rounded-xl hover:bg-violet-50"
+              >
+                {ui.abCopyCopyUtm}
+              </button>
+              <button
+                type="button"
+                onClick={onCopyExperimentSheet}
+                className="w-full text-center text-[10px] font-bold text-violet-900 border border-violet-300 bg-white py-1.5 rounded-xl hover:bg-violet-50"
+              >
+                {ui.abCopyCopyExperimentSheet}
+              </button>
+            </div>
+          </div>
+          <div className="rounded-xl bg-white/90 border border-violet-200 px-2.5 py-2 space-y-2">
+            <p className="text-[10px] font-black text-violet-600 uppercase tracking-wider">{ui.abCopyRunnerUp}</p>
+            <p className="text-[11px] text-violet-950 font-medium">
+              {['A', 'B', 'C'][runnerUp.titleIdx]} + {['A', 'B', 'C'][runnerUp.openerIdx]} + CTA {ctaLabs[runnerUp.ctaIdx]}
+            </p>
+            <p className="text-[10px] text-gray-700 leading-relaxed">{runnerUp.reason}</p>
+            {hasFirst && lastSectionId !== null && (
+              <button
+                type="button"
+                onClick={() => onApplyCombo(runnerUp)}
+                className="w-full text-center text-[10px] font-bold text-violet-800 border border-violet-400 bg-violet-50 py-1.5 rounded-xl hover:bg-violet-100"
+              >
+                {ui.abCopyApplyRunnerUp}
+              </button>
+            )}
           </div>
           <div>
             <p className="text-[10px] font-black text-violet-500 uppercase tracking-wider mb-1.5">{ui.abCopyCtas}</p>
@@ -934,6 +988,30 @@ export default function OrderResultPage() {
     setSections(prev => prev.map(s => s.id === sectionId ? { ...s, [field]: value } : s))
   }
 
+  function applyAbCombo(rec: AbRecommendation | AbRunnerUp) {
+    if (!abCopySet) return
+    const { titles, openers, ctas } = abCopySet
+    setSections(prev => {
+      if (prev.length === 0) return prev
+      const s0 = prev[0]!
+      const last = prev[prev.length - 1]!
+      return prev.map(s => {
+        if (s.id === s0.id) {
+          return {
+            ...s,
+            title: titles[rec.titleIdx],
+            body: `${openers[rec.openerIdx]}\n\n${s0.body}`,
+          }
+        }
+        if (s.id === last.id) {
+          return { ...s, body: `${last.body}\n\n${ctas[rec.ctaIdx]}` }
+        }
+        return s
+      })
+    })
+    toast.success(t.abCopyToastApplyRecommended)
+  }
+
   async function handleRegenerate() {
     if (!order) return
     setRegenLoading(true)
@@ -1267,6 +1345,8 @@ export default function OrderResultPage() {
                   openers={abCopySet.openers}
                   ctas={abCopySet.ctas}
                   recommendation={abCopySet.recommendation}
+                  runnerUp={abCopySet.runnerUp}
+                  utmRecommendedQuery={abCopySet.utmRecommendedQuery}
                   ui={t}
                   open={abCopyOpen}
                   onToggle={() => setAbCopyOpen(o => !o)}
@@ -1295,6 +1375,17 @@ export default function OrderResultPage() {
                     if (!last) return
                     updateSection(last.id, 'body', `${last.body}\n\n${abCopySet.ctas[idx]}`)
                     toast.success(t.abCopyToastApplyCta)
+                  }}
+                  onApplyCombo={applyAbCombo}
+                  onCopyUtm={() => {
+                    navigator.clipboard.writeText(abCopySet.utmRecommendedQuery).then(() => {
+                      toast.success(t.abCopyToastUtm)
+                    }).catch(() => toast.error(t.toastCopyFail))
+                  }}
+                  onCopyExperimentSheet={() => {
+                    navigator.clipboard.writeText(abCopySet.experimentSheet).then(() => {
+                      toast.success(t.abCopyToastExperimentSheet)
+                    }).catch(() => toast.error(t.toastCopyFail))
                   }}
                 />
               </div>
@@ -1511,6 +1602,8 @@ export default function OrderResultPage() {
                 openers={abCopySet.openers}
                 ctas={abCopySet.ctas}
                 recommendation={abCopySet.recommendation}
+                runnerUp={abCopySet.runnerUp}
+                utmRecommendedQuery={abCopySet.utmRecommendedQuery}
                 ui={t}
                 open={abCopyOpen}
                 onToggle={() => setAbCopyOpen(o => !o)}
@@ -1539,6 +1632,17 @@ export default function OrderResultPage() {
                   if (!last) return
                   updateSection(last.id, 'body', `${last.body}\n\n${abCopySet.ctas[idx]}`)
                   toast.success(t.abCopyToastApplyCta)
+                }}
+                onApplyCombo={applyAbCombo}
+                onCopyUtm={() => {
+                  navigator.clipboard.writeText(abCopySet.utmRecommendedQuery).then(() => {
+                    toast.success(t.abCopyToastUtm)
+                  }).catch(() => toast.error(t.toastCopyFail))
+                }}
+                onCopyExperimentSheet={() => {
+                  navigator.clipboard.writeText(abCopySet.experimentSheet).then(() => {
+                    toast.success(t.abCopyToastExperimentSheet)
+                  }).catch(() => toast.error(t.toastCopyFail))
                 }}
               />
             )}
