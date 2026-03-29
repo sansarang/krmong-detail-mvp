@@ -127,7 +127,13 @@ export default function NewOrderPage() {
   const [loading, setLoading]         = useState(false)
   const [images, setImages]           = useState<File[]>([])
   const [docText, setDocText]         = useState('')
-  const [outputLang, setOutputLang]   = useState('ko')
+  const [outputLang, setOutputLang]   = useState(() => {
+    // 브라우저 언어 자동 감지
+    if (typeof navigator === 'undefined') return 'ko'
+    const lang = navigator.language?.slice(0, 2) ?? 'ko'
+    const supported = ['ko', 'en', 'ja', 'zh']
+    return supported.includes(lang) ? lang : 'ko'
+  })
   const [form, setForm]               = useState({ product_name: '', category: '', description: '' })
   const [monthlyUsed, setMonthlyUsed] = useState(0)
   const [showUpgrade, setShowUpgrade] = useState(false)

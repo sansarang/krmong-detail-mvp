@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Logo from '@/components/Logo'
 
 const DEMO_SECTIONS = [
   {
@@ -52,12 +53,15 @@ const DEMO_SECTIONS = [
   },
 ]
 
-const SEO_SCORE = 92
+const SEO_SCORE = 95
 const SEO_ITEMS = [
-  { label: '키워드 밀도', score: 95, color: '#10B981' },
-  { label: '제목 최적화', score: 90, color: '#6366F1' },
-  { label: '본문 길이', score: 88, color: '#3B82F6' },
-  { label: 'CTA 강도', score: 96, color: '#F59E0B' },
+  { label: '키워드 밀도',  score: 97, ok: true, color: '#10B981' },
+  { label: '제목 최적화',  score: 93, ok: true, color: '#6366F1' },
+  { label: '본문 길이',    score: 95, ok: true, color: '#3B82F6' },
+  { label: 'CTA 강도',    score: 98, ok: true, color: '#F59E0B' },
+  { label: '숫자 포함',   score: 92, ok: true, color: '#8B5CF6' },
+  { label: '의문형 제목', score: 100, ok: true, color: '#EC4899' },
+  { label: '섹션별 분량',  score: 96, ok: true, color: '#06B6D4' },
 ]
 
 export default function ProductShowcase() {
@@ -111,27 +115,29 @@ export default function ProductShowcase() {
         </div>
 
         {/* 앱 헤더 */}
-        <div className="bg-white border-b border-gray-100 px-5 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 bg-black rounded-lg flex items-center justify-center">
-              <span className="text-white text-[9px] font-black">AI</span>
-            </div>
-            <div>
-              <p className="text-xs font-black text-black">비건 히알루론산 앰플 50ml</p>
-              <p className="text-[10px] text-gray-400">뷰티/화장품 · 생성 완료</p>
+        <div className="bg-white border-b border-gray-100 px-4 py-2.5 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <Logo size={26} />
+            <div className="min-w-0">
+              <p className="text-xs font-black text-black truncate">비건 히알루론산 앰플 50ml</p>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md font-medium">뷰티/화장품</span>
+                <span className="flex items-center gap-1 text-[9px] text-green-600 font-bold">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full inline-block" />생성 완료
+                </span>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {/* 탭 버튼 */}
-            {(['result', 'seo', 'blog'] as const).map((t, i) => (
+          <div className="flex items-center gap-1.5 shrink-0">
+            {(['result', 'seo', 'blog'] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={`text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all ${
+                className={`text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-all ${
                   tab === t ? 'bg-black text-white' : 'text-gray-400 hover:text-black'
                 }`}
               >
-                {t === 'result' ? '📄 결과물' : t === 'seo' ? '📊 SEO분석' : '📝 블로그'}
+                {t === 'result' ? '📄 결과물' : t === 'seo' ? '📊 SEO' : '📝 블로그'}
               </button>
             ))}
           </div>
@@ -220,114 +226,136 @@ export default function ProductShowcase() {
 
           {/* SEO 분석 탭 */}
           {tab === 'seo' && (
-            <div className="p-6 md:p-8 h-full overflow-y-auto bg-white">
-              <div className="flex items-start gap-6 mb-6">
+            <div className="p-5 h-full overflow-y-auto bg-white">
+              <div className="flex items-center gap-5 mb-5">
                 {/* 점수 원 */}
-                <div className="shrink-0 relative w-24 h-24">
-                  <svg className="w-24 h-24 -rotate-90" viewBox="0 0 96 96">
-                    <circle cx="48" cy="48" r="40" fill="none" stroke="#F3F4F6" strokeWidth="8" />
+                <div className="shrink-0 relative w-20 h-20">
+                  <svg className="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
+                    <circle cx="40" cy="40" r="32" fill="none" stroke="#F3F4F6" strokeWidth="7" />
                     <circle
-                      cx="48" cy="48" r="40" fill="none"
-                      stroke="#10B981" strokeWidth="8"
-                      strokeDasharray={`${2 * Math.PI * 40}`}
-                      strokeDashoffset={seoVisible ? `${2 * Math.PI * 40 * (1 - SEO_SCORE / 100)}` : `${2 * Math.PI * 40}`}
+                      cx="40" cy="40" r="32" fill="none"
+                      stroke="#10B981" strokeWidth="7"
+                      strokeDasharray={`${2 * Math.PI * 32}`}
+                      strokeDashoffset={seoVisible ? `${2 * Math.PI * 32 * (1 - SEO_SCORE / 100)}` : `${2 * Math.PI * 32}`}
                       strokeLinecap="round"
-                      style={{ transition: 'stroke-dashoffset 1.2s ease' }}
+                      style={{ transition: 'stroke-dashoffset 1.4s ease' }}
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-2xl font-black text-black">{seoVisible ? SEO_SCORE : 0}</span>
-                    <span className="text-[9px] text-gray-400 font-bold">/ 100</span>
+                    <span className="text-xl font-black text-black">{seoVisible ? SEO_SCORE : 0}</span>
+                    <span className="text-[8px] text-gray-400 font-bold">/ 100</span>
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">SEO 종합 점수</p>
-                  <p className="text-2xl font-black text-black mb-1">매우 우수</p>
-                  <p className="text-xs text-gray-400 leading-relaxed">검색엔진 상위 노출에 최적화된 구조.<br />키워드 밀도와 제목 구성이 우수합니다.</p>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">SEO 종합 점수</p>
+                  <p className="text-xl font-black text-black">최상위 수준</p>
+                  <p className="text-[10px] text-gray-400 leading-relaxed mt-0.5">
+                    검색 상위 노출 최적화 완료<br />
+                    7개 항목 모두 통과 ✅
+                  </p>
+                </div>
+                <div className="ml-auto shrink-0 flex flex-col items-center bg-green-50 border border-green-200 rounded-xl px-3 py-2">
+                  <span className="text-[9px] text-green-600 font-black">7/7 통과</span>
+                  <span className="text-lg font-black text-green-600">100%</span>
                 </div>
               </div>
 
               {/* 항목별 점수 */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {SEO_ITEMS.map((item, i) => (
-                  <div key={i}>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-xs font-bold text-gray-700">{item.label}</span>
-                      <span className="text-xs font-black" style={{ color: item.color }}>{item.score}</span>
-                    </div>
-                    <div className="w-full bg-gray-100 rounded-full h-2">
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="text-green-500 text-[10px] shrink-0">✓</span>
+                    <span className="text-[10px] font-bold text-gray-700 w-20 shrink-0">{item.label}</span>
+                    <div className="flex-1 bg-gray-100 rounded-full h-1.5">
                       <div
-                        className="h-2 rounded-full transition-all duration-1000"
+                        className="h-1.5 rounded-full transition-all duration-1000"
                         style={{
                           width: seoVisible ? `${item.score}%` : '0%',
                           backgroundColor: item.color,
-                          transitionDelay: `${i * 150}ms`,
+                          transitionDelay: `${i * 100}ms`,
                         }}
                       />
                     </div>
+                    <span className="text-[10px] font-black w-7 text-right shrink-0" style={{ color: item.color }}>{item.score}</span>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-5 bg-green-50 border border-green-200 rounded-2xl p-4">
-                <p className="text-xs font-black text-green-700 mb-1">✓ 잘된 점</p>
-                <ul className="space-y-1">
-                  {['숫자 포함 제목 4개 확인', '키워드 "히알루론산" 6회 자연 반복', '마지막 섹션 CTA 키워드 3개 포함'].map((t, i) => (
-                    <li key={i} className="text-xs text-green-600 flex items-center gap-1.5">
-                      <span>✓</span> {t}
-                    </li>
+              <div className="mt-4 bg-green-50 border border-green-200 rounded-xl p-3">
+                <p className="text-[9px] font-black text-green-700 mb-1.5">✓ AI가 자동으로 최적화한 항목</p>
+                <div className="grid grid-cols-2 gap-1">
+                  {[
+                    '숫자 포함 제목 4개',
+                    '"히알루론산" 키워드 6회',
+                    'CTA 문구 3개 삽입',
+                    '의문형 헤드라인 포함',
+                    '섹션당 평균 160자',
+                    '제목 평균 22자 최적',
+                  ].map((t, i) => (
+                    <p key={i} className="text-[9px] text-green-600 flex items-center gap-1">
+                      <span>·</span> {t}
+                    </p>
                   ))}
-                </ul>
+                </div>
               </div>
             </div>
           )}
 
           {/* 블로그 탭 */}
           {tab === 'blog' && (
-            <div className="p-6 md:p-8 h-full bg-white overflow-y-auto">
-              <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">블로그 포맷 선택</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-5">
+            <div className="flex h-full">
+              {/* 플랫폼 선택 */}
+              <div className="w-28 md:w-36 bg-white border-r border-gray-100 py-3 shrink-0">
+                <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest px-3 mb-2">플랫폼</p>
                 {[
-                  { name: '네이버 블로그', icon: '🟢', active: true },
-                  { name: '티스토리', icon: '🟠', active: false },
-                  { name: '워드프레스', icon: '🔵', active: false },
-                  { name: '브런치', icon: '⚫', active: false },
-                  { name: '인스타그램', icon: '🟣', active: false },
-                  { name: 'PDF', icon: '🔴', active: false },
+                  { name: '네이버 블로그', icon: '🟢', active: true,  url: 'blog.naver.com' },
+                  { name: '티스토리',     icon: '🟠', active: false, url: 'tistory.com' },
+                  { name: '워드프레스',   icon: '🔵', active: false, url: 'wordpress.com' },
+                  { name: '브런치',       icon: '⚫', active: false, url: 'brunch.co.kr' },
+                  { name: '인스타캡션',   icon: '🟣', active: false, url: 'instagram.com' },
+                  { name: 'PDF',          icon: '🔴', active: false, url: 'export.pdf' },
                 ].map((p, i) => (
-                  <button
-                    key={i}
-                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold border transition-all ${
-                      p.active ? 'bg-black text-white border-black' : 'border-gray-200 text-gray-500 hover:border-gray-400'
-                    }`}
-                  >
-                    <span>{p.icon}</span>
-                    {p.name}
+                  <button key={i} className={`w-full text-left px-3 py-2 text-[10px] transition-all border-l-2 ${
+                    p.active ? 'border-black bg-gray-50 font-black text-black' : 'border-transparent text-gray-400 hover:text-gray-700'
+                  }`}>
+                    <span className="mr-1">{p.icon}</span>{p.name}
                   </button>
                 ))}
               </div>
-              {/* 미리보기 프레임 */}
-              <div className="border border-gray-200 rounded-2xl overflow-hidden">
-                <div className="bg-gray-50 px-4 py-2 flex items-center gap-2 border-b border-gray-100">
-                  <div className="flex gap-1">
-                    <div className="w-2.5 h-2.5 rounded-full bg-gray-300" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-gray-300" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-gray-300" />
+              {/* 미리보기 */}
+              <div className="flex-1 overflow-y-auto bg-white p-4">
+                <div className="border border-gray-100 rounded-xl overflow-hidden">
+                  {/* 네이버 블로그 헤더 */}
+                  <div className="bg-[#03C75A] px-4 py-2 flex items-center gap-2">
+                    <span className="text-white font-black text-xs">N</span>
+                    <span className="text-white text-[10px]">blog.naver.com/mystore</span>
                   </div>
-                  <span className="text-[10px] text-gray-400 font-mono">blog.naver.com/mystore</span>
+                  <div className="p-4 space-y-3 bg-white">
+                    <h3 className="text-sm font-black text-black leading-snug">지금 피부가 보내는 SOS 신호, 무시하고 계신가요?</h3>
+                    <div className="flex gap-2 flex-wrap">
+                      <span className="text-[9px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">#히알루론산앰플</span>
+                      <span className="text-[9px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">#비건화장품</span>
+                      <span className="text-[9px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">#수분앰플추천</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      <div className="h-2.5 bg-gray-100 rounded w-full" />
+                      <div className="h-2.5 bg-gray-100 rounded w-5/6" />
+                      <div className="h-2.5 bg-gray-100 rounded w-4/5" />
+                    </div>
+                    <div className="bg-gray-50 rounded-xl h-20 flex items-center justify-center">
+                      <span className="text-[9px] text-gray-300">📷 제품 이미지 자동 삽입</span>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[9px] font-black text-gray-700">3중 히알루론산이 다른 이유 — 크기가 다르면 작용이 다릅니다</p>
+                      <div className="h-2 bg-gray-100 rounded w-full" />
+                      <div className="h-2 bg-gray-100 rounded w-3/4" />
+                    </div>
+                  </div>
                 </div>
-                <div className="p-4 bg-white space-y-2">
-                  <div className="h-5 bg-gray-100 rounded-lg w-3/4" />
-                  <div className="h-3 bg-gray-50 rounded w-full" />
-                  <div className="h-3 bg-gray-50 rounded w-5/6" />
-                  <div className="h-20 bg-gray-50 rounded-xl mt-3" />
-                  <div className="h-3 bg-gray-50 rounded w-full" />
-                  <div className="h-3 bg-gray-50 rounded w-4/5" />
-                </div>
+                <button className="mt-3 w-full bg-[#03C75A] text-white py-2.5 rounded-xl text-xs font-black hover:opacity-90 transition-all">
+                  ↗ HTML 복사해서 블로그에 붙여넣기
+                </button>
               </div>
-              <button className="mt-4 w-full bg-black text-white py-3 rounded-2xl text-sm font-black hover:bg-gray-800 transition-all">
-                ↗ HTML 복사해서 붙여넣기
-              </button>
             </div>
           )}
         </div>

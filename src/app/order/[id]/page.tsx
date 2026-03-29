@@ -44,9 +44,11 @@ function analyzeSeo(sections: Section[], productName: string, category: string):
   const hasQuestion = sections.some(s => /[?？]|인가요|나요|까요|세요/.test(s.title))
   const hasCta = /지금|바로|구매|시작|할인|무료/.test(sections[sections.length - 1]?.body ?? '')
   const ctaCount = (sections[sections.length - 1]?.body ?? '').split(/지금|바로|구매|시작|할인|무료/).length - 1
-  const keywordInTitles = sections.filter(s =>
-    s.title.includes(productName.slice(0, 4)) || s.title.includes(category)
-  ).length
+  const keywordInTitles = sections.filter(s => {
+    // 제품명 단어 분리 후 2글자 이상 토큰이 제목에 포함되는지 체크
+    const tokens = productName.split(/[\s,·]+/).filter(t => t.length >= 2)
+    return tokens.some(token => s.title.includes(token)) || s.title.includes(category)
+  }).length
   const bodyLengths = sections.map(s => s.body.replace(/\s/g, '').length)
   const allBodySufficient = bodyLengths.every(l => l >= 100)
 
