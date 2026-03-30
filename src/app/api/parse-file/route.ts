@@ -28,9 +28,9 @@ export async function POST(req: NextRequest) {
           ],
         }],
       })
-      const text = message.content
+      const text = (message.content as { type: string; text?: string }[])
         .filter(b => b.type === 'text')
-        .map(b => (b as { type: 'text'; text: string }).text)
+        .map(b => b.text ?? '')
         .join('\n')
       return NextResponse.json({ text: text.trim(), pages: 1 })
     }
