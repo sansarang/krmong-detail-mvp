@@ -7,8 +7,11 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 const FREE_LIMIT = 5
 
 export async function POST(req: NextRequest) {
+  let orderId: string | undefined
   try {
-    const { orderId, outputLang = 'ko' } = await req.json()
+    const body = await req.json()
+    orderId = body.orderId
+    const { outputLang = 'ko' } = body as { outputLang?: string }
     const supabase = createAdminClient()
 
     // 주문 조회
@@ -105,11 +108,27 @@ ${templateContent}
       })
 
       const tContent = templateMessage.content[0]
-      if (tContent.type !== 'text') throw new Error('Invalid response')
+      if (tContent.type !== 'text') throw new Error('AI 응답 형식 오류')
+      // 마크다운 코드블록 제거 후 JSON 추출
       const tText = tContent.text.trim()
+        .replace(/^```(?:json)?\s*/i, '')
+        .replace(/\s*```\s*$/i, '')
+        .trim()
       const tJsonMatch = tText.match(/\{[\s\S]*\}/)
-      if (!tJsonMatch) throw new Error('JSON 파싱 실패')
-      const tParsed = JSON.parse(tJsonMatch[0])
+      if (!tJsonMatch) {
+        console.error('[template] JSON not found in response:', tText.slice(0, 500))
+        throw new Error('양식 자동 작성 응답 파싱 실패')
+      }
+      let tParsed: { sections: unknown[] }
+      try {
+        tParsed = JSON.parse(tJsonMatch[0])
+      } catch (parseErr) {
+        console.error('[template] JSON.parse error:', parseErr, '\nRaw:', tJsonMatch[0].slice(0, 500))
+        throw new Error('양식 자동 작성 JSON 파싱 오류')
+      }
+      if (!Array.isArray(tParsed.sections) || tParsed.sections.length === 0) {
+        throw new Error('양식 섹션이 비어 있습니다')
+      }
       const tResult = { sections: tParsed.sections, output_lang: outputLang, template_mode: true }
 
       await supabase.from('orders').update({ status: 'done', result_json: tResult }).eq('id', orderId)
@@ -283,11 +302,17 @@ JSON만 출력 (다른 텍스트 없이):
     })
 
     const content = message.content[0]
-    if (content.type !== 'text') throw new Error('Invalid response')
+    if (content.type !== 'text') throw new Error('AI 응답 형식 오류')
 
     const text = content.text.trim()
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```\s*$/i, '')
+      .trim()
     const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) throw new Error('JSON 파싱 실패')
+    if (!jsonMatch) {
+      console.error('[generate] JSON not found:', text.slice(0, 500))
+      throw new Error('AI 응답 JSON 파싱 실패')
+    }
 
     const parsed = JSON.parse(jsonMatch[0])
     const result = {
@@ -304,12 +329,12 @@ JSON만 출력 (다른 텍스트 없이):
 
   } catch (err: unknown) {
     console.error('Generate error:', err)
-    const supabase = createAdminClient()
-    try {
-      const body = await new Response((err as { body?: ReadableStream }).body).text()
-      const { orderId } = JSON.parse(body)
-      if (orderId) await supabase.from('orders').update({ status: 'error' }).eq('id', orderId)
-    } catch { /* ignore */ }
+    if (orderId) {
+      try {
+        const supabase = createAdminClient()
+        await supabase.from('orders').update({ status: 'error' }).eq('id', orderId)
+      } catch { /* ignore */ }
+    }
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'AI 생성 실패' },
       { status: 500 }

@@ -442,7 +442,8 @@ const FREE_LIMIT = 5
 export default function NewOrderPage() {
   const router   = useRouter()
   const supabase = createClient()
-  const [loading, setLoading]               = useState(false)
+  const [productLoading, setProductLoading]   = useState(false)
+  const [templateLoading, setTemplateLoading] = useState(false)
   const [images, setImages]                 = useState<File[]>([])
   const [docText, setDocText]               = useState('')
   const [uiLang, setUiLang]                 = useState<UiLang>('ko')
@@ -496,9 +497,13 @@ export default function NewOrderPage() {
   const usagePct  = Math.min((monthlyUsed / FREE_LIMIT) * 100, 100)
 
   // 공통 주문 생성 + 생성 API 호출
-  async function submitOrder(payload: { product_name: string; category: string; description: string }, imageFiles: File[]) {
+  async function submitOrder(
+    payload: { product_name: string; category: string; description: string },
+    imageFiles: File[],
+    setThisLoading: (v: boolean) => void,
+  ) {
     if (monthlyUsed >= FREE_LIMIT) { setShowUpgrade(true); return }
-    setLoading(true)
+    setThisLoading(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push(loginPathForLang(readStoredUiLang() ?? uiLang)); return }
@@ -525,7 +530,7 @@ export default function NewOrderPage() {
       const data = await res.json()
       if (!res.ok) {
         if (data.error === 'LIMIT_EXCEEDED') { setShowUpgrade(true); return }
-        throw new Error(data.message || 'Generation failed')
+        throw new Error(data.error || data.message || 'Generation failed')
       }
       toast.success(L.toastDone)
       persistUiLang(outputLang as UiLang)
@@ -533,7 +538,7 @@ export default function NewOrderPage() {
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Error occurred')
     } finally {
-      setLoading(false)
+      setThisLoading(false)
     }
   }
 
@@ -602,7 +607,7 @@ export default function NewOrderPage() {
     const combinedDesc = docText.trim()
       ? `${form.description}\n\n[첨부 문서 내용]\n${docText.trim()}`
       : form.description
-    await submitOrder({ ...form, description: combinedDesc }, images)
+    await submitOrder({ ...form, description: combinedDesc }, images, setProductLoading)
   }
 
   // 양식 모드 제출
@@ -611,7 +616,7 @@ export default function NewOrderPage() {
     if (!tmplTitle.trim()) { toast.error(L.tmplTitleRequired); return }
     if (!templateContent.trim()) { toast.error(L.errTemplateRequired); return }
     const description = `${tmplRefInfo.trim() ? tmplRefInfo.trim() + '\n\n' : ''}[TEMPLATE_FORM]\n${templateContent.trim()}\n[/TEMPLATE_FORM]`
-    await submitOrder({ product_name: tmplTitle.trim(), category: 'other', description }, [])
+    await submitOrder({ product_name: tmplTitle.trim(), category: 'other', description }, [], setTemplateLoading)
   }
 
   return (
@@ -771,10 +776,10 @@ export default function NewOrderPage() {
               />
             </div>
 
-            <button type="submit" disabled={loading}
+            <button type="submit" disabled={templateLoading}
               className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-sm hover:bg-indigo-700 disabled:opacity-40 transition-all flex items-center justify-center gap-3 min-h-[52px]"
             >
-              {loading ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />{L.generating}</> : L.templateBtn}
+              {templateLoading ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />{L.generating}</> : L.templateBtn}
             </button>
           </form>
 
@@ -887,10 +892,10 @@ export default function NewOrderPage() {
               <input id="file-upload" type="file" accept="image/*" multiple onChange={handleImageChange} className="hidden" />
             </div>
 
-            <button type="submit" disabled={loading}
+            <button type="submit" disabled={productLoading}
               className="w-full bg-black text-white py-4 rounded-2xl font-bold text-sm hover:bg-gray-800 disabled:opacity-40 transition-all flex items-center justify-center gap-3 min-h-[52px]"
             >
-              {loading ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />{L.generating}</> : isDocCat ? L.docBtn : L.generateBtn}
+              {productLoading ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />{L.generating}</> : isDocCat ? L.docBtn : L.generateBtn}
             </button>
           </form>
 
