@@ -13,18 +13,24 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    // ── PDF — Claude 네이티브 PDF 읽기 (serverless 완벽 호환) ──
+    // ── PDF — Claude 네이티브 PDF 읽기 (claude-sonnet-4-5 이상만 지원) ──
     if (fileName.endsWith('.pdf')) {
       const base64Data = buffer.toString('base64')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const message = await (anthropic.messages.create as any)({
-        model: 'claude-3-5-haiku-20241022',
+        model: 'claude-sonnet-4-5',
         max_tokens: 4000,
         messages: [{
           role: 'user',
           content: [
-            { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64Data } },
-            { type: 'text', text: 'Extract all text from this PDF. Output only the plain text, preserving structure and sections. No commentary.' },
+            {
+              type: 'document',
+              source: { type: 'base64', media_type: 'application/pdf', data: base64Data },
+            },
+            {
+              type: 'text',
+              text: 'Extract all text from this PDF document. Output only the plain text, preserving the original structure and section headings. No commentary or explanation.',
+            },
           ],
         }],
       })
@@ -94,7 +100,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ error: '지원하지 않는 파일 형식입니다. (PDF/DOCX/XLSX/PPTX/TXT/MD/CSV 지원)' }, { status: 400 })
   } catch (err) {
-    console.error('parse-file error:', err)
-    return NextResponse.json({ error: '파일 파싱 중 오류가 발생했습니다' }, { status: 500 })
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('parse-file error:', msg)
+    return NextResponse.json({ error: `파일 파싱 오류: ${msg}` }, { status: 500 })
   }
 }
