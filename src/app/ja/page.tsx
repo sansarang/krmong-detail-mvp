@@ -11,6 +11,7 @@ import LangSwitcher from '@/components/LangSwitcher'
 import ProductShowcase from '@/components/ProductShowcase'
 import Logo from '@/components/Logo'
 import TrendWidget from '@/components/TrendWidget'
+import PromoDemoWidget from '@/components/PromoDemoWidget'
 
 const HERO_WORDS = [
   '商品詳細ページ', 'プレスリリース', '事業計画書', '論文要約',
@@ -90,8 +91,10 @@ export default function JaPage() {
         </div>
       </nav>
 
-      {/* ── HERO ── */}
-      <section className="max-w-5xl mx-auto px-5 pt-12 md:pt-20 pb-10 text-center">
+      {/* ── PROMO DEMO ── */}
+      <PromoDemoWidget lang="ja" />
+
+      {/* ── HERO ── */}      <section className="max-w-5xl mx-auto px-5 pt-12 md:pt-20 pb-10 text-center">
         <div className="inline-flex items-center gap-2 bg-gray-50 border border-gray-200 text-gray-600 text-xs font-semibold px-3 md:px-4 py-2 rounded-full mb-6 md:mb-8">
           <div className="flex -space-x-1 shrink-0">
             {['#FF5C35','#6366F1','#10B981','#F59E0B','#EC4899'].map((c, i) => (

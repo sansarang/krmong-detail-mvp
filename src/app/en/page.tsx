@@ -11,6 +11,7 @@ import LangSwitcher from '@/components/LangSwitcher'
 import ProductShowcase from '@/components/ProductShowcase'
 import Logo from '@/components/Logo'
 import TrendWidget from '@/components/TrendWidget'
+import PromoDemoWidget from '@/components/PromoDemoWidget'
 
 const HERO_WORDS = [
   'Product Pages',
@@ -95,6 +96,9 @@ export default function EnglishHome() {
           </div>
         </div>
       </nav>
+
+      {/* ── PROMO DEMO ── */}
+      <PromoDemoWidget lang="en" />
 
       {/* ── HERO ── */}
       <section className="max-w-5xl mx-auto px-5 pt-12 md:pt-20 pb-10 text-center">

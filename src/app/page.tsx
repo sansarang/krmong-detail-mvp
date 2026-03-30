@@ -14,6 +14,7 @@ import Logo from '@/components/Logo'
 import TrendWidget from '@/components/TrendWidget'
 import InternalSeoPills from '@/components/InternalSeoPills'
 import HomeJsonLd from '@/components/HomeJsonLd'
+import PromoDemoWidget from '@/components/PromoDemoWidget'
 
 const HERO_WORDS = [
   '상세페이지',
@@ -160,6 +161,9 @@ export default function Home() {
           </div>
         </div>
       </nav>
+
+      {/* ─── PROMO DEMO ─────────────────────────────── */}
+      <PromoDemoWidget lang="ko" />
 
       {/* ─── HERO ─────────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-5 pt-12 md:pt-20 pb-10 md:pb-12 text-center">
