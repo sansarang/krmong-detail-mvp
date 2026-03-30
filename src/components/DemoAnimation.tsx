@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Image from 'next/image'
 
 type Lang = 'ko' | 'en' | 'ja' | 'zh'
@@ -12,277 +12,178 @@ const SLIDES = [
   '/demo/slide5.png',
 ]
 
-type SlideCaption = { badge: string; title: string; desc: string }
+/* objectPosition per slide — show the most informative part */
+const OBJ_POS = ['top', 'top', '20%', 'top', 'top']
 
-const CAPTIONS: Record<Lang, SlideCaption[]> = {
+const ACCENT = ['#6366F1', '#10B981', '#F59E0B', '#8B5CF6', '#0EA5E9']
+
+type Tab = { icon: string; label: string; desc: string }
+
+const TABS: Record<Lang, Tab[]> = {
   ko: [
-    {
-      badge: '결과 미리보기',
-      title: 'AI가 6개 섹션 자동 완성',
-      desc: '후킹 헤드라인부터 구매 유도 CTA까지 전문 카피라이팅 수준으로 30~45초 만에 생성됩니다.',
-    },
-    {
-      badge: '채널 발행 키트',
-      title: '플랫폼별 최적화 가이드 자동 생성',
-      desc: '네이버·쿠팡·티스토리·Instagram 등 각 채널 규격에 맞는 제목 길이, 금칙어, 태그 규칙을 자동 제공합니다.',
-    },
-    {
-      badge: '전환 팁 & 훅 문장',
-      title: '팔리는 문장을 바로 복사',
-      desc: '플랫폼별 전환 팁, 패키징 체크리스트, 훅 문장 3안을 원클릭으로 복사해 바로 쓸 수 있습니다.',
-    },
-    {
-      badge: 'A/B 카피',
-      title: '제목·본문 3안 자동 생성',
-      desc: 'A·B·C 3가지 제목안과 첫 문장안 — 각각 독립 복사 및 해당 섹션에 바로 적용 가능합니다.',
-    },
-    {
-      badge: 'B2B + 에셋 키트',
-      title: 'B2B 근거 레이어 & 썸네일 키트',
-      desc: '경영진 요약·슬라이드·각주와 채널별 썸네일 문구·슬롯 플랜·안전 영역까지 한 번에 제공합니다.',
-    },
+    { icon: '✦', label: 'AI 결과',       desc: '6개 섹션 자동 완성 · 섹션별 미리보기' },
+    { icon: '📤', label: '채널 발행 키트', desc: '플랫폼별 제목·태그·금칙어 가이드' },
+    { icon: '💡', label: '전환 팁 & 훅',  desc: '훅 문장 3안 + 패키징 체크리스트' },
+    { icon: '🔀', label: 'A/B 카피',      desc: '제목·본문 A·B·C안 원클릭 복사' },
+    { icon: '🏢', label: 'B2B + 에셋',    desc: 'B2B 근거 레이어 & 썸네일 키트' },
   ],
   en: [
-    {
-      badge: 'Result Preview',
-      title: 'AI completes 6 sections automatically',
-      desc: 'From hook headline to purchase CTA — professional copywriting quality generated in 30–45 seconds.',
-    },
-    {
-      badge: 'Channel Publish Kit',
-      title: 'Platform-specific guides auto-generated',
-      desc: 'Titles, tags, restricted words, and rules optimized for Naver, Coupang, Tistory, Instagram, and more.',
-    },
-    {
-      badge: 'Conversion Tips & Hooks',
-      title: 'Copy selling sentences instantly',
-      desc: 'Platform conversion tips, packaging checklist, and 3 hook variants — one-click copy, ready to paste.',
-    },
-    {
-      badge: 'A/B Copy',
-      title: '3 title & body variants auto-generated',
-      desc: 'A·B·C headline and opening sentence variants — copy independently or apply directly to any section.',
-    },
-    {
-      badge: 'B2B + Asset Kit',
-      title: 'B2B evidence layer & thumbnail kit',
-      desc: 'Exec summary, slides, footnotes + channel thumbnail copy, slot plan, and safe zones — all in one place.',
-    },
+    { icon: '✦', label: 'AI Result',      desc: '6 sections auto-completed' },
+    { icon: '📤', label: 'Channel Kit',   desc: 'Platform-specific titles, tags & rules' },
+    { icon: '💡', label: 'Tips & Hooks',  desc: '3 hook variants + packaging checklist' },
+    { icon: '🔀', label: 'A/B Copy',      desc: '3 title & body variants, one-click copy' },
+    { icon: '🏢', label: 'B2B + Assets',  desc: 'B2B evidence layer & thumbnail kit' },
   ],
   ja: [
-    {
-      badge: '結果プレビュー',
-      title: 'AIが6セクションを自動完成',
-      desc: 'フックヘッドラインから購入CTAまで、プロレベルのコピーを30〜45秒で生成します。',
-    },
-    {
-      badge: 'チャネル発行キット',
-      title: 'プラットフォーム別最適化ガイド自動生成',
-      desc: 'アメブロ・楽天・Instagram など各チャネルの文字数制限・禁止ワード・タグ規則を自動で提供します。',
-    },
-    {
-      badge: '転換ヒント & フック文',
-      title: '売れる文章をすぐコピー',
-      desc: 'プラットフォーム別転換ヒント、パッケージチェック、フック文3案をワンクリックでコピーできます。',
-    },
-    {
-      badge: 'A/Bコピー',
-      title: 'タイトル・本文3案を自動生成',
-      desc: 'A·B·C 3種のタイトル案と冒頭文案 — それぞれ独立コピー・セクションへの即時適用が可能です。',
-    },
-    {
-      badge: 'B2B + アセットキット',
-      title: 'B2B根拠レイヤー & サムネイルキット',
-      desc: '経営陣要約・スライド・脚注 + チャネル別サムネイル文・スロットプラン・安全領域を一括提供します。',
-    },
+    { icon: '✦', label: 'AI結果',         desc: '6セクション自動完成・プレビュー' },
+    { icon: '📤', label: 'チャネルキット', desc: 'プラットフォーム別タイトル・タグ・禁止ワード' },
+    { icon: '💡', label: 'ヒント & フック', desc: 'フック文3案 + パッケージチェック' },
+    { icon: '🔀', label: 'A/Bコピー',     desc: 'タイトル・本文A·B·C案をワンクリックコピー' },
+    { icon: '🏢', label: 'B2B + アセット', desc: 'B2B根拠レイヤー & サムネイルキット' },
   ],
   zh: [
-    {
-      badge: '结果预览',
-      title: 'AI自动生成6个板块',
-      desc: '从钩子标题到购买CTA，30~45秒内生成专业文案，开箱即用。',
-    },
-    {
-      badge: '渠道发布套件',
-      title: '各平台专项优化指南自动生成',
-      desc: '为淘宝、小红书、微信、Instagram等各渠道自动提供标题长度、违禁词、标签规则。',
-    },
-    {
-      badge: '转化技巧 & 钩子句',
-      title: '一键复制高转化文案',
-      desc: '各平台转化技巧、包装检查清单、3套钩子句方案——一键复制，立即可用。',
-    },
-    {
-      badge: 'A/B文案',
-      title: '标题·正文3套方案自动生成',
-      desc: 'A·B·C三套标题与开头句方案——各自独立复制或直接应用到对应板块。',
-    },
-    {
-      badge: 'B2B + 素材套件',
-      title: 'B2B证据层 & 缩略图套件',
-      desc: '高管摘要·PPT·注释 + 各渠道缩略图文案·槽位规划·安全区域，一站式提供。',
-    },
+    { icon: '✦', label: 'AI结果',         desc: '6个板块自动生成·分板块预览' },
+    { icon: '📤', label: '渠道发布套件',   desc: '各平台标题·标签·违禁词指南' },
+    { icon: '💡', label: '技巧 & 钩子',    desc: '3套钩子句 + 包装检查清单' },
+    { icon: '🔀', label: 'A/B文案',       desc: '标题·正文A·B·C方案一键复制' },
+    { icon: '🏢', label: 'B2B + 素材',    desc: 'B2B证据层 & 缩略图套件' },
   ],
 }
 
-const BADGE_COLORS = [
-  'bg-indigo-100 text-indigo-700',
-  'bg-emerald-100 text-emerald-700',
-  'bg-amber-100 text-amber-700',
-  'bg-violet-100 text-violet-700',
-  'bg-sky-100 text-sky-700',
-]
-
-const ACCENT_COLORS = [
-  '#6366F1', // indigo
-  '#10B981', // emerald
-  '#F59E0B', // amber
-  '#8B5CF6', // violet
-  '#0EA5E9', // sky
-]
+const AUTO_MS = 4000   // 탭당 머무는 시간
 
 export default function DemoAnimation({ lang = 'ko' }: { lang?: Lang }) {
-  const captions = CAPTIONS[lang] ?? CAPTIONS.ko
-  const [current, setCurrent] = useState(0)
-  const [visible, setVisible] = useState(true)
+  const tabs    = TABS[lang] ?? TABS.ko
+  const [cur, setCur]         = useState(0)
+  const [imgVisible, setImgVisible] = useState(true)
+  const [progress, setProgress]     = useState(0)
+  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setVisible(false)
-      setTimeout(() => {
-        setCurrent(c => (c + 1) % SLIDES.length)
-        setVisible(true)
-      }, 320)
-    }, 4200)
-    return () => clearInterval(interval)
-  }, [])
-
-  function goTo(idx: number) {
-    if (idx === current) return
-    setVisible(false)
-    setTimeout(() => { setCurrent(idx); setVisible(true) }, 320)
+  function switchTo(idx: number) {
+    if (idx === cur) return
+    setImgVisible(false)
+    setTimeout(() => { setCur(idx); setProgress(0); setImgVisible(true) }, 260)
   }
 
-  const cap = captions[current]
+  /* progress bar + auto-advance */
+  useEffect(() => {
+    setProgress(0)
+    const step  = 50                       // ms per tick
+    const ticks = AUTO_MS / step
+    let   t     = 0
+    progressRef.current = setInterval(() => {
+      t++
+      setProgress(Math.min((t / ticks) * 100, 100))
+      if (t >= ticks) {
+        clearInterval(progressRef.current!)
+        setImgVisible(false)
+        setTimeout(() => {
+          setCur(c => (c + 1) % SLIDES.length)
+          setProgress(0)
+          setImgVisible(true)
+        }, 260)
+      }
+    }, step)
+    return () => clearInterval(progressRef.current!)
+  }, [cur])
+
+  const tab = tabs[cur]
 
   return (
-    <div className="w-full max-w-5xl mx-auto">
+    <div className="w-full max-w-4xl mx-auto">
+
+      {/* ── Tab bar ── */}
+      <div className="flex gap-1 mb-0 overflow-x-auto pb-0 hide-scrollbar">
+        {tabs.map((t, i) => {
+          const active = i === cur
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => switchTo(i)}
+              className={`relative flex-1 min-w-[100px] text-left px-3 py-3 rounded-t-xl transition-all duration-200 border-b-0 focus:outline-none ${
+                active
+                  ? 'bg-white border border-gray-200 border-b-white z-10 shadow-sm'
+                  : 'bg-gray-50 border border-transparent hover:bg-gray-100'
+              }`}
+            >
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="text-sm">{t.icon}</span>
+                <span
+                  className="text-[11px] font-black whitespace-nowrap"
+                  style={{ color: active ? ACCENT[i] : '#6B7280' }}
+                >
+                  {t.label}
+                </span>
+              </div>
+              <p className={`text-[9px] leading-tight ${active ? 'text-gray-500' : 'text-gray-400'} hidden sm:block`}>
+                {t.desc}
+              </p>
+              {/* progress bar */}
+              {active && (
+                <div className="absolute bottom-0 left-0 h-0.5 rounded-b-sm transition-none" style={{ width: `${progress}%`, background: ACCENT[i] }} />
+              )}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* ── Screenshot frame ── */}
       <div
-        className="grid grid-cols-1 md:grid-cols-[1fr_1.6fr] gap-8 md:gap-12 items-start"
-        style={{ minHeight: 540 }}
+        className="rounded-b-2xl rounded-tr-2xl overflow-hidden border border-gray-200 shadow-xl bg-white"
+        style={{ border: `1.5px solid ${ACCENT[cur]}33` }}
       >
-        {/* ── LEFT: caption ── */}
-        <div
-          className="flex flex-col gap-5 transition-all duration-300"
-          style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(8px)' }}
-        >
-          {/* step indicator */}
-          <div className="flex items-center gap-2">
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-black shrink-0"
-              style={{ background: ACCENT_COLORS[current] }}
-            >
-              {current + 1}
-            </div>
-            <span
-              className={`text-[11px] font-black px-2.5 py-1 rounded-full ${BADGE_COLORS[current]}`}
-            >
-              {cap.badge}
-            </span>
-          </div>
-
-          <h3 className="text-2xl md:text-3xl font-black text-gray-900 leading-tight">
-            {cap.title}
-          </h3>
-
-          <p className="text-sm md:text-base text-gray-500 leading-relaxed font-medium">
-            {cap.desc}
-          </p>
-
-          {/* progress dots */}
-          <div className="flex items-center gap-2 pt-2">
-            {SLIDES.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => goTo(i)}
-                className="transition-all duration-300 rounded-full focus:outline-none"
-                style={{
-                  width:  i === current ? 28 : 8,
-                  height: 8,
-                  background: i === current ? ACCENT_COLORS[current] : '#E5E7EB',
-                }}
-              />
-            ))}
-          </div>
-
-          {/* prev / next */}
-          <div className="flex gap-2 pt-1">
-            <button
-              type="button"
-              onClick={() => goTo((current - 1 + SLIDES.length) % SLIDES.length)}
-              className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:border-gray-400 hover:text-gray-800 transition-all text-sm"
-            >
-              ←
-            </button>
-            <button
-              type="button"
-              onClick={() => goTo((current + 1) % SLIDES.length)}
-              className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:border-gray-400 hover:text-gray-800 transition-all text-sm"
-            >
-              →
-            </button>
-          </div>
-        </div>
-
-        {/* ── RIGHT: screenshot frame ── */}
-        <div
-          className="relative rounded-2xl overflow-hidden transition-all duration-300 shadow-2xl shadow-gray-200/80"
-          style={{
-            opacity:   visible ? 1 : 0,
-            transform: visible ? 'scale(1) translateY(0)' : 'scale(0.98) translateY(6px)',
-            border: `1.5px solid ${ACCENT_COLORS[current]}22`,
-          }}
-        >
-          {/* top browser bar */}
-          <div className="flex items-center gap-1.5 bg-gray-50 border-b border-gray-100 px-3 py-2">
+        {/* browser address bar */}
+        <div className="flex items-center gap-2 bg-gray-50 border-b border-gray-100 px-4 py-2.5">
+          <div className="flex gap-1.5">
             <div className="w-2.5 h-2.5 rounded-full bg-red-400/70" />
             <div className="w-2.5 h-2.5 rounded-full bg-yellow-400/70" />
             <div className="w-2.5 h-2.5 rounded-full bg-green-400/70" />
-            <div className="mx-2 flex-1 bg-gray-200/60 rounded-full h-4 flex items-center px-2">
-              <span className="text-[9px] text-gray-400 font-medium">pageai.kr/order/…</span>
-            </div>
           </div>
-
-          {/* image */}
+          <div className="flex-1 bg-white border border-gray-200 rounded-md h-5 flex items-center px-2 max-w-xs mx-auto">
+            <span className="text-[9px] text-gray-400 font-medium truncate">pageai.kr/order/abc123</span>
+          </div>
           <div
-            className="bg-gray-50 flex items-start justify-center"
-            style={{ height: 520, overflowY: 'auto', overflowX: 'hidden' }}
+            className="text-[9px] font-black px-2 py-0.5 rounded-full"
+            style={{ background: `${ACCENT[cur]}18`, color: ACCENT[cur] }}
           >
-            <Image
-              src={SLIDES[current]}
-              alt={cap.title}
-              width={700}
-              height={1400}
-              className="w-full h-auto"
-              style={{ display: 'block' }}
-              priority={current === 0}
-            />
+            {tab.icon} {tab.label}
           </div>
+        </div>
 
-          {/* colored bottom accent line */}
-          <div
-            className="h-0.5 w-full transition-all duration-500"
-            style={{ background: `linear-gradient(90deg, ${ACCENT_COLORS[current]}, ${ACCENT_COLORS[(current + 1) % ACCENT_COLORS.length]})` }}
+        {/* image */}
+        <div
+          className="transition-all duration-260"
+          style={{ opacity: imgVisible ? 1 : 0, transform: imgVisible ? 'translateY(0)' : 'translateY(6px)' }}
+        >
+          <Image
+            src={SLIDES[cur]}
+            alt={tab.label}
+            width={900}
+            height={560}
+            className="w-full"
+            style={{
+              display: 'block',
+              height: 420,
+              objectFit: 'cover',
+              objectPosition: OBJ_POS[cur],
+            }}
+            priority={cur === 0}
           />
         </div>
+
+        {/* bottom accent bar */}
+        <div
+          className="h-1 transition-all duration-500"
+          style={{ background: `linear-gradient(90deg, ${ACCENT[cur]}, ${ACCENT[(cur + 1) % ACCENT.length]})` }}
+        />
       </div>
 
-      <p className="text-center text-xs text-gray-300 mt-8 font-medium">
-        {lang === 'ko' ? '실제 서비스 화면 · 클릭하여 탐색'
-         : lang === 'en' ? 'Actual product screenshots · click to explore'
-         : lang === 'ja' ? '実際のサービス画面 · クリックして閲覧'
-         : '真实产品截图 · 点击浏览'}
+      <p className="text-center text-[11px] text-gray-300 mt-4 font-medium">
+        {lang === 'ko' ? '탭을 클릭하거나 자동으로 전환됩니다'
+         : lang === 'en' ? 'Click a tab or watch it auto-advance'
+         : lang === 'ja' ? 'タブをクリックするか自動切替'
+         : '点击标签或等待自动切换'}
       </p>
     </div>
   )
