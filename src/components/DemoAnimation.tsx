@@ -1,541 +1,286 @@
 'use client'
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 
 type Lang = 'ko' | 'en' | 'ja' | 'zh'
 
-type Sec  = { name: string; title: string; color: string }
-type Plat = { id: string; label: string; icon: string; bg: string; text: string }
+const SLIDES = [
+  '/demo/slide1.png',
+  '/demo/slide2.png',
+  '/demo/slide3.png',
+  '/demo/slide4.png',
+  '/demo/slide5.png',
+]
 
-type Copy = {
-  name: string; cat: string; desc: string; step: string
-  labelName: string; labelCat: string; catPlaceholder: string
-  labelDesc: string; labelPhoto: string
-  uploadIdle: string; uploadOk: string
-  btnGenerating: string; btnDone: string; btnStart: string
-  statusGen: string; statusDone: string
-  previewIdle: string; previewHint: string
-  genLine1: string; genLine2: string
-  seoScore: string; seoGood: string; seoMid: string; seoWait: string; seoTags: string[]
-  publishTitle: string; publishReady: (label: string) => string
-  footer: string
-  sections: Sec[]; platforms: Plat[]
-  /* auto-publish scene */
-  autoPublishTitle: string
-  autoPublishSub: string
-  autoPublishing: (label: string) => string
-  autoPublished: (label: string) => string
-  autoPublishNote: string
+type SlideCaption = { badge: string; title: string; desc: string }
+
+const CAPTIONS: Record<Lang, SlideCaption[]> = {
+  ko: [
+    {
+      badge: '결과 미리보기',
+      title: 'AI가 6개 섹션 자동 완성',
+      desc: '후킹 헤드라인부터 구매 유도 CTA까지 전문 카피라이팅 수준으로 30~45초 만에 생성됩니다.',
+    },
+    {
+      badge: '채널 발행 키트',
+      title: '플랫폼별 최적화 가이드 자동 생성',
+      desc: '네이버·쿠팡·티스토리·Instagram 등 각 채널 규격에 맞는 제목 길이, 금칙어, 태그 규칙을 자동 제공합니다.',
+    },
+    {
+      badge: '전환 팁 & 훅 문장',
+      title: '팔리는 문장을 바로 복사',
+      desc: '플랫폼별 전환 팁, 패키징 체크리스트, 훅 문장 3안을 원클릭으로 복사해 바로 쓸 수 있습니다.',
+    },
+    {
+      badge: 'A/B 카피',
+      title: '제목·본문 3안 자동 생성',
+      desc: 'A·B·C 3가지 제목안과 첫 문장안 — 각각 독립 복사 및 해당 섹션에 바로 적용 가능합니다.',
+    },
+    {
+      badge: 'B2B + 에셋 키트',
+      title: 'B2B 근거 레이어 & 썸네일 키트',
+      desc: '경영진 요약·슬라이드·각주와 채널별 썸네일 문구·슬롯 플랜·안전 영역까지 한 번에 제공합니다.',
+    },
+  ],
+  en: [
+    {
+      badge: 'Result Preview',
+      title: 'AI completes 6 sections automatically',
+      desc: 'From hook headline to purchase CTA — professional copywriting quality generated in 30–45 seconds.',
+    },
+    {
+      badge: 'Channel Publish Kit',
+      title: 'Platform-specific guides auto-generated',
+      desc: 'Titles, tags, restricted words, and rules optimized for Naver, Coupang, Tistory, Instagram, and more.',
+    },
+    {
+      badge: 'Conversion Tips & Hooks',
+      title: 'Copy selling sentences instantly',
+      desc: 'Platform conversion tips, packaging checklist, and 3 hook variants — one-click copy, ready to paste.',
+    },
+    {
+      badge: 'A/B Copy',
+      title: '3 title & body variants auto-generated',
+      desc: 'A·B·C headline and opening sentence variants — copy independently or apply directly to any section.',
+    },
+    {
+      badge: 'B2B + Asset Kit',
+      title: 'B2B evidence layer & thumbnail kit',
+      desc: 'Exec summary, slides, footnotes + channel thumbnail copy, slot plan, and safe zones — all in one place.',
+    },
+  ],
+  ja: [
+    {
+      badge: '結果プレビュー',
+      title: 'AIが6セクションを自動完成',
+      desc: 'フックヘッドラインから購入CTAまで、プロレベルのコピーを30〜45秒で生成します。',
+    },
+    {
+      badge: 'チャネル発行キット',
+      title: 'プラットフォーム別最適化ガイド自動生成',
+      desc: 'アメブロ・楽天・Instagram など各チャネルの文字数制限・禁止ワード・タグ規則を自動で提供します。',
+    },
+    {
+      badge: '転換ヒント & フック文',
+      title: '売れる文章をすぐコピー',
+      desc: 'プラットフォーム別転換ヒント、パッケージチェック、フック文3案をワンクリックでコピーできます。',
+    },
+    {
+      badge: 'A/Bコピー',
+      title: 'タイトル・本文3案を自動生成',
+      desc: 'A·B·C 3種のタイトル案と冒頭文案 — それぞれ独立コピー・セクションへの即時適用が可能です。',
+    },
+    {
+      badge: 'B2B + アセットキット',
+      title: 'B2B根拠レイヤー & サムネイルキット',
+      desc: '経営陣要約・スライド・脚注 + チャネル別サムネイル文・スロットプラン・安全領域を一括提供します。',
+    },
+  ],
+  zh: [
+    {
+      badge: '结果预览',
+      title: 'AI自动生成6个板块',
+      desc: '从钩子标题到购买CTA，30~45秒内生成专业文案，开箱即用。',
+    },
+    {
+      badge: '渠道发布套件',
+      title: '各平台专项优化指南自动生成',
+      desc: '为淘宝、小红书、微信、Instagram等各渠道自动提供标题长度、违禁词、标签规则。',
+    },
+    {
+      badge: '转化技巧 & 钩子句',
+      title: '一键复制高转化文案',
+      desc: '各平台转化技巧、包装检查清单、3套钩子句方案——一键复制，立即可用。',
+    },
+    {
+      badge: 'A/B文案',
+      title: '标题·正文3套方案自动生成',
+      desc: 'A·B·C三套标题与开头句方案——各自独立复制或直接应用到对应板块。',
+    },
+    {
+      badge: 'B2B + 素材套件',
+      title: 'B2B证据层 & 缩略图套件',
+      desc: '高管摘要·PPT·注释 + 各渠道缩略图文案·槽位规划·安全区域，一站式提供。',
+    },
+  ],
 }
 
-const COPY: Record<Lang, Copy> = {
-  ko: {
-    name: '제주 유기농 녹차 추출 세럼',
-    cat: '뷰티/화장품',
-    desc: '피부 진정과 보습에 탁월한 제주산 녹차 성분...',
-    step: 'STEP 1 · 입력',
-    labelName: '제품명', labelCat: '카테고리', catPlaceholder: '카테고리 선택...',
-    labelDesc: '제품 설명', labelPhoto: '제품 사진',
-    uploadIdle: '사진 업로드', uploadOk: '✓ 업로드 완료',
-    btnGenerating: 'AI가 생성 중...', btnDone: '생성 완료', btnStart: 'AI 상세페이지 생성 →',
-    statusGen: 'Claude AI 분석 중...', statusDone: '생성 완료 · 45초 소요',
-    previewIdle: 'AI 미리보기', previewHint: '제품 정보를 입력하면\nAI가 자동 생성합니다',
-    genLine1: 'Claude AI 분석 중', genLine2: '6개 섹션 카피라이팅 생성 중...',
-    seoScore: 'SEO 점수', seoGood: '최상위 수준 🟢', seoMid: '우수 🟡', seoWait: '분석 중...',
-    seoTags: ['키워드', '제목', '본문', 'CTA'],
-    publishTitle: '📤 1-click 발행', publishReady: (l) => `${l}에 발행 준비 완료 ✓`,
-    footer: '실제 서비스 작동 방식 시뮬레이션 · 자동 반복',
-    sections: [
-      { name: '후킹 헤드라인', title: '피부가 보내는 SOS 신호, 무시하고 계신가요?', color: '#FF5C35' },
-      { name: '제품 소개',    title: '3중 녹차 성분이 다른 이유',              color: '#6366F1' },
-      { name: '핵심 특징',   title: '비건 인증 × 피부과 테스트 완료',          color: '#10B981' },
-      { name: '추천 대상',   title: '이런 분께 꼭 맞습니다',                   color: '#3B82F6' },
-      { name: '고객 후기',   title: '"자극 없이 촉촉해졌어요"',                color: '#F59E0B' },
-      { name: '구매 유도',   title: '지금 바로 — 첫 구매 20% 할인',           color: '#8B5CF6' },
-    ],
-    platforms: [
-      { id: 'naver',     label: '네이버 블로그', icon: 'N', bg: '#03C75A', text: '#fff' },
-      { id: 'tistory',   label: '티스토리',      icon: 'T', bg: '#F26522', text: '#fff' },
-      { id: 'instagram', label: '인스타그램',    icon: '📸', bg: 'linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)', text: '#fff' },
-      { id: 'wordpress', label: '워드프레스',    icon: 'W', bg: '#21759B', text: '#fff' },
-    ],
-    autoPublishTitle: '자동 발행 진행 중',
-    autoPublishSub: 'HTML 복붙 없이 — 버튼 하나로 각 채널에 바로 올라갑니다',
-    autoPublishing: (l) => `${l} 발행 중...`,
-    autoPublished:  (l) => `${l} 발행 완료 ✓`,
-    autoPublishNote: '수동 복붙 제로 · 계정 연동 한 번으로 모든 채널 자동 발행',
-  },
-  en: {
-    name: 'Jeju Organic Green Tea Serum',
-    cat: 'Beauty / Cosmetics',
-    desc: 'Jeju green tea soothes and hydrates sensitive skin...',
-    step: 'STEP 1 · Input',
-    labelName: 'Product name', labelCat: 'Category', catPlaceholder: 'Select category...',
-    labelDesc: 'Description', labelPhoto: 'Photos',
-    uploadIdle: 'Upload photo', uploadOk: '✓ Uploaded',
-    btnGenerating: 'AI generating...', btnDone: 'Done', btnStart: 'Generate with AI →',
-    statusGen: 'Claude AI analyzing...', statusDone: 'Done · 45s',
-    previewIdle: 'AI preview', previewHint: 'Enter your product info\nand AI builds the page',
-    genLine1: 'Claude AI working', genLine2: 'Writing 6 sections...',
-    seoScore: 'SEO score', seoGood: 'Top tier 🟢', seoMid: 'Strong 🟡', seoWait: 'Analyzing...',
-    seoTags: ['Keywords', 'Title', 'Body', 'CTA'],
-    publishTitle: '📤 1-click publish', publishReady: (l) => `Ready for ${l} ✓`,
-    footer: 'Live demo simulation · loops automatically',
-    sections: [
-      { name: 'Hook',       title: 'Is your skin sending SOS signals?',       color: '#FF5C35' },
-      { name: 'Product',    title: 'Why our triple green tea blend works',     color: '#6366F1' },
-      { name: 'Features',   title: 'Vegan × dermatologist tested',            color: '#10B981' },
-      { name: "Who it's for", title: 'Perfect if this sounds like you',       color: '#3B82F6' },
-      { name: 'Reviews',    title: '"Zero irritation, so hydrating"',         color: '#F59E0B' },
-      { name: 'CTA',        title: 'Today only — 20% off first order',        color: '#8B5CF6' },
-    ],
-    platforms: [
-      { id: 'wordpress', label: 'WordPress', icon: 'W', bg: '#21759B', text: '#fff' },
-      { id: 'shopify',   label: 'Shopify',   icon: 'S', bg: '#96BF48', text: '#fff' },
-      { id: 'medium',    label: 'Medium',    icon: 'M', bg: '#000000', text: '#fff' },
-      { id: 'instagram', label: 'Instagram', icon: '📸', bg: 'linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)', text: '#fff' },
-    ],
-    autoPublishTitle: 'Auto-publishing now',
-    autoPublishSub: 'No copy-pasting HTML — one click sends your content to every channel',
-    autoPublishing: (l) => `Publishing to ${l}...`,
-    autoPublished:  (l) => `${l} published ✓`,
-    autoPublishNote: 'Zero manual paste · Connect once, auto-publish everywhere',
-  },
-  ja: {
-    name: '済州オーガニック緑茶セラム',
-    cat: 'ビューティ/化粧品',
-    desc: '済州緑茶成分で肌を落ち着かせ保湿...',
-    step: 'STEP 1 · 入力',
-    labelName: '商品名', labelCat: 'カテゴリ', catPlaceholder: 'カテゴリを選択...',
-    labelDesc: '商品説明', labelPhoto: '商品写真',
-    uploadIdle: '写真をアップロード', uploadOk: '✓ アップロード済み',
-    btnGenerating: 'AIが生成中...', btnDone: '完了', btnStart: 'AIで生成 →',
-    statusGen: 'Claude AI 分析中...', statusDone: '完了 · 45秒',
-    previewIdle: 'AIプレビュー', previewHint: '商品情報を入力すると\nAIが自動生成します',
-    genLine1: 'Claude AI 分析中', genLine2: '6セクションを生成中...',
-    seoScore: 'SEOスコア', seoGood: '最高レベル 🟢', seoMid: '良好 🟡', seoWait: '分析中...',
-    seoTags: ['キーワード', 'タイトル', '本文', 'CTA'],
-    publishTitle: '📤 1クリック投稿', publishReady: (l) => `${l} 投稿準備完了 ✓`,
-    footer: '実際のサービス動作シミュレーション · 自動ループ',
-    sections: [
-      { name: 'フック',   title: '肌のSOS、見ていますか？',           color: '#FF5C35' },
-      { name: '製品',     title: '3種の緑茶成分の理由',               color: '#6366F1' },
-      { name: '特徴',     title: 'ヴィーガン × 皮膚科テスト',        color: '#10B981' },
-      { name: '対象',     title: 'こんな方におすすめ',                color: '#3B82F6' },
-      { name: 'レビュー', title: '「刺激なく潤いました」',            color: '#F59E0B' },
-      { name: 'CTA',      title: '初回20%オフ — 本日限定',           color: '#8B5CF6' },
-    ],
-    platforms: [
-      { id: 'ameblo',    label: 'アメブロ',   icon: 'A', bg: '#FF6B00', text: '#fff' },
-      { id: 'note',      label: 'note',        icon: 'n', bg: '#000000', text: '#fff' },
-      { id: 'wordpress', label: 'WordPress',   icon: 'W', bg: '#21759B', text: '#fff' },
-      { id: 'instagram', label: 'Instagram',   icon: '📸', bg: 'linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)', text: '#fff' },
-    ],
-    autoPublishTitle: '自動投稿を実行中',
-    autoPublishSub: 'HTMLの貼り付け不要 — ボタン1つで各チャネルに自動投稿されます',
-    autoPublishing: (l) => `${l} に投稿中...`,
-    autoPublished:  (l) => `${l} 投稿完了 ✓`,
-    autoPublishNote: '手動コピペ不要 · アカウント連携1回で全チャネル自動化',
-  },
-  zh: {
-    name: '济州有机绿茶精华',
-    cat: '美妆/护肤',
-    desc: '济州绿茶舒缓保湿，适合敏感肌...',
-    step: 'STEP 1 · 输入',
-    labelName: '产品名称', labelCat: '分类', catPlaceholder: '请选择分类...',
-    labelDesc: '产品描述', labelPhoto: '产品图',
-    uploadIdle: '上传图片', uploadOk: '✓ 已上传',
-    btnGenerating: 'AI 生成中...', btnDone: '完成', btnStart: 'AI 一键生成 →',
-    statusGen: 'Claude AI 分析中...', statusDone: '完成 · 45秒',
-    previewIdle: 'AI 预览', previewHint: '填写产品信息\nAI 自动生成',
-    genLine1: 'Claude AI 分析中', genLine2: '正在生成 6 个板块...',
-    seoScore: 'SEO 分数', seoGood: '顶尖水平 🟢', seoMid: '优秀 🟡', seoWait: '分析中...',
-    seoTags: ['关键词', '标题', '正文', 'CTA'],
-    publishTitle: '📤 一键发布', publishReady: (l) => `${l} 发布就绪 ✓`,
-    footer: '真实服务流程演示 · 自动循环',
-    sections: [
-      { name: '吸引', title: '皮肤在发SOS，您注意到了吗？', color: '#FF5C35' },
-      { name: '产品', title: '三重绿茶配方为何有效',         color: '#6366F1' },
-      { name: '特点', title: '纯素 × 皮肤科测试',           color: '#10B981' },
-      { name: '人群', title: '特别适合您，如果…',           color: '#3B82F6' },
-      { name: '评价', title: '「无刺激，很水润」',           color: '#F59E0B' },
-      { name: '行动', title: '今日限定 — 首单8折',          color: '#8B5CF6' },
-    ],
-    platforms: [
-      { id: 'wechat',      label: '微信公众号', icon: '微', bg: '#07C160', text: '#fff' },
-      { id: 'xiaohongshu', label: '小红书',     icon: '红', bg: '#FF2442', text: '#fff' },
-      { id: 'wordpress',   label: 'WordPress',  icon: 'W',  bg: '#21759B', text: '#fff' },
-      { id: 'instagram',   label: 'Instagram',  icon: '📸', bg: 'linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)', text: '#fff' },
-    ],
-    autoPublishTitle: '正在自动发布',
-    autoPublishSub: '无需复制粘贴HTML — 一键将内容自动发布到所有渠道',
-    autoPublishing: (l) => `正在发布到 ${l}...`,
-    autoPublished:  (l) => `${l} 发布完成 ✓`,
-    autoPublishNote: '零手动操作 · 账号授权一次，全渠道自动发布',
-  },
-}
+const BADGE_COLORS = [
+  'bg-indigo-100 text-indigo-700',
+  'bg-emerald-100 text-emerald-700',
+  'bg-amber-100 text-amber-700',
+  'bg-violet-100 text-violet-700',
+  'bg-sky-100 text-sky-700',
+]
+
+const ACCENT_COLORS = [
+  '#6366F1', // indigo
+  '#10B981', // emerald
+  '#F59E0B', // amber
+  '#8B5CF6', // violet
+  '#0EA5E9', // sky
+]
 
 export default function DemoAnimation({ lang = 'ko' }: { lang?: Lang }) {
-  const C        = COPY[lang] ?? COPY.ko
-  const SECTIONS  = C.sections
-  const PLATFORMS = C.platforms
-
-  const [loop, setLoop]               = useState(0)
-  const [nameVal, setNameVal]         = useState('')
-  const [catVal, setCatVal]           = useState('')
-  const [descVal, setDescVal]         = useState('')
-  const [photoAdded, setPhotoAdded]   = useState(false)
-  const [generating, setGenerating]   = useState(false)
-  const [sections, setSections]       = useState(0)
-  const [seoScore, setSeoScore]       = useState(0)
-  const [seoVisible, setSeoVisible]   = useState(false)
-  const [publishStep, setPublishStep] = useState(0)
-  const [activePlatform, setActivePlatform] = useState(-1)
-  /* auto-publish scene */
-  const [autoPublishScene, setAutoPublishScene] = useState(false)
-  const [publishingIdx, setPublishingIdx]       = useState(-1)
-  const [publishedCount, setPublishedCount]     = useState(0)
-  const [publishProgress, setPublishProgress]   = useState(0)
+  const captions = CAPTIONS[lang] ?? CAPTIONS.ko
+  const [current, setCurrent] = useState(0)
+  const [visible, setVisible] = useState(true)
 
   useEffect(() => {
-    setNameVal(''); setCatVal(''); setDescVal('')
-    setPhotoAdded(false); setGenerating(false)
-    setSections(0); setSeoScore(0); setSeoVisible(false)
-    setPublishStep(0); setActivePlatform(-1)
-    setAutoPublishScene(false); setPublishingIdx(-1)
-    setPublishedCount(0); setPublishProgress(0)
+    const interval = setInterval(() => {
+      setVisible(false)
+      setTimeout(() => {
+        setCurrent(c => (c + 1) % SLIDES.length)
+        setVisible(true)
+      }, 320)
+    }, 4200)
+    return () => clearInterval(interval)
+  }, [])
 
-    const T: ReturnType<typeof setTimeout>[] = []
-    const add = (fn: () => void, ms: number) => T.push(setTimeout(fn, ms))
+  function goTo(idx: number) {
+    if (idx === current) return
+    setVisible(false)
+    setTimeout(() => { setCurrent(idx); setVisible(true) }, 320)
+  }
 
-    let cursor = 300
-    const type = (text: string, setter: React.Dispatch<React.SetStateAction<string>>, gap = 55) => {
-      ;[...text].forEach((ch, i) => {
-        T.push(setTimeout(() => setter(prev => prev + ch), cursor + i * gap))
-      })
-      cursor += text.length * gap + 500
-    }
-
-    type(C.name, setNameVal)
-    type(C.cat, setCatVal, 65)
-    type(C.desc, setDescVal, 50)
-
-    add(() => setPhotoAdded(true), cursor); cursor += 800
-    add(() => setGenerating(true), cursor); cursor += 2000
-    add(() => setGenerating(false), cursor)
-    SECTIONS.forEach((_, i) => add(() => setSections(i + 1), cursor + i * 280))
-    cursor += SECTIONS.length * 280 + 400
-
-    add(() => setSeoVisible(true), cursor)
-    for (let v = 0; v <= 95; v += 5) add(() => setSeoScore(v), cursor + v * 12)
-    cursor += 1400
-
-    PLATFORMS.forEach((_, i) => add(() => setPublishStep(i + 1), cursor + i * 300))
-    cursor += PLATFORMS.length * 300 + 600
-
-    PLATFORMS.forEach((_, i) => add(() => setActivePlatform(i), cursor + i * 450))
-    cursor += PLATFORMS.length * 450 + 300
-
-    /* ── auto-publish scene ── */
-    add(() => { setAutoPublishScene(true) }, cursor); cursor += 400
-
-    PLATFORMS.forEach((_, pi) => {
-      add(() => { setPublishingIdx(pi); setPublishProgress(0) }, cursor)
-      // fill progress bar 0 → 100 in ~900 ms (18 steps × 50 ms)
-      for (let v = 10; v <= 100; v += 10) {
-        add(() => setPublishProgress(v), cursor + v * 9)
-      }
-      cursor += 1000
-      add(() => setPublishedCount(pi + 1), cursor); cursor += 300
-    })
-
-    cursor += 2200
-    add(() => {
-      setAutoPublishScene(false)
-      setPublishingIdx(-1); setPublishedCount(0); setPublishProgress(0)
-    }, cursor)
-    cursor += 400
-    add(() => setLoop(l => l + 1), cursor + 200)
-
-    return () => T.forEach(clearTimeout)
-  }, [loop, lang]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const showResult = sections > 0 && !generating
+  const cap = captions[current]
 
   return (
     <div className="w-full max-w-5xl mx-auto">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
-
-        {/* ── LEFT: input panel ── */}
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-xl p-6 space-y-4">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-6 h-6 bg-black rounded-lg flex items-center justify-center">
-              <span className="text-white text-[8px] font-black">AI</span>
+      <div
+        className="grid grid-cols-1 md:grid-cols-[1fr_1.4fr] gap-8 md:gap-12 items-center"
+        style={{ minHeight: 480 }}
+      >
+        {/* ── LEFT: caption ── */}
+        <div
+          className="flex flex-col gap-5 transition-all duration-300"
+          style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(8px)' }}
+        >
+          {/* step indicator */}
+          <div className="flex items-center gap-2">
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-black shrink-0"
+              style={{ background: ACCENT_COLORS[current] }}
+            >
+              {current + 1}
             </div>
-            <span className="text-sm font-black tracking-tight">PageAI</span>
-            <span className="ml-auto text-[10px] text-gray-400 bg-gray-50 border border-gray-100 px-2 py-0.5 rounded-full">{C.step}</span>
+            <span
+              className={`text-[11px] font-black px-2.5 py-1 rounded-full ${BADGE_COLORS[current]}`}
+            >
+              {cap.badge}
+            </span>
           </div>
 
-          {[
-            { lbl: C.labelName, val: nameVal, full: C.name },
-            { lbl: C.labelCat,  val: catVal,  full: C.cat  },
-          ].map(({ lbl, val, full }, idx) => (
-            <div key={idx}>
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5">{lbl}</label>
-              <div className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 font-medium min-h-[40px] bg-gray-50 flex items-center">
-                {val || <span className="text-gray-300 text-xs">{idx === 1 ? C.catPlaceholder : ''}</span>}
-                <span className={`inline-block w-0.5 h-4 bg-black ml-0.5 ${val.length > 0 && val.length < full.length ? 'animate-pulse' : 'opacity-0'}`} />
-              </div>
-            </div>
-          ))}
+          <h3 className="text-2xl md:text-3xl font-black text-gray-900 leading-tight">
+            {cap.title}
+          </h3>
 
-          <div>
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5">{C.labelDesc}</label>
-            <div className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-600 min-h-[64px] bg-gray-50 leading-relaxed">
-              {descVal}
-              <span className={`inline-block w-0.5 h-4 bg-black ml-0.5 align-middle ${descVal.length > 0 && descVal.length < C.desc.length ? 'animate-pulse' : 'opacity-0'}`} />
-            </div>
+          <p className="text-sm md:text-base text-gray-500 leading-relaxed font-medium">
+            {cap.desc}
+          </p>
+
+          {/* progress dots */}
+          <div className="flex items-center gap-2 pt-2">
+            {SLIDES.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => goTo(i)}
+                className="transition-all duration-300 rounded-full focus:outline-none"
+                style={{
+                  width:  i === current ? 28 : 8,
+                  height: 8,
+                  background: i === current ? ACCENT_COLORS[current] : '#E5E7EB',
+                }}
+              />
+            ))}
           </div>
 
-          <div>
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5">{C.labelPhoto}</label>
-            <div className={`border-2 border-dashed rounded-xl px-3 py-3 flex items-center gap-3 transition-all duration-500 ${photoAdded ? 'border-green-400 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
-              {photoAdded ? (
-                <>
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shrink-0">
-                    <span className="text-white text-base">🖼️</span>
-                  </div>
-                  <div>
-                    <p className="text-xs font-black text-green-700">photo_serum.jpg</p>
-                    <p className="text-[10px] text-green-500">{C.uploadOk}</p>
-                  </div>
-                  <span className="ml-auto text-[10px] bg-green-500 text-white px-2 py-0.5 rounded-full font-bold">1/3</span>
-                </>
-              ) : (
-                <div className="flex items-center gap-2 text-gray-300 w-full justify-center py-1">
-                  <span className="text-xl">📷</span>
-                  <span className="text-xs">{C.uploadIdle}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <button
-            type="button"
-            className={`w-full py-3.5 rounded-xl text-sm font-black transition-all duration-200 flex items-center justify-center gap-2 ${
-              generating ? 'bg-gray-700 text-white' : photoAdded ? 'bg-black text-white shadow-lg shadow-black/20 scale-[1.02]' : 'bg-black text-white'
-            }`}
-          >
-            {generating ? (
-              <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />{C.btnGenerating}</>
-            ) : showResult ? (
-              <><span>✓</span>{C.btnDone}</>
-            ) : (
-              <><span>✦</span>{C.btnStart}</>
-            )}
-          </button>
-        </div>
-
-        {/* ── RIGHT: result panel ── */}
-        <div className="space-y-3">
-          {/* sections list */}
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full transition-all ${generating ? 'bg-yellow-400 animate-pulse' : showResult ? 'bg-green-400 animate-pulse' : 'bg-gray-300'}`} />
-                <span className="text-xs font-bold text-gray-500">
-                  {generating ? C.statusGen : showResult ? C.statusDone : C.previewIdle}
-                </span>
-              </div>
-              {showResult && sections >= SECTIONS.length && (
-                <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-bold">
-                  ✓ {SECTIONS.length}{lang === 'en' ? ' sections' : lang === 'ja' ? 'セクション' : lang === 'zh' ? ' 个板块' : '개 섹션'}
-                </span>
-              )}
-            </div>
-            <div className="min-h-[200px]">
-              {!generating && !showResult && (
-                <div className="flex items-center justify-center h-48 text-center">
-                  <div>
-                    <div className="text-3xl mb-2">✦</div>
-                    <p className="text-gray-300 text-xs font-medium whitespace-pre-line">{C.previewHint}</p>
-                  </div>
-                </div>
-              )}
-              {generating && (
-                <div className="flex flex-col items-center justify-center h-48 gap-3">
-                  <div className="relative w-12 h-12">
-                    <div className="absolute inset-0 border-4 border-gray-100 rounded-full" />
-                    <div className="absolute inset-0 border-4 border-t-black rounded-full animate-spin" />
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm font-black text-gray-800 mb-0.5">{C.genLine1}</p>
-                    <p className="text-[10px] text-gray-400">{C.genLine2}</p>
-                  </div>
-                </div>
-              )}
-              {showResult && (
-                <div className="divide-y divide-gray-50">
-                  {SECTIONS.map((sec, i) => (
-                    <div
-                      key={i}
-                      className="px-4 py-3 flex items-center gap-3"
-                      style={{ opacity: sections > i ? 1 : 0, transform: sections > i ? 'translateX(0)' : 'translateX(-12px)', transition: 'opacity .3s ease, transform .3s ease' }}
-                    >
-                      <div className="w-1 self-stretch rounded-full shrink-0" style={{ backgroundColor: sec.color, minHeight: 28 }} />
-                      <div className="flex-1 min-w-0">
-                        <span className="text-[9px] font-black uppercase tracking-widest block mb-0.5" style={{ color: sec.color }}>{sec.name}</span>
-                        <p className="text-[11px] font-black text-gray-800 leading-snug truncate">{sec.title}</p>
-                      </div>
-                      <div className="w-7 h-7 rounded-lg shrink-0" style={{ background: `linear-gradient(135deg,${sec.color}25,${sec.color}08)` }} />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* SEO ring */}
-          <div
-            className="bg-white rounded-2xl border border-gray-100 shadow-md px-4 py-3 flex items-center gap-4 transition-all duration-500"
-            style={{ opacity: seoVisible ? 1 : 0, transform: seoVisible ? 'translateY(0)' : 'translateY(16px)' }}
-          >
-            <div className="relative w-14 h-14 shrink-0">
-              <svg className="w-14 h-14 -rotate-90" viewBox="0 0 56 56">
-                <circle cx="28" cy="28" r="22" fill="none" stroke="#F3F4F6" strokeWidth="5" />
-                <circle cx="28" cy="28" r="22" fill="none" stroke="#10B981" strokeWidth="5"
-                  strokeDasharray={`${2 * Math.PI * 22}`}
-                  strokeDashoffset={`${2 * Math.PI * 22 * (1 - seoScore / 100)}`}
-                  strokeLinecap="round"
-                  style={{ transition: 'stroke-dashoffset .15s linear' }}
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-sm font-black text-black">{seoScore}</span>
-              </div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-0.5">{C.seoScore}</p>
-              <p className="text-sm font-black text-black">
-                {seoScore >= 90 ? C.seoGood : seoScore >= 70 ? C.seoMid : C.seoWait}
-              </p>
-              <div className="flex gap-1 mt-1 flex-wrap">
-                {C.seoTags.map((t, i) => (
-                  <span key={t} className="text-[9px] bg-green-50 text-green-600 border border-green-200 px-1.5 py-0.5 rounded-full font-bold transition-all duration-300"
-                    style={{ opacity: seoScore > i * 25 ? 1 : 0 }}>✓ {t}</span>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* 1-click platform buttons */}
-          <div
-            className="bg-white rounded-2xl border border-gray-100 shadow-md px-4 py-3 transition-all duration-500"
-            style={{ opacity: publishStep > 0 ? 1 : 0, transform: publishStep > 0 ? 'translateY(0)' : 'translateY(16px)' }}
-          >
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2.5">{C.publishTitle}</p>
-            <div className="grid grid-cols-4 gap-2">
-              {PLATFORMS.map((p, i) => (
-                <div key={p.id} className="flex flex-col items-center gap-1 transition-all duration-300"
-                  style={{ opacity: publishStep > i ? 1 : 0, transform: publishStep > i ? 'scale(1)' : 'scale(0.7)' }}>
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shadow-md transition-all duration-200"
-                    style={{
-                      background: p.bg, color: p.text,
-                      transform: activePlatform === i ? 'scale(1.15)' : 'scale(1)',
-                    }}>
-                    {p.icon}
-                  </div>
-                  <span className="text-[8px] text-gray-500 font-bold text-center leading-tight whitespace-pre-line">{p.label.replace(' ', '\n')}</span>
-                </div>
-              ))}
-            </div>
-            {activePlatform >= 0 && (
-              <p className="mt-2.5 text-[10px] font-bold text-center text-emerald-600">
-                {C.publishReady(PLATFORMS[activePlatform]?.label ?? '')}
-              </p>
-            )}
+          {/* prev / next */}
+          <div className="flex gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => goTo((current - 1 + SLIDES.length) % SLIDES.length)}
+              className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:border-gray-400 hover:text-gray-800 transition-all text-sm"
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              onClick={() => goTo((current + 1) % SLIDES.length)}
+              className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:border-gray-400 hover:text-gray-800 transition-all text-sm"
+            >
+              →
+            </button>
           </div>
         </div>
 
-        {/* ── AUTO-PUBLISH SCENE (replaces old HTML blog scene) ── */}
-        {autoPublishScene && (
-          <div className="md:col-span-2 bg-white rounded-3xl border border-gray-200 shadow-xl overflow-hidden transition-all duration-500">
-            {/* header */}
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-black text-gray-900">{C.autoPublishTitle}</p>
-                <p className="text-[11px] text-gray-500 mt-0.5">{C.autoPublishSub}</p>
-              </div>
-              <div className="flex items-center gap-1.5 bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black px-3 py-1.5 rounded-full">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
-                1-CLICK
-              </div>
+        {/* ── RIGHT: screenshot frame ── */}
+        <div
+          className="relative rounded-2xl overflow-hidden transition-all duration-300 shadow-2xl shadow-gray-200/80"
+          style={{
+            opacity:   visible ? 1 : 0,
+            transform: visible ? 'scale(1) translateY(0)' : 'scale(0.98) translateY(6px)',
+            border: `1.5px solid ${ACCENT_COLORS[current]}22`,
+          }}
+        >
+          {/* top browser bar */}
+          <div className="flex items-center gap-1.5 bg-gray-50 border-b border-gray-100 px-3 py-2">
+            <div className="w-2.5 h-2.5 rounded-full bg-red-400/70" />
+            <div className="w-2.5 h-2.5 rounded-full bg-yellow-400/70" />
+            <div className="w-2.5 h-2.5 rounded-full bg-green-400/70" />
+            <div className="mx-2 flex-1 bg-gray-200/60 rounded-full h-4 flex items-center px-2">
+              <span className="text-[9px] text-gray-400 font-medium">pageai.kr/order/…</span>
             </div>
-
-            {/* platform rows */}
-            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {PLATFORMS.map((p, i) => {
-                const done       = publishedCount > i
-                const isCurrent  = publishingIdx === i && !done
-                return (
-                  <div
-                    key={p.id}
-                    className={`rounded-2xl border p-3.5 flex items-center gap-3.5 transition-all duration-500 ${
-                      done        ? 'border-green-200 bg-green-50'
-                      : isCurrent ? 'border-indigo-200 bg-indigo-50'
-                                  : 'border-gray-100 bg-gray-50/50'
-                    }`}
-                  >
-                    {/* platform icon */}
-                    <div
-                      className="w-11 h-11 rounded-xl flex items-center justify-center text-base font-black shrink-0 shadow transition-all duration-300"
-                      style={{ background: p.bg, color: p.text, transform: isCurrent ? 'scale(1.08)' : 'scale(1)' }}
-                    >
-                      {done ? '✓' : p.icon}
-                    </div>
-
-                    {/* info + progress */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-[12px] font-black text-gray-800">{p.label}</p>
-                        {done && (
-                          <span className="text-[10px] text-green-600 font-bold">완료</span>
-                        )}
-                      </div>
-
-                      {isCurrent && (
-                        <>
-                          <p className="text-[10px] text-indigo-600 font-medium mb-1.5">{C.autoPublishing(p.label)}</p>
-                          <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-indigo-500 rounded-full"
-                              style={{ width: `${publishProgress}%`, transition: 'width 0.08s linear' }}
-                            />
-                          </div>
-                        </>
-                      )}
-
-                      {done && (
-                        <p className="text-[11px] text-green-600 font-bold">{C.autoPublished(p.label)}</p>
-                      )}
-
-                      {!isCurrent && !done && (
-                        <p className="text-[10px] text-gray-400">대기 중...</p>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* bottom note */}
-            <p className="mx-5 mb-4 text-[10px] text-center text-gray-400 bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5">
-              {C.autoPublishNote}
-            </p>
           </div>
-        )}
+
+          {/* image */}
+          <div className="bg-white" style={{ maxHeight: 460, overflow: 'hidden' }}>
+            <Image
+              src={SLIDES[current]}
+              alt={cap.title}
+              width={800}
+              height={600}
+              className="w-full h-auto object-top"
+              style={{ maxHeight: 460, objectFit: 'cover', objectPosition: 'top' }}
+              priority={current === 0}
+            />
+          </div>
+
+          {/* colored bottom accent line */}
+          <div
+            className="h-0.5 w-full transition-all duration-500"
+            style={{ background: `linear-gradient(90deg, ${ACCENT_COLORS[current]}, ${ACCENT_COLORS[(current + 1) % ACCENT_COLORS.length]})` }}
+          />
+        </div>
       </div>
 
-      <p className="text-center text-xs text-gray-300 mt-5 font-medium">{C.footer}</p>
+      <p className="text-center text-xs text-gray-300 mt-8 font-medium">
+        {lang === 'ko' ? '실제 서비스 화면 · 클릭하여 탐색'
+         : lang === 'en' ? 'Actual product screenshots · click to explore'
+         : lang === 'ja' ? '実際のサービス画面 · クリックして閲覧'
+         : '真实产品截图 · 点击浏览'}
+      </p>
     </div>
   )
 }
