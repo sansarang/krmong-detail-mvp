@@ -83,7 +83,7 @@ type LangData = {
   chanLabel: string
   channels: string[]
   ctaTag: string; ctaH1: string; ctaSub: string
-  stats: [string, string, string][]
+  stats: [string, string][]
   typedName: string; typedCat: string; typedDesc: string
   speedName: number; speedDesc: number
 }
