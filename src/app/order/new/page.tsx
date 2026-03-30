@@ -265,6 +265,11 @@ const UI: Record<UiLang, {
   templateInfoLabel: string; templateInfoPlaceholder: string;
   templateBtn: string; templateFileAdded: string;
   errTemplateRequired: string;
+  // 분할 레이아웃
+  colTmplBadge: string; colTmplTitle: string; colTmplDesc: string;
+  colProdBadge: string; colProdTitle: string; colProdDesc: string;
+  tmplTitleLabel: string; tmplTitlePlaceholder: string;
+  tmplTitleRequired: string;
 }> = {
   ko: {
     newDoc: '새 문서 생성', backDash: '← 대시보드',
@@ -302,6 +307,10 @@ const UI: Record<UiLang, {
     templateBtn: '양식 자동 완성 →',
     templateFileAdded: '자 양식 내용 추가됨',
     errTemplateRequired: '채워야 할 양식 내용을 입력해주세요',
+    colTmplBadge: '📋 양식 자동 작성', colTmplTitle: '양식을 첨부하면 AI가 채워드립니다', colTmplDesc: '과제·서식·제안서 → AI가 빈칸을 자동 완성',
+    colProdBadge: '📦 제품 · 서비스 AI 작성', colProdTitle: '정보를 입력하면 상세페이지가 완성돼요', colProdDesc: '제품명·카테고리 입력 → 전환율 높은 카피 자동 생성',
+    tmplTitleLabel: '문서 제목', tmplTitlePlaceholder: '예: 2025 스마트시티 사업계획서',
+    tmplTitleRequired: '문서 제목을 입력해주세요',
   },
   en: {
     newDoc: 'New Document', backDash: '← Dashboard',
@@ -339,6 +348,10 @@ const UI: Record<UiLang, {
     templateBtn: 'Auto-Fill Template →',
     templateFileAdded: ' chars of template content added',
     errTemplateRequired: 'Please provide the template content to fill in',
+    colTmplBadge: '📋 Template Auto-Fill', colTmplTitle: 'Attach a form and AI fills it in', colTmplDesc: 'Assignment · Form · Proposal → AI auto-completes',
+    colProdBadge: '📦 Product / Service AI', colProdTitle: 'Enter info and get a high-converting page', colProdDesc: 'Product name & category → AI generates copy',
+    tmplTitleLabel: 'Document Title', tmplTitlePlaceholder: 'e.g. 2025 Smart City R&D Proposal',
+    tmplTitleRequired: 'Please enter a document title',
   },
   ja: {
     newDoc: '新規ドキュメント作成', backDash: '← ダッシュボード',
@@ -376,6 +389,10 @@ const UI: Record<UiLang, {
     templateBtn: '書式を自動完成 →',
     templateFileAdded: '文字の書式内容を追加',
     errTemplateRequired: '記入すべき書式の内容を入力してください',
+    colTmplBadge: '📋 書式自動入力', colTmplTitle: '書式を添付するとAIが記入します', colTmplDesc: '課題・申請書・提案書 → AIが自動完成',
+    colProdBadge: '📦 商品・サービスAI作成', colProdTitle: '情報を入力すると商品ページが完成', colProdDesc: '商品名・カテゴリ → 転換率の高いコピーを自動生成',
+    tmplTitleLabel: '文書タイトル', tmplTitlePlaceholder: '例：2025年スマートシティR&D事業提案書',
+    tmplTitleRequired: '文書タイトルを入力してください',
   },
   zh: {
     newDoc: '新建文档', backDash: '← 仪表盘',
@@ -413,6 +430,10 @@ const UI: Record<UiLang, {
     templateBtn: '自动完成表格 →',
     templateFileAdded: '字表格内容已添加',
     errTemplateRequired: '请提供需要填写的表格内容',
+    colTmplBadge: '📋 表格自动填写', colTmplTitle: '上传表格，AI自动填写', colTmplDesc: '作业·申请表·提案书 → AI自动完成',
+    colProdBadge: '📦 商品·服务AI创作', colProdTitle: '填写信息，AI生成高转化详情页', colProdDesc: '商品名·分类 → 自动生成营销文案',
+    tmplTitleLabel: '文档标题', tmplTitlePlaceholder: '例：2025年智慧城市R&D项目提案书',
+    tmplTitleRequired: '请输入文档标题',
   },
 }
 
@@ -429,8 +450,9 @@ export default function NewOrderPage() {
   const [form, setForm]                     = useState({ product_name: '', category: '', description: '' })
   const [monthlyUsed, setMonthlyUsed]       = useState(0)
   const [showUpgrade, setShowUpgrade]       = useState(false)
-  const [templateMode, setTemplateMode]     = useState(false)
   const [templateContent, setTemplateContent] = useState('')
+  const [tmplTitle, setTmplTitle]           = useState('')
+  const [tmplRefInfo, setTmplRefInfo]       = useState('')
   const docInputRef     = useRef<HTMLInputElement>(null)
   const templateFileRef = useRef<HTMLInputElement>(null)
 
@@ -472,6 +494,48 @@ export default function NewOrderPage() {
   const isDocCat = DOC_CATS.includes(form.category)
   const remaining = Math.max(FREE_LIMIT - monthlyUsed, 0)
   const usagePct  = Math.min((monthlyUsed / FREE_LIMIT) * 100, 100)
+
+  // 공통 주문 생성 + 생성 API 호출
+  async function submitOrder(payload: { product_name: string; category: string; description: string }, imageFiles: File[]) {
+    if (monthlyUsed >= FREE_LIMIT) { setShowUpgrade(true); return }
+    setLoading(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push(loginPathForLang(readStoredUiLang() ?? uiLang)); return }
+      const imageUrls: string[] = []
+      for (const image of imageFiles) {
+        const ext = image.name.split('.').pop()
+        const path = `${user.id}/${Date.now()}.${ext}`
+        const { error } = await supabase.storage.from('product-images').upload(path, image)
+        if (error) throw error
+        const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(path)
+        imageUrls.push(publicUrl)
+      }
+      const { data: order, error } = await supabase
+        .from('orders')
+        .insert({ user_id: user.id, ...payload, image_urls: imageUrls, status: 'pending' })
+        .select().single()
+      if (error) throw error
+      toast.success(L.toastGenerating)
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id, outputLang }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        if (data.error === 'LIMIT_EXCEEDED') { setShowUpgrade(true); return }
+        throw new Error(data.message || 'Generation failed')
+      }
+      toast.success(L.toastDone)
+      persistUiLang(outputLang as UiLang)
+      router.push(`/order/${order.id}`)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Error occurred')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || [])
@@ -531,71 +595,23 @@ export default function NewOrderPage() {
     if (templateFileRef.current) templateFileRef.current.value = ''
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  // 제품 모드 제출
+  async function handleProductSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (templateMode) {
-      if (!form.product_name || !form.category) { toast.error(L.errRequired); return }
-      if (!templateContent.trim()) { toast.error(L.errTemplateRequired); return }
-    } else {
-      if (!form.product_name || !form.category || !form.description) {
-        toast.error(L.errRequired); return
-      }
-    }
-    if (monthlyUsed >= FREE_LIMIT) { setShowUpgrade(true); return }
+    if (!form.product_name || !form.category || !form.description) { toast.error(L.errRequired); return }
+    const combinedDesc = docText.trim()
+      ? `${form.description}\n\n[첨부 문서 내용]\n${docText.trim()}`
+      : form.description
+    await submitOrder({ ...form, description: combinedDesc }, images)
+  }
 
-    setLoading(true)
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        const lang = readStoredUiLang() ?? uiLang
-        router.push(loginPathForLang(lang))
-        return
-      }
-
-      const imageUrls: string[] = []
-      for (const image of images) {
-        const ext = image.name.split('.').pop()
-        const path = `${user.id}/${Date.now()}.${ext}`
-        const { error } = await supabase.storage.from('product-images').upload(path, image)
-        if (error) throw error
-        const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(path)
-        imageUrls.push(publicUrl)
-      }
-
-      let combinedDesc: string
-      if (templateMode) {
-        combinedDesc = `${form.description ? form.description + '\n\n' : ''}[TEMPLATE_FORM]\n${templateContent.trim()}\n[/TEMPLATE_FORM]`
-      } else if (docText.trim()) {
-        combinedDesc = `${form.description}\n\n[첨부 문서 내용]\n${docText.trim()}`
-      } else {
-        combinedDesc = form.description
-      }
-
-      const { data: order, error } = await supabase
-        .from('orders')
-        .insert({ user_id: user.id, ...form, description: combinedDesc, image_urls: imageUrls, status: 'pending' })
-        .select().single()
-      if (error) throw error
-
-      toast.success(L.toastGenerating)
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: order.id, outputLang }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        if (data.error === 'LIMIT_EXCEEDED') { setShowUpgrade(true); return }
-        throw new Error(data.message || 'Generation failed')
-      }
-      toast.success(L.toastDone)
-      persistUiLang(outputLang as UiLang)
-      router.push(`/order/${order.id}`)
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Error occurred')
-    } finally {
-      setLoading(false)
-    }
+  // 양식 모드 제출
+  async function handleTemplateSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!tmplTitle.trim()) { toast.error(L.tmplTitleRequired); return }
+    if (!templateContent.trim()) { toast.error(L.errTemplateRequired); return }
+    const description = `${tmplRefInfo.trim() ? tmplRefInfo.trim() + '\n\n' : ''}[TEMPLATE_FORM]\n${templateContent.trim()}\n[/TEMPLATE_FORM]`
+    await submitOrder({ product_name: tmplTitle.trim(), category: 'other', description }, [])
   }
 
   return (
@@ -637,287 +653,248 @@ export default function NewOrderPage() {
         <Link href="/dashboard" className="text-gray-400 text-sm hover:text-black transition-colors">{L.backDash}</Link>
       </nav>
 
-      <div className="max-w-xl mx-auto px-4 sm:px-8 py-10 sm:py-16">
-        <div className="mb-10">
-          <p className="text-xs font-bold text-gray-300 uppercase tracking-widest mb-3">{L.newDoc}</p>
-          <h1 className="text-4xl font-black text-black tracking-tight mb-3">
-            {isDocCat ? L.docTitle : L.productTitle}
-          </h1>
-          <p className="text-gray-400 text-sm leading-relaxed">
-            {isDocCat ? L.docSub : L.productSub}
-          </p>
+      {/* 공통 헤더 영역 */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 pt-8 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div>
+            <p className="text-xs font-bold text-gray-300 uppercase tracking-widest mb-1">{L.newDoc}</p>
+            <h1 className="text-2xl sm:text-3xl font-black text-black tracking-tight">AI 문서 작성</h1>
+          </div>
+          {/* 사용량 바 */}
+          <div className={`rounded-2xl px-4 py-3 border min-w-[200px] ${remaining === 0 ? 'bg-orange-50 border-orange-200' : 'bg-gray-50 border-gray-100'}`}>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-bold text-gray-500">{L.usageLabel}</span>
+              <span className={`text-xs font-black ${remaining === 0 ? 'text-orange-600' : 'text-gray-600'}`}>
+                {monthlyUsed}/{FREE_LIMIT}{L.usageUnit}
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-1.5">
+              <div className={`h-1.5 rounded-full transition-all ${remaining === 0 ? 'bg-orange-500' : 'bg-black'}`} style={{ width: `${usagePct}%` }} />
+            </div>
+            {remaining === 0 && (
+              <p className="text-xs text-orange-600 font-medium mt-1">
+                {L.upgradeOver}<Link href="/#pricing" className="underline font-bold">Pro</Link>
+              </p>
+            )}
+          </div>
         </div>
 
-        {/* 사용량 바 */}
-        <div className={`rounded-2xl p-4 mb-8 border ${remaining === 0 ? 'bg-orange-50 border-orange-200' : 'bg-gray-50 border-gray-100'}`}>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-gray-500">{L.usageLabel}</span>
-            <span className={`text-xs font-black ${remaining === 0 ? 'text-orange-600' : 'text-gray-600'}`}>
-              {monthlyUsed}/{FREE_LIMIT}{L.usageUnit}
-              {remaining > 0 ? ` · ${remaining}${L.remaining}` : ` · ${L.exceeded}`}
-            </span>
+        {/* 공통: 화면 언어 + 출력 언어 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+              {L.screenLangLabel}
+            </label>
+            <div className="grid grid-cols-4 gap-1.5">
+              {LANGUAGES.map(lang => (
+                <button key={`ui-${lang.value}`} type="button"
+                  onClick={() => { const v = lang.value as UiLang; setUiLang(v); persistUiLang(v) }}
+                  className={`py-2 min-h-[40px] rounded-xl text-xs font-bold border transition-all ${uiLang === lang.value ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'}`}
+                >{lang.label}</button>
+              ))}
+            </div>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-1.5">
-            <div className={`h-1.5 rounded-full transition-all ${remaining === 0 ? 'bg-orange-500' : 'bg-black'}`} style={{ width: `${usagePct}%` }} />
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+              {L.langLabel}
+            </label>
+            <div className="grid grid-cols-4 gap-1.5">
+              {LANGUAGES.map(lang => (
+                <button key={lang.value} type="button" onClick={() => setOutputLang(lang.value)}
+                  className={`py-2 min-h-[40px] rounded-xl text-xs font-bold border transition-all ${outputLang === lang.value ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'}`}
+                >{lang.label}</button>
+              ))}
+            </div>
           </div>
-          {remaining === 0 && (
-            <p className="text-xs text-orange-600 font-medium mt-2">
-              {L.upgradeOver}<Link href="/#pricing" className="underline font-bold">Pro</Link>
-            </p>
-          )}
         </div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* 제품/문서명 */}
-          <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-              {isDocCat ? L.docNameLabel : L.nameLabel}
-            </label>
-            <input
-              placeholder={isDocCat ? L.docNamePlaceholder : L.namePlaceholder}
-              value={form.product_name}
-              onChange={e => setForm({ ...form, product_name: e.target.value })}
-              required
-              className="w-full border border-gray-200 rounded-2xl px-5 py-4 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm"
-            />
-          </div>
+      {/* ── 2열 분할 레이아웃 ── */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 pb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
 
-          {/* 카테고리 */}
-          <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{L.catLabel}</label>
-            <select
-              value={form.category}
-              onChange={e => setForm({ ...form, category: e.target.value })}
-              required
-              className="w-full border border-gray-200 rounded-2xl px-5 py-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm bg-white"
-            >
-              <option value="">{L.catPlaceholder}</option>
-              {CATEGORIES.map(group => (
-                <optgroup key={group.group} label={group.group}>
-                  {group.items.map(c => (
-                    <option key={c.value} value={c.value}>{c.label}</option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-          </div>
-
-          {/* 화면 언어 (폼 UI만, 랜딩·브라우저와 독립) */}
-          <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-              {L.screenLangLabel}{' '}
-              <span className="text-gray-300 normal-case font-normal">({L.screenLangSub})</span>
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {LANGUAGES.map(lang => (
-                <button
-                  key={`ui-${lang.value}`}
-                  type="button"
-                  onClick={() => {
-                    const v = lang.value as UiLang
-                    setUiLang(v)
-                    persistUiLang(v)
-                  }}
-                  className={`py-3 min-h-[44px] rounded-2xl text-sm font-bold border transition-all ${
-                    uiLang === lang.value
-                      ? 'bg-gray-900 text-white border-gray-900'
-                      : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
-                  }`}
-                >
-                  {lang.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 출력 언어 */}
-          <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-              {L.langLabel} <span className="text-gray-300 normal-case font-normal">({L.langSub})</span>
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {LANGUAGES.map(lang => (
-                <button
-                  key={lang.value}
-                  type="button"
-                  onClick={() => setOutputLang(lang.value)}
-                  className={`py-3 min-h-[44px] rounded-2xl text-sm font-bold border transition-all ${
-                    outputLang === lang.value
-                      ? 'bg-black text-white border-black'
-                      : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
-                  }`}
-                >
-                  {lang.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 양식 자동 작성 모드 토글 */}
-          <div
-            onClick={() => setTemplateMode(v => !v)}
-            className={`flex items-start gap-3 rounded-2xl p-4 border cursor-pointer transition-all ${
-              templateMode
-                ? 'bg-indigo-50 border-indigo-300'
-                : 'bg-gray-50 border-gray-200 hover:border-gray-400'
-            }`}
-          >
-            <div className={`mt-0.5 w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-all ${
-              templateMode ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300 bg-white'
-            }`}>
-              {templateMode && <span className="text-white text-[10px] font-black">✓</span>}
-            </div>
+          {/* ── 왼쪽: 양식 자동 작성 ── */}
+          <form onSubmit={handleTemplateSubmit} className="bg-indigo-50/50 border-2 border-indigo-100 rounded-3xl p-6 space-y-5">
             <div>
-              <p className="text-sm font-bold text-gray-800">{L.templateToggleLabel}</p>
-              <p className="text-xs text-gray-400 mt-0.5">{L.templateToggleSub}</p>
+              <span className="inline-block text-xs font-black text-indigo-600 bg-indigo-100 px-3 py-1 rounded-full mb-3">{L.colTmplBadge}</span>
+              <h2 className="text-xl font-black text-black leading-snug mb-1">{L.colTmplTitle}</h2>
+              <p className="text-xs text-gray-400">{L.colTmplDesc}</p>
             </div>
-          </div>
 
-          {/* 양식 모드: 양식 내용 + 참고 정보 */}
-          {templateMode ? (
-            <>
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                  {L.templateFormLabel}{' '}
-                  <span className="text-gray-300 normal-case font-normal">({L.templateFormSub})</span>
+            {/* 문서 제목 */}
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{L.tmplTitleLabel}</label>
+              <input
+                placeholder={L.tmplTitlePlaceholder}
+                value={tmplTitle}
+                onChange={e => setTmplTitle(e.target.value)}
+                className="w-full border border-indigo-200 rounded-2xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm bg-white"
+              />
+            </div>
+
+            {/* 양식 내용 */}
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                {L.templateFormLabel}{' '}
+                <span className="text-gray-300 normal-case font-normal">({L.templateFormSub})</span>
+              </label>
+              <div className="flex gap-2 mb-2">
+                <label className="flex items-center gap-2 bg-white border border-indigo-200 rounded-xl px-4 py-2.5 cursor-pointer hover:bg-indigo-50 transition-all text-xs text-indigo-700 font-bold">
+                  {L.fileBtn}
+                  <input ref={templateFileRef} type="file" accept=".txt,.md,.csv,.pdf,.docx,.xlsx,.xls,.pptx" className="hidden" onChange={handleTemplateFile} />
                 </label>
-                <div className="flex gap-2 mb-3">
-                  <label className="flex items-center gap-2 bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 cursor-pointer hover:bg-indigo-100 transition-all text-sm text-indigo-700 font-medium">
-                    {L.fileBtn}
-                    <input ref={templateFileRef} type="file" accept=".txt,.md,.csv,.pdf,.docx,.xlsx,.xls,.pptx" className="hidden" onChange={handleTemplateFile} />
-                  </label>
-                  {templateContent && (
-                    <button type="button" onClick={() => setTemplateContent('')} className="text-xs text-gray-400 hover:text-red-500 transition-colors px-3">
-                      {L.fileReset}
-                    </button>
-                  )}
-                </div>
-                <textarea
-                  placeholder={L.templateFormPlaceholder}
-                  rows={8}
-                  value={templateContent}
-                  onChange={e => setTemplateContent(e.target.value)}
-                  required={templateMode}
-                  className="w-full border border-indigo-200 rounded-2xl px-5 py-4 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm resize-none bg-indigo-50/30"
-                />
                 {templateContent && (
-                  <p className="text-xs text-indigo-600 font-medium mt-1.5">
-                    ✓ {templateContent.length.toLocaleString()}{L.templateFileAdded}
-                  </p>
+                  <button type="button" onClick={() => setTemplateContent('')} className="text-xs text-gray-400 hover:text-red-500 transition-colors px-3">{L.fileReset}</button>
                 )}
               </div>
+              <textarea
+                placeholder={L.templateFormPlaceholder}
+                rows={7}
+                value={templateContent}
+                onChange={e => setTemplateContent(e.target.value)}
+                className="w-full border border-indigo-200 rounded-2xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm resize-none bg-white"
+              />
+              {templateContent && (
+                <p className="text-xs text-indigo-600 font-medium mt-1">✓ {templateContent.length.toLocaleString()}{L.templateFileAdded}</p>
+              )}
+            </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                  {L.templateInfoLabel}
-                </label>
-                <textarea
-                  placeholder={L.templateInfoPlaceholder}
-                  rows={4}
-                  value={form.description}
-                  onChange={e => setForm({ ...form, description: e.target.value })}
-                  className="w-full border border-gray-200 rounded-2xl px-5 py-4 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm resize-none"
-                />
-              </div>
-            </>
-          ) : (
-            /* 일반 모드: 설명 */
+            {/* 참고 정보 */}
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{L.templateInfoLabel}</label>
+              <textarea
+                placeholder={L.templateInfoPlaceholder}
+                rows={3}
+                value={tmplRefInfo}
+                onChange={e => setTmplRefInfo(e.target.value)}
+                className="w-full border border-indigo-100 rounded-2xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all text-sm resize-none bg-white"
+              />
+            </div>
+
+            <button type="submit" disabled={loading}
+              className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-sm hover:bg-indigo-700 disabled:opacity-40 transition-all flex items-center justify-center gap-3 min-h-[52px]"
+            >
+              {loading ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />{L.generating}</> : L.templateBtn}
+            </button>
+          </form>
+
+          {/* ── 오른쪽: 제품 AI 작성 ── */}
+          <form onSubmit={handleProductSubmit} className="bg-white border-2 border-gray-100 rounded-3xl p-6 space-y-5">
+            <div>
+              <span className="inline-block text-xs font-black text-gray-600 bg-gray-100 px-3 py-1 rounded-full mb-3">{L.colProdBadge}</span>
+              <h2 className="text-xl font-black text-black leading-snug mb-1">{L.colProdTitle}</h2>
+              <p className="text-xs text-gray-400">{L.colProdDesc}</p>
+            </div>
+
+            {/* 제품명 */}
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                {isDocCat ? L.docNameLabel : L.nameLabel}
+              </label>
+              <input
+                placeholder={isDocCat ? L.docNamePlaceholder : L.namePlaceholder}
+                value={form.product_name}
+                onChange={e => setForm({ ...form, product_name: e.target.value })}
+                required
+                className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm"
+              />
+            </div>
+
+            {/* 카테고리 */}
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{L.catLabel}</label>
+              <select
+                value={form.category}
+                onChange={e => setForm({ ...form, category: e.target.value })}
+                required
+                className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm bg-white"
+              >
+                <option value="">{L.catPlaceholder}</option>
+                {CATEGORIES.map(group => (
+                  <optgroup key={group.group} label={group.group}>
+                    {group.items.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                  </optgroup>
+                ))}
+              </select>
+            </div>
+
+            {/* 설명 */}
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                 {isDocCat ? L.docDescLabel : L.descLabel}
               </label>
               <textarea
                 placeholder={isDocCat ? L.docDescPlaceholder : L.descPlaceholder}
-                rows={6}
+                rows={5}
                 value={form.description}
                 onChange={e => setForm({ ...form, description: e.target.value })}
-                required={!templateMode}
-                className="w-full border border-gray-200 rounded-2xl px-5 py-4 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm resize-none"
+                required
+                className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm resize-none"
               />
             </div>
-          )}
 
-          {/* 문서 첨부 (문서 카테고리만) */}
-          {isDocCat && (
+            {/* 문서 첨부 (문서 카테고리만) */}
+            {isDocCat && (
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  {L.attachLabel} <span className="text-gray-300 normal-case font-normal">({L.attachSub})</span>
+                </label>
+                <div className="flex gap-2 mb-2">
+                  <label className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 cursor-pointer hover:bg-gray-100 transition-all text-xs text-gray-600 font-bold">
+                    {L.fileBtn}
+                    <input ref={docInputRef} type="file" accept=".txt,.md,.csv" className="hidden" onChange={handleDocFile} />
+                  </label>
+                  {docText && <button type="button" onClick={() => setDocText('')} className="text-xs text-gray-400 hover:text-red-500 px-3">{L.fileReset}</button>}
+                </div>
+                <textarea
+                  placeholder={L.docPastePlaceholder} rows={3} value={docText}
+                  onChange={e => setDocText(e.target.value)}
+                  className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm resize-none bg-gray-50"
+                />
+                {docText && <p className="text-xs text-green-600 font-medium mt-1">✓ {docText.length.toLocaleString()}{L.fileAdded}</p>}
+              </div>
+            )}
+
+            {/* 이미지 업로드 */}
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                {L.attachLabel} <span className="text-gray-300 normal-case font-normal">({L.attachSub})</span>
+                {isDocCat ? L.imgRef : L.photoLabel} <span className="text-gray-300 normal-case font-normal">({L.photoSub})</span>
               </label>
-              <div className="flex gap-2 mb-3">
-                <label className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:bg-gray-100 transition-all text-sm text-gray-600 font-medium">
-                  {L.fileBtn}
-                  <input ref={docInputRef} type="file" accept=".txt,.md,.csv" className="hidden" onChange={handleDocFile} />
-                </label>
-                {docText && (
-                  <button type="button" onClick={() => setDocText('')} className="text-xs text-gray-400 hover:text-red-500 transition-colors px-3">
-                    {L.fileReset}
-                  </button>
-                )}
-              </div>
-              <textarea
-                placeholder={L.docPastePlaceholder}
-                rows={4}
-                value={docText}
-                onChange={e => setDocText(e.target.value)}
-                className="w-full border border-gray-200 rounded-2xl px-5 py-4 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm resize-none bg-gray-50"
-              />
-              {docText && (
-                <p className="text-xs text-green-600 font-medium mt-1.5">
-                  ✓ {docText.length.toLocaleString()}{L.fileAdded}
-                </p>
+              {images.length > 0 && (
+                <div className="grid grid-cols-3 gap-2 mb-2">
+                  {images.map((file, i) => (
+                    <div key={i} className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                      <img src={URL.createObjectURL(file)} alt={`preview ${i + 1}`} className="w-full h-full object-cover" />
+                      <button type="button" onClick={() => setImages(prev => prev.filter((_, idx) => idx !== i))}
+                        className="absolute top-1 right-1 w-7 h-7 bg-black/70 hover:bg-black text-white rounded-full text-xs font-black flex items-center justify-center"
+                      >×</button>
+                    </div>
+                  ))}
+                  {images.length < 3 && (
+                    <label htmlFor="file-upload" className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-all">
+                      <span className="text-xl text-gray-300">+</span>
+                    </label>
+                  )}
+                </div>
               )}
+              {images.length === 0 && (
+                <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-200 rounded-2xl p-8 cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-all">
+                  <div className="text-2xl mb-1.5">📸</div>
+                  <p className="text-xs font-semibold text-gray-400 mb-0.5">{L.photoClick}</p>
+                  <p className="text-xs text-gray-300">{L.photoHint}</p>
+                </label>
+              )}
+              <input id="file-upload" type="file" accept="image/*" multiple onChange={handleImageChange} className="hidden" />
             </div>
-          )}
 
-          {/* 이미지 업로드 */}
-          <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-              {isDocCat ? L.imgRef : L.photoLabel} <span className="text-gray-300 normal-case font-normal">({L.photoSub})</span>
-            </label>
-            {images.length > 0 && (
-              <div className="grid grid-cols-3 gap-3 mb-3">
-                {images.map((file, i) => (
-                  <div key={i} className="relative group aspect-square rounded-2xl overflow-hidden border border-gray-200 bg-gray-50">
-                    <img src={URL.createObjectURL(file)} alt={`preview ${i + 1}`} className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => setImages(prev => prev.filter((_, idx) => idx !== i))}
-                      className="absolute top-1 right-1 w-8 h-8 bg-black/70 hover:bg-black text-white rounded-full text-xs font-black flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
-                    >×</button>
-                    <div className="absolute bottom-1.5 left-1.5 bg-black/50 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{i + 1}</div>
-                  </div>
-                ))}
-                {images.length < 3 && (
-                  <label htmlFor="file-upload" className="aspect-square rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-all">
-                    <span className="text-2xl text-gray-300">+</span>
-                    <span className="text-xs text-gray-300 mt-1">{L.addMore}</span>
-                  </label>
-                )}
-              </div>
-            )}
-            {images.length === 0 && (
-              <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-200 rounded-2xl p-10 cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-all">
-                <div className="text-3xl mb-2">📸</div>
-                <p className="text-sm font-semibold text-gray-500 mb-1">{L.photoClick}</p>
-                <p className="text-xs text-gray-300">{L.photoHint}</p>
-              </label>
-            )}
-            <input id="file-upload" type="file" accept="image/*" multiple onChange={handleImageChange} className="hidden" />
-          </div>
+            <button type="submit" disabled={loading}
+              className="w-full bg-black text-white py-4 rounded-2xl font-bold text-sm hover:bg-gray-800 disabled:opacity-40 transition-all flex items-center justify-center gap-3 min-h-[52px]"
+            >
+              {loading ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />{L.generating}</> : isDocCat ? L.docBtn : L.generateBtn}
+            </button>
+          </form>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-black text-white py-5 rounded-2xl font-bold text-base hover:bg-gray-800 disabled:opacity-40 transition-all flex items-center justify-center gap-3"
-          >
-            {loading ? (
-              <>
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                {L.generating}
-              </>
-            ) : templateMode ? L.templateBtn : isDocCat ? L.docBtn : L.generateBtn}
-          </button>
-        </form>
+        </div>
       </div>
     </main>
   )
