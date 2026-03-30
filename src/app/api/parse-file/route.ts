@@ -12,8 +12,10 @@ export async function POST(req: NextRequest) {
 
     // PDF 파싱
     if (fileName.endsWith('.pdf')) {
+      // pdf-parse의 루트 index는 serverless에서 테스트파일 로드를 시도해 실패함
+      // lib 경로를 직접 사용해 우회
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const pdfParse = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string; numpages: number }>
+      const pdfParse = require('pdf-parse/lib/pdf-parse.js') as (buf: Buffer) => Promise<{ text: string; numpages: number }>
       const data = await pdfParse(buffer)
       return NextResponse.json({ text: data.text, pages: data.numpages })
     }
