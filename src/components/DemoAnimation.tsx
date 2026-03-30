@@ -168,8 +168,8 @@ export default function DemoAnimation({ lang = 'ko' }: { lang?: Lang }) {
   return (
     <div className="w-full max-w-5xl mx-auto">
       <div
-        className="grid grid-cols-1 md:grid-cols-[1fr_1.4fr] gap-8 md:gap-12 items-center"
-        style={{ minHeight: 480 }}
+        className="grid grid-cols-1 md:grid-cols-[1fr_1.6fr] gap-8 md:gap-12 items-start"
+        style={{ minHeight: 540 }}
       >
         {/* ── LEFT: caption ── */}
         <div
@@ -255,14 +255,17 @@ export default function DemoAnimation({ lang = 'ko' }: { lang?: Lang }) {
           </div>
 
           {/* image */}
-          <div className="bg-white" style={{ maxHeight: 460, overflow: 'hidden' }}>
+          <div
+            className="bg-gray-50 flex items-start justify-center"
+            style={{ height: 520, overflowY: 'auto', overflowX: 'hidden' }}
+          >
             <Image
               src={SLIDES[current]}
               alt={cap.title}
-              width={800}
-              height={600}
-              className="w-full h-auto object-top"
-              style={{ maxHeight: 460, objectFit: 'cover', objectPosition: 'top' }}
+              width={700}
+              height={1400}
+              className="w-full h-auto"
+              style={{ display: 'block' }}
               priority={current === 0}
             />
           </div>
