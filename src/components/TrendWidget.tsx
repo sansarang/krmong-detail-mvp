@@ -75,6 +75,13 @@ export default function TrendWidget({ geo = 'KR', uiLocale, compact = false, var
   const stripLoc = uiLocaleFromGeo(geo, uiLocale)
   const stripLabels = STRIP_UI[stripLoc]
 
+  const [trendSkeletonRows] = useState(() =>
+    Array.from({ length: 8 }, () => ({
+      mainPct: 70 + Math.random() * 20,
+      subPct: 40 + Math.random() * 20,
+    })),
+  )
+
   useEffect(() => {
     let cancelled = false
     const timeOpts: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' }
@@ -106,7 +113,7 @@ export default function TrendWidget({ geo = 'KR', uiLocale, compact = false, var
         if (!cancelled) setLoading(false)
       })
     return () => { cancelled = true }
-  }, [geo, uiLocale])
+  }, [geo, uiLocale, stripLoc])
 
   const geoLabel: Record<string, string> = {
     KR: '🇰🇷 한국', US: '🇺🇸 미국', JP: '🇯🇵 일본', TW: '🇹🇼 대만', CN: '🇨🇳 中国',
@@ -226,12 +233,15 @@ export default function TrendWidget({ geo = 'KR', uiLocale, compact = false, var
       {/* 트렌드 목록 */}
       <div className="divide-y divide-gray-50">
         {loading ? (
-          Array.from({ length: 8 }).map((_, i) => (
+          trendSkeletonRows.map((row, i) => (
             <div key={i} className="px-5 py-3 flex items-center gap-3">
               <div className="w-6 h-5 bg-gray-100 rounded animate-pulse shrink-0" />
               <div className="flex-1">
-                <div className="h-3.5 bg-gray-100 rounded animate-pulse mb-1.5" style={{ width: `${70 + Math.random() * 20}%` }} />
-                <div className="h-2.5 bg-gray-50 rounded animate-pulse" style={{ width: `${40 + Math.random() * 20}%` }} />
+                <div
+                  className="h-3.5 bg-gray-100 rounded animate-pulse mb-1.5"
+                  style={{ width: `${row.mainPct}%` }}
+                />
+                <div className="h-2.5 bg-gray-50 rounded animate-pulse" style={{ width: `${row.subPct}%` }} />
               </div>
             </div>
           ))

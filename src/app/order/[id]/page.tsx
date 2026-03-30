@@ -30,7 +30,7 @@ import { buildConversionAbCopy, type AbRecommendation, type AbRunnerUp } from '@
 import { buildMetaOgPackage, metaOgPackageToHtmlMeta, metaOgPackageToJson } from '@/lib/metaOgPackage'
 import { buildListingPasteBundle, listingBundleUsesPlainText } from '@/lib/listingPasteBundles'
 import { buildListingEvidencePack, type ListingEvidencePack } from '@/lib/listingEvidenceLayer'
-import { buildListingAssetKit } from '@/lib/listingAssetKit'
+import { buildListingAssetKit, type ListingAssetKit } from '@/lib/listingAssetKit'
 import { buildMarketIntelHeuristics } from '@/lib/marketIntelCopy'
 import OrderWritingWidgets from '@/components/OrderWritingWidgets'
 
@@ -738,20 +738,25 @@ function EvidencePackPanel({
 }
 
 function AssetKitPanel({
-  copyBlock,
+  kit,
   ui,
   open,
   onToggle,
-  onCopy,
   className = '',
 }: {
-  copyBlock: string
+  kit: ListingAssetKit
   ui: OrderResultUi
   open: boolean
   onToggle: () => void
-  onCopy: () => void
   className?: string
 }) {
+  function copyText(text: string, toastMsg: string) {
+    navigator.clipboard.writeText(text).then(() => toast.success(toastMsg)).catch(() => toast.error(ui.toastCopyFail))
+  }
+
+  const variantLabs = ['A', 'B', 'C'] as const
+  const preview = `${kit.copyFullPipeline.slice(0, 560)}${kit.copyFullPipeline.length > 560 ? '…' : ''}`
+
   return (
     <div className={`border border-fuchsia-200 bg-fuchsia-50/90 rounded-2xl overflow-hidden ${className}`}>
       <button type="button" onClick={onToggle} className="w-full text-left p-3 hover:bg-fuchsia-100/50 transition-colors">
@@ -760,17 +765,150 @@ function AssetKitPanel({
         <span className="text-[10px] font-bold text-fuchsia-900 mt-1 inline-block">{open ? ui.metaOgHide : ui.metaOgShow}</span>
       </button>
       {open && (
-        <div className="px-3 pb-3 border-t border-fuchsia-200/80 pt-2 space-y-2">
+        <div className="px-3 pb-3 border-t border-fuchsia-200/80 pt-2 space-y-2 max-h-[min(70vh,520px)] overflow-y-auto">
           <button
             type="button"
-            onClick={onCopy}
-            className="w-full text-left text-xs font-bold bg-white border border-fuchsia-200 rounded-xl px-3 py-2 hover:bg-fuchsia-50"
+            onClick={() => copyText(kit.copyFullPipeline, ui.assetToastPipeline)}
+            className="w-full text-center text-[10px] font-black text-white bg-fuchsia-700 py-2 rounded-xl hover:bg-fuchsia-800"
           >
             {ui.assetCopyAll}
           </button>
-          <pre className="text-[9px] text-gray-700 bg-white/90 border border-fuchsia-100 rounded-lg p-2 max-h-36 overflow-auto whitespace-pre-wrap break-words">
-            {copyBlock.slice(0, 900)}
-            {copyBlock.length > 900 ? '…' : ''}
+          <div className="grid grid-cols-2 gap-1">
+            <button
+              type="button"
+              onClick={() => copyText(kit.copyBlock, ui.assetToastBase)}
+              className="text-[9px] font-bold text-fuchsia-950 bg-white border border-fuchsia-200 rounded-lg px-2 py-1.5 hover:bg-fuchsia-50 text-center leading-tight"
+            >
+              {ui.assetCopyBase}
+            </button>
+            <button
+              type="button"
+              onClick={() => copyText(kit.channelsBlob, ui.assetToastChannels)}
+              className="text-[9px] font-bold text-fuchsia-950 bg-white border border-fuchsia-200 rounded-lg px-2 py-1.5 hover:bg-fuchsia-50 text-center leading-tight"
+            >
+              {ui.assetCopyChannels}
+            </button>
+            <button
+              type="button"
+              onClick={() => copyText(kit.slotsBlob, ui.assetToastSlots)}
+              className="text-[9px] font-bold text-fuchsia-950 bg-white border border-fuchsia-200 rounded-lg px-2 py-1.5 hover:bg-fuchsia-50 text-center leading-tight"
+            >
+              {ui.assetCopySlots}
+            </button>
+            <button
+              type="button"
+              onClick={() => copyText(kit.safeZoneBlob, ui.assetToastSafeZone)}
+              className="text-[9px] font-bold text-fuchsia-950 bg-white border border-fuchsia-200 rounded-lg px-2 py-1.5 hover:bg-fuchsia-50 text-center leading-tight"
+            >
+              {ui.assetCopySafeZone}
+            </button>
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-[9px] font-black text-fuchsia-700 uppercase tracking-wider">{ui.assetThumbLabel}</p>
+            {kit.thumbnailLines.map((line, i) => (
+              <div key={i} className="rounded-lg bg-white/90 border border-fuchsia-100 px-2 py-1.5">
+                <div className="flex items-center justify-between gap-2 mb-0.5">
+                  <span className="text-[10px] font-black text-fuchsia-800">{variantLabs[i]}</span>
+                  <button
+                    type="button"
+                    onClick={() => copyText(line, ui.abCopyToast)}
+                    className="text-[10px] font-bold text-fuchsia-800 border border-fuchsia-200 bg-white px-2 py-0.5 rounded-md hover:bg-fuchsia-50 shrink-0"
+                  >
+                    {ui.abCopyCopy}
+                  </button>
+                </div>
+                <p className="text-[10px] text-gray-800 leading-snug break-words">{line}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-[9px] font-black text-fuchsia-700 uppercase tracking-wider">{ui.assetMicroLabel}</p>
+            {kit.brandMicroLines.map((line, i) => (
+              <div key={i} className="rounded-lg bg-white/90 border border-fuchsia-100 px-2 py-1.5">
+                <div className="flex items-center justify-between gap-2 mb-0.5">
+                  <span className="text-[10px] font-black text-fuchsia-800">{variantLabs[i]}</span>
+                  <button
+                    type="button"
+                    onClick={() => copyText(line, ui.abCopyToast)}
+                    className="text-[10px] font-bold text-fuchsia-800 border border-fuchsia-200 bg-white px-2 py-0.5 rounded-md hover:bg-fuchsia-50 shrink-0"
+                  >
+                    {ui.abCopyCopy}
+                  </button>
+                </div>
+                <p className="text-[10px] text-gray-800 leading-snug break-words">{line}</p>
+              </div>
+            ))}
+          </div>
+
+          <div>
+            <p className="text-[9px] font-black text-fuchsia-700 uppercase tracking-wider mb-1">{ui.assetRatioLabel}</p>
+            <ul className="list-disc pl-4 text-[10px] text-gray-800 space-y-0.5">
+              {kit.ratioRows.map((r, i) => (
+                <li key={i}>
+                  <span className="font-bold">{r.ratio}</span> — {r.use}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-[9px] font-black text-fuchsia-700 uppercase tracking-wider mb-1">{ui.assetSlotsLabel}</p>
+            <ul className="list-disc pl-4 text-[10px] text-gray-800 space-y-0.5">
+              {kit.slotChecklist.map((s, i) => (
+                <li key={i}>{s}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-[9px] font-black text-fuchsia-700 uppercase tracking-wider mb-1">{ui.assetChannelLinesLabel}</p>
+            <div className="space-y-2 max-h-36 overflow-y-auto pr-0.5">
+              {kit.channels.map(c => (
+                <div key={c.id} className="rounded-lg border border-fuchsia-100 bg-white/85 p-2">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <p className="text-[10px] font-bold text-fuchsia-950 leading-tight">{c.label}</p>
+                    <button
+                      type="button"
+                      onClick={() => copyText(c.blob, ui.abCopyToast)}
+                      className="text-[10px] font-bold text-fuchsia-800 border border-fuchsia-200 bg-white px-2 py-0.5 rounded-md hover:bg-fuchsia-50 shrink-0"
+                    >
+                      {ui.abCopyCopy}
+                    </button>
+                  </div>
+                  <p className="text-[9px] text-gray-700 whitespace-pre-wrap leading-snug">{c.blob}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[9px] font-black text-fuchsia-700 uppercase tracking-wider mb-1">{ui.assetSlotPlanLabel}</p>
+            <div className="space-y-1.5 max-h-32 overflow-y-auto">
+              {kit.imageSlots.map(row => (
+                <div key={row.slot} className="rounded-lg border border-fuchsia-100 bg-white/85 px-2 py-1.5 text-[9px] text-gray-800">
+                  <p className="font-bold text-fuchsia-950">
+                    {row.slot} · {row.purpose}
+                  </p>
+                  <p className="text-fuchsia-900/85">{row.ratio}</p>
+                  <p className="text-gray-600 leading-snug">{row.note}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[9px] font-black text-fuchsia-700 uppercase tracking-wider mb-1">{ui.assetSafeZoneLabel}</p>
+            <ul className="list-disc pl-4 text-[10px] text-gray-800 space-y-0.5">
+              {kit.overlaySafeZoneNotes.map((n, i) => (
+                <li key={i}>{n}</li>
+              ))}
+            </ul>
+          </div>
+
+          <pre className="text-[9px] text-gray-700 bg-white/90 border border-fuchsia-100 rounded-lg p-2 max-h-28 overflow-auto whitespace-pre-wrap break-words">
+            {preview}
           </pre>
         </div>
       )}
@@ -1490,15 +1628,10 @@ export default function OrderResultPage() {
             {assetKit && (
               <div className="print:hidden">
                 <AssetKitPanel
-                  copyBlock={assetKit.copyBlock}
+                  kit={assetKit}
                   ui={t}
                   open={assetKitOpen}
                   onToggle={() => setAssetKitOpen(o => !o)}
-                  onCopy={() => {
-                    navigator.clipboard.writeText(assetKit.copyBlock).then(() => {
-                      toast.success(t.abCopyToast)
-                    }).catch(() => toast.error(t.toastCopyFail))
-                  }}
                 />
               </div>
             )}
@@ -1737,15 +1870,10 @@ export default function OrderResultPage() {
             )}
             {assetKit && (
               <AssetKitPanel
-                copyBlock={assetKit.copyBlock}
+                kit={assetKit}
                 ui={t}
                 open={assetKitOpen}
                 onToggle={() => setAssetKitOpen(o => !o)}
-                onCopy={() => {
-                  navigator.clipboard.writeText(assetKit.copyBlock).then(() => {
-                    toast.success(t.abCopyToast)
-                  }).catch(() => toast.error(t.toastCopyFail))
-                }}
               />
             )}
             {intelPack && (

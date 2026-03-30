@@ -166,7 +166,7 @@ function isBlockedUrl(u: URL): boolean {
   if (h === '0.0.0.0') return true
   const m = h.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/)
   if (m) {
-    const a = Number(m[1]), b = Number(m[2]), c = Number(m[3]), d = Number(m[4])
+    const a = Number(m[1]), b = Number(m[2])
     if (a === 10) return true
     if (a === 127) return true
     if (a === 192 && b === 168) return true
