@@ -190,3 +190,16 @@
 .animate-fade-up {
   animation: fade-up 0.25s ease-out both;
 }
+
+/* 데모 마퀴 */
+@keyframes demo-marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-demo-marquee {
+  animation: demo-marquee 32s linear infinite;
+  will-change: transform;
+}
+.animate-demo-marquee:hover {
+  animation-play-state: paused;
+}

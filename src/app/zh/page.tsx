@@ -138,14 +138,14 @@ export default function ZhPage() {
       <ProductShowcase lang="zh" />
 
       {/* ── DEMO ANIMATION ── */}
-      <section className="max-w-5xl mx-auto px-5 pb-8">
-        <div className="text-center mb-8 md:mb-10">
-          <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">使用方法</p>
+      <section className="pb-12">
+        <div className="max-w-5xl mx-auto px-5 text-center mb-8 md:mb-10">
+          <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">分析 & 优化</p>
           <h2 className="text-3xl md:text-5xl font-black text-black tracking-tight leading-tight mb-3">
-            输入信息，<br />
-            <span className="text-gray-300">AI自动完成所有工作。</span>
+            AI分析您的内容，<br />
+            <span className="text-gray-300">转化为高转化文案。</span>
           </h2>
-          <p className="text-gray-400 text-sm font-medium">实时服务模拟 · 自动循环演示</p>
+          <p className="text-gray-400 text-sm font-medium">输入 → 分析 → 各渠道文案 & 套件自动生成</p>
         </div>
         <DemoAnimation lang="zh" />
       </section>

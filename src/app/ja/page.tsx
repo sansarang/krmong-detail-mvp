@@ -138,14 +138,14 @@ export default function JaPage() {
       <ProductShowcase lang="ja" />
 
       {/* ── DEMO ANIMATION ── */}
-      <section className="max-w-5xl mx-auto px-5 pb-8">
-        <div className="text-center mb-8 md:mb-10">
-          <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">使い方</p>
+      <section className="pb-12">
+        <div className="max-w-5xl mx-auto px-5 text-center mb-8 md:mb-10">
+          <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">分析 & 最適化</p>
           <h2 className="text-3xl md:text-5xl font-black text-black tracking-tight leading-tight mb-3">
-            入力するだけで、<br />
-            <span className="text-gray-300">AIが自動で完成させます。</span>
+            文章を分析して、<br />
+            <span className="text-gray-300">売れるコンテンツへ変換。</span>
           </h2>
-          <p className="text-gray-400 text-sm font-medium">実際のサービスシミュレーション · 自動ループ</p>
+          <p className="text-gray-400 text-sm font-medium">入力 → 分析 → チャネル別コピー & キット自動生成</p>
         </div>
         <DemoAnimation lang="ja" />
       </section>

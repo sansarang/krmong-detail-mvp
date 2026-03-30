@@ -223,14 +223,14 @@ export default function Home() {
       <ProductShowcase />
 
       {/* ─── DEMO ANIMATION ──────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-5 pb-8">
-        <div className="text-center mb-8 md:mb-10">
-          <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">작동 방식</p>
+      <section className="pb-12">
+        <div className="max-w-5xl mx-auto px-5 text-center mb-8 md:mb-10">
+          <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">분석 & 최적화</p>
           <h2 className="text-3xl md:text-5xl font-black text-black tracking-tight leading-tight mb-3">
-            입력하면,<br />
-            <span className="text-gray-300">AI가 알아서 완성합니다.</span>
+            글을 분석해서,<br />
+            <span className="text-gray-300">돈 되는 글로 바꿉니다.</span>
           </h2>
-          <p className="text-gray-400 text-sm font-medium">실제 서비스 시뮬레이션 · 자동 반복</p>
+          <p className="text-gray-400 text-sm font-medium">입력 → 분석 → 채널별 카피·키트 자동 생성</p>
         </div>
         <DemoAnimation lang="ko" />
       </section>

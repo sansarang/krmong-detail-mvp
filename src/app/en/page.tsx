@@ -145,14 +145,14 @@ export default function EnglishHome() {
       <ProductShowcase lang="en" />
 
       {/* ── DEMO ANIMATION ── */}
-      <section className="max-w-5xl mx-auto px-5 pb-8">
-        <div className="text-center mb-8 md:mb-10">
-          <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">How It Works</p>
+      <section className="pb-12">
+        <div className="max-w-5xl mx-auto px-5 text-center mb-8 md:mb-10">
+          <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">Analyze & Optimize</p>
           <h2 className="text-3xl md:text-5xl font-black text-black tracking-tight leading-tight mb-3">
-            Type it in,<br />
-            <span className="text-gray-300">AI handles the rest.</span>
+            AI analyzes your content,<br />
+            <span className="text-gray-300">then rewrites it to sell.</span>
           </h2>
-          <p className="text-gray-400 text-sm font-medium">Live service simulation · Auto-repeating</p>
+          <p className="text-gray-400 text-sm font-medium">Input → Analysis → Channel-optimized copy & kits</p>
         </div>
         <DemoAnimation lang="en" />
       </section>
