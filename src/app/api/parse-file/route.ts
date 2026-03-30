@@ -12,7 +12,8 @@ export async function POST(req: NextRequest) {
 
     // PDF 파싱
     if (fileName.endsWith('.pdf')) {
-      const pdfParse = (await import('pdf-parse')).default
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const pdfParse = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string; numpages: number }>
       const data = await pdfParse(buffer)
       return NextResponse.json({ text: data.text, pages: data.numpages })
     }
