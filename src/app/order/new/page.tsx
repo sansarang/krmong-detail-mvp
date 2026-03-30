@@ -493,14 +493,35 @@ export default function NewOrderPage() {
     if (docInputRef.current) docInputRef.current.value = ''
   }
 
-  function handleTemplateFile(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleTemplateFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.type === 'text/plain' || file.name.endsWith('.txt') || file.name.endsWith('.md') || file.name.endsWith('.csv')) {
+    const name = file.name.toLowerCase()
+    const isText = file.type.startsWith('text/') || name.endsWith('.txt') || name.endsWith('.md') || name.endsWith('.csv')
+    const isPdf  = name.endsWith('.pdf')
+
+    if (isText) {
       const reader = new FileReader()
-      reader.onload = ev => setTemplateContent(ev.target?.result as string)
+      reader.onload = ev => {
+        setTemplateContent(ev.target?.result as string)
+        toast.success(L.toastFile)
+      }
       reader.readAsText(file)
-      toast.success(L.toastFile)
+    } else if (isPdf) {
+      toast.loading('PDF 파싱 중...')
+      try {
+        const fd = new FormData()
+        fd.append('file', file)
+        const res = await fetch('/api/parse-file', { method: 'POST', body: fd })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error)
+        setTemplateContent(data.text ?? '')
+        toast.dismiss()
+        toast.success(`PDF 내용 추출 완료 (${data.pages ?? 1}페이지)`)
+      } catch {
+        toast.dismiss()
+        toast.error('PDF 파싱 실패 — 내용을 직접 붙여넣기 해주세요')
+      }
     } else {
       toast.info(L.toastFilePaste)
     }
@@ -760,7 +781,7 @@ export default function NewOrderPage() {
                 <div className="flex gap-2 mb-3">
                   <label className="flex items-center gap-2 bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 cursor-pointer hover:bg-indigo-100 transition-all text-sm text-indigo-700 font-medium">
                     {L.fileBtn}
-                    <input ref={templateFileRef} type="file" accept=".txt,.md,.csv" className="hidden" onChange={handleTemplateFile} />
+                    <input ref={templateFileRef} type="file" accept=".txt,.md,.csv,.pdf" className="hidden" onChange={handleTemplateFile} />
                   </label>
                   {templateContent && (
                     <button type="button" onClick={() => setTemplateContent('')} className="text-xs text-gray-400 hover:text-red-500 transition-colors px-3">

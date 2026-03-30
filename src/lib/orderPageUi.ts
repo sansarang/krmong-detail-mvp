@@ -349,6 +349,9 @@ export type OrderPageUi = {
   shareLinkNeedLogin: string
   shareLinkNotConfigured: string
   shareLinkNoResult: string
+  txtDownload: string
+  toastTxtOk: string
+  txtFilename: (name: string) => string
 }
 
 export const ORDER_PAGE_UI: Record<UiLang, OrderPageUi> = {
@@ -424,6 +427,9 @@ export const ORDER_PAGE_UI: Record<UiLang, OrderPageUi> = {
     shareLinkNeedLogin: '로그인 후 이용할 수 있습니다',
     shareLinkNotConfigured: '공유 링크 기능이 아직 설정되지 않았습니다 (ORDER_SHARE_SECRET)',
     shareLinkNoResult: '생성된 본문이 있을 때만 공유할 수 있습니다',
+    txtDownload: '↓ TXT 다운로드',
+    toastTxtOk: 'TXT 파일 다운로드 완료!',
+    txtFilename: (name) => `작성결과_${name}.txt`,
   },
   en: {
     brand: 'PageAI',
@@ -497,6 +503,9 @@ export const ORDER_PAGE_UI: Record<UiLang, OrderPageUi> = {
     shareLinkNeedLogin: 'Sign in to use this',
     shareLinkNotConfigured: 'Share links are not configured (ORDER_SHARE_SECRET)',
     shareLinkNoResult: 'Share is available after the page is generated',
+    txtDownload: '↓ Download TXT',
+    toastTxtOk: 'TXT file downloaded!',
+    txtFilename: (name) => `result_${name.replace(/\s+/g, '_')}.txt`,
   },
   ja: {
     brand: 'PageAI',
@@ -570,6 +579,9 @@ export const ORDER_PAGE_UI: Record<UiLang, OrderPageUi> = {
     shareLinkNeedLogin: 'ログインが必要です',
     shareLinkNotConfigured: '共有リンクが未設定です（ORDER_SHARE_SECRET）',
     shareLinkNoResult: '生成結果があるときのみ共有可能です',
+    txtDownload: '↓ TXTダウンロード',
+    toastTxtOk: 'TXTファイルをダウンロードしました！',
+    txtFilename: (name) => `結果_${name}.txt`,
   },
   zh: {
     brand: 'PageAI',
@@ -643,6 +655,9 @@ export const ORDER_PAGE_UI: Record<UiLang, OrderPageUi> = {
     shareLinkNeedLogin: '请先登录',
     shareLinkNotConfigured: '未配置分享链接（ORDER_SHARE_SECRET）',
     shareLinkNoResult: '请先生成详情页后再分享',
+    txtDownload: '↓ 下载 TXT',
+    toastTxtOk: 'TXT 文件已下载！',
+    txtFilename: (name) => `结果_${name}.txt`,
   },
 }
 

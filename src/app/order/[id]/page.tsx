@@ -48,7 +48,7 @@ interface Order {
   description: string
   image_urls: string[]
   status: string
-  result_json: { sections: Section[]; output_lang?: string } | null
+  result_json: { sections: Section[]; output_lang?: string; template_mode?: boolean } | null
 }
 
 interface SeoReport {
@@ -1375,6 +1375,27 @@ export default function OrderResultPage() {
     finally { setPdfLoading(false) }
   }
 
+  function handleDownloadTxt() {
+    if (!order || sections.length === 0) return
+    const lines: string[] = [`[ ${order.product_name} ]\n`]
+    sections.forEach((s, i) => {
+      lines.push(`${'─'.repeat(40)}`)
+      lines.push(`[${i + 1}] ${s.name}`)
+      lines.push(`제목: ${s.title}`)
+      lines.push('')
+      lines.push(s.body)
+      lines.push('')
+    })
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = p.txtFilename(order.product_name)
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success(p.toastTxtOk)
+  }
+
   async function handleCopyShareLink() {
     if (!order) return
     try {
@@ -1619,6 +1640,15 @@ export default function OrderResultPage() {
             >
               {pdfLoading ? <><span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />{p.pdfLoading}</> : p.pdf}
             </button>
+            {sections.length > 0 && (
+              <button
+                type="button"
+                onClick={handleDownloadTxt}
+                className="border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all flex items-center gap-1.5"
+              >
+                {p.txtDownload}
+              </button>
+            )}
             {sections.length > 0 && (
               <button
                 type="button"
@@ -2136,6 +2166,15 @@ export default function OrderResultPage() {
             <button type="button" onClick={handleDownloadPDF} disabled={pdfLoading} className="bg-black text-white px-10 py-3 rounded-xl text-sm font-bold hover:bg-gray-800 transition-all disabled:opacity-40">
               {pdfLoading ? p.pdfGen : p.pdfBottom}
             </button>
+            {sections.length > 0 && (
+              <button
+                type="button"
+                onClick={handleDownloadTxt}
+                className="border border-gray-300 text-gray-600 px-6 py-3 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all"
+              >
+                {p.txtDownload}
+              </button>
+            )}
             {sections.length > 0 && (
               <button
                 type="button"
