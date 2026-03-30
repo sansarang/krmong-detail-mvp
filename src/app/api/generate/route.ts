@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createAdminClient, createServerSupabaseClient } from '@/lib/supabase/server'
+import { buildDataContextBlock } from '@/lib/marketIntelCopy'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 const FREE_LIMIT = 5
@@ -169,6 +170,17 @@ export async function POST(req: NextRequest) {
       ? `\n⚠️ IMPORTANT: Write ALL output content (title, body, section names) entirely in ${LANG_NAMES[outputLang] ?? outputLang}. Do NOT use Korean anywhere.`
       : ''
 
+    // ── 데이터 기반 카피 컨텍스트 (7번 기능) ──────────────────
+    const dataContext = !isDocType
+      ? buildDataContextBlock(
+          outputLang as 'ko' | 'en' | 'ja' | 'zh',
+          order.product_name,
+          order.category,
+          order.description ?? '',
+        )
+      : ''
+    // ──────────────────────────────────────────────────────────
+
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-5',
       max_tokens: 4000,
@@ -180,7 +192,7 @@ export async function POST(req: NextRequest) {
 카테고리: ${order.category}
 제목/이름: ${order.product_name}
 내용: ${order.description}
-
+${dataContext}
 ${sectionGuide}
 
 반드시 지켜야 할 규칙:
