@@ -625,19 +625,19 @@ export default function NewOrderPage() {
             <Link href="/#pricing" className="w-full bg-black text-white py-4 rounded-2xl font-black text-sm text-center block hover:bg-gray-800 transition-all mb-3">
               {L.upgradeBtn}
             </Link>
-            <button onClick={() => setShowUpgrade(false)} className="w-full text-gray-400 text-sm py-2 hover:text-black transition-colors">
+            <button onClick={() => setShowUpgrade(false)} className="w-full text-gray-400 text-sm py-3 min-h-[44px] hover:text-black transition-colors">
               {L.upgradeLater}
             </button>
           </div>
         </div>
       )}
 
-      <nav className="flex items-center justify-between px-8 py-5 border-b border-gray-100">
+      <nav className="flex items-center justify-between px-4 sm:px-8 py-4 border-b border-gray-100">
         <Link href="/" className="flex items-center gap-2"><Logo size={28} /></Link>
         <Link href="/dashboard" className="text-gray-400 text-sm hover:text-black transition-colors">{L.backDash}</Link>
       </nav>
 
-      <div className="max-w-xl mx-auto px-8 py-16">
+      <div className="max-w-xl mx-auto px-4 sm:px-8 py-10 sm:py-16">
         <div className="mb-10">
           <p className="text-xs font-bold text-gray-300 uppercase tracking-widest mb-3">{L.newDoc}</p>
           <h1 className="text-4xl font-black text-black tracking-tight mb-3">
@@ -708,7 +708,7 @@ export default function NewOrderPage() {
               {L.screenLangLabel}{' '}
               <span className="text-gray-300 normal-case font-normal">({L.screenLangSub})</span>
             </label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {LANGUAGES.map(lang => (
                 <button
                   key={`ui-${lang.value}`}
@@ -718,7 +718,7 @@ export default function NewOrderPage() {
                     setUiLang(v)
                     persistUiLang(v)
                   }}
-                  className={`py-3 rounded-2xl text-sm font-bold border transition-all ${
+                  className={`py-3 min-h-[44px] rounded-2xl text-sm font-bold border transition-all ${
                     uiLang === lang.value
                       ? 'bg-gray-900 text-white border-gray-900'
                       : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
@@ -735,13 +735,13 @@ export default function NewOrderPage() {
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
               {L.langLabel} <span className="text-gray-300 normal-case font-normal">({L.langSub})</span>
             </label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {LANGUAGES.map(lang => (
                 <button
                   key={lang.value}
                   type="button"
                   onClick={() => setOutputLang(lang.value)}
-                  className={`py-3 rounded-2xl text-sm font-bold border transition-all ${
+                  className={`py-3 min-h-[44px] rounded-2xl text-sm font-bold border transition-all ${
                     outputLang === lang.value
                       ? 'bg-black text-white border-black'
                       : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
@@ -882,7 +882,7 @@ export default function NewOrderPage() {
                     <button
                       type="button"
                       onClick={() => setImages(prev => prev.filter((_, idx) => idx !== i))}
-                      className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/70 hover:bg-black text-white rounded-full text-xs font-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 w-8 h-8 bg-black/70 hover:bg-black text-white rounded-full text-xs font-black flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                     >×</button>
                     <div className="absolute bottom-1.5 left-1.5 bg-black/50 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{i + 1}</div>
                   </div>

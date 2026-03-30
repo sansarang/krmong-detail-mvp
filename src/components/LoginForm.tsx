@@ -169,7 +169,7 @@ export default function LoginForm({ lang, homeHref }: { lang: UiLang; homeHref: 
           </button>
         </form>
         <div className="mt-6 text-center">
-          <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="text-gray-400 text-sm hover:text-black transition-colors">
+          <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="text-gray-400 text-sm hover:text-black transition-colors min-h-[44px] px-4 inline-flex items-center justify-center">
             {isSignUp ? t.toggleUp : t.toggleIn}
           </button>
         </div>

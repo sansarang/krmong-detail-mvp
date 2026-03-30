@@ -83,19 +83,19 @@ export default async function DashboardPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* NAV */}
-      <nav className="bg-white border-b border-gray-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+      <nav className="bg-white border-b border-gray-100 px-4 sm:px-8 py-4 flex items-center justify-between sticky top-0 z-10">
         <Link href="/" className="flex items-center gap-2">
           <Logo size={28} />
         </Link>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <span className="text-gray-400 text-sm hidden sm:block">{user.email}</span>
-          <Link href="/order/new" className="bg-black text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-gray-800 transition-all">
+          <Link href="/order/new" className="bg-black text-white px-4 sm:px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-800 transition-all min-h-[44px] flex items-center">
             + 새 주문
           </Link>
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-6 py-10">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
 
         {/* 인사 + 업그레이드 배너 */}
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -116,7 +116,7 @@ export default async function DashboardPage() {
             <div className="w-full bg-white/20 rounded-full h-1.5 mb-3">
               <div className="bg-white rounded-full h-1.5 transition-all" style={{ width: `${usagePct}%` }} />
             </div>
-            <Link href="#pricing" className="text-xs font-black underline underline-offset-2 opacity-90 hover:opacity-100">
+            <Link href="/#pricing" className="text-xs font-black underline underline-offset-2 opacity-90 hover:opacity-100">
               프로로 무제한 업그레이드 →
             </Link>
           </div>
@@ -192,7 +192,7 @@ export default async function DashboardPage() {
                           {order.status === 'done' && (
                             <Link
                               href={`/order/${order.id}`}
-                              className="bg-black text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-800 transition-all opacity-0 group-hover:opacity-100"
+                              className="bg-black text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-800 transition-all min-h-[44px] flex items-center"
                             >
                               보기 →
                             </Link>
