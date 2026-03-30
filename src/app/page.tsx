@@ -162,9 +162,6 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* ─── PROMO DEMO ─────────────────────────────── */}
-      <PromoDemoWidget lang="ko" />
-
       {/* ─── HERO ─────────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-5 pt-12 md:pt-20 pb-10 md:pb-12 text-center">
         {/* 소셜 프루프 배지 */}
@@ -212,6 +209,9 @@ export default function Home() {
         </div>
         <p className="text-xs text-gray-300 font-medium">신용카드 불필요 · 무료로 시작 · 30초면 충분</p>
       </section>
+
+      {/* ─── PROMO DEMO ─────────────────────────────── */}
+      <PromoDemoWidget lang="ko" />
 
       {/* ─── 실시간 트렌드 티커(슬림) + 내부 링크 ───── */}
       <TrendWidget variant="strip" />

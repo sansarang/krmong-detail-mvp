@@ -91,10 +91,8 @@ export default function JaPage() {
         </div>
       </nav>
 
-      {/* ── PROMO DEMO ── */}
-      <PromoDemoWidget lang="ja" />
-
-      {/* ── HERO ── */}      <section className="max-w-5xl mx-auto px-5 pt-12 md:pt-20 pb-10 text-center">
+      {/* ── HERO ── */}
+      <section className="max-w-5xl mx-auto px-5 pt-12 md:pt-20 pb-10 text-center">
         <div className="inline-flex items-center gap-2 bg-gray-50 border border-gray-200 text-gray-600 text-xs font-semibold px-3 md:px-4 py-2 rounded-full mb-6 md:mb-8">
           <div className="flex -space-x-1 shrink-0">
             {['#FF5C35','#6366F1','#10B981','#F59E0B','#EC4899'].map((c, i) => (
@@ -127,6 +125,9 @@ export default function JaPage() {
         </div>
         <p className="text-xs text-gray-300 font-medium">クレジットカード不要 · 30秒で始める</p>
       </section>
+
+      {/* ── PROMO DEMO ── */}
+      <PromoDemoWidget lang="ja" />
 
       <TrendWidget variant="strip" geo="JP" uiLocale="ja" />
 
