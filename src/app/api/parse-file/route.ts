@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import Anthropic from '@anthropic-ai/sdk'
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,15 +13,26 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    // ── PDF ────────────────────────────────────────────────────
+    // ── PDF — Claude 네이티브 PDF 읽기 (serverless 완벽 호환) ──
     if (fileName.endsWith('.pdf')) {
-      // pdf-parse 루트 index는 serverless에서 테스트파일 로드를 시도해 실패함
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const pdfParse = require('pdf-parse/lib/pdf-parse.js') as (
-        buf: Buffer
-      ) => Promise<{ text: string; numpages: number }>
-      const data = await pdfParse(buffer)
-      return NextResponse.json({ text: data.text.trim(), pages: data.numpages })
+      const base64Data = buffer.toString('base64')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const message = await (anthropic.messages.create as any)({
+        model: 'claude-3-5-haiku-20241022',
+        max_tokens: 4000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64Data } },
+            { type: 'text', text: 'Extract all text from this PDF. Output only the plain text, preserving structure and sections. No commentary.' },
+          ],
+        }],
+      })
+      const text = message.content
+        .filter(b => b.type === 'text')
+        .map(b => (b as { type: 'text'; text: string }).text)
+        .join('\n')
+      return NextResponse.json({ text: text.trim(), pages: 1 })
     }
 
     // ── DOCX (Word) ────────────────────────────────────────────
