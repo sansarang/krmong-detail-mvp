@@ -69,68 +69,57 @@ export async function POST(req: NextRequest) {
       const templateContent = templateMatch[1].trim()
       const userInfo = (order.description ?? '').replace(/\[TEMPLATE_FORM\][\s\S]*?\[\/TEMPLATE_FORM\]/, '').trim()
 
-      const LANG_NAMES_T: Record<string, string> = { ko: '한국어', en: 'English', ja: '日本語 (Japanese)', zh: '中文 (Chinese)' }
+      const LANG_NAMES_T: Record<string, string> = { ko: '한국어', en: 'English', ja: '日本語', zh: '中文' }
       const langInstructionT = outputLang !== 'ko'
-        ? `\n⚠️ IMPORTANT: Write ALL output content entirely in ${LANG_NAMES_T[outputLang] ?? outputLang}. Do NOT use Korean anywhere.`
+        ? ` All answers must be written in ${LANG_NAMES_T[outputLang] ?? outputLang}.`
         : ''
 
-      const templateMessage = await anthropic.messages.create({
+      // ── 1단계: 양식을 분석해 항목 목록을 텍스트로 추출 ─────────
+      const analyzeMsg = await anthropic.messages.create({
         model: 'claude-sonnet-4-5',
-        max_tokens: 4000,
-        messages: [{
-          role: 'user',
-          content: `당신은 문서 자동 작성 전문가입니다. 아래에 제공된 양식/과제 템플릿의 모든 빈칸과 항목을 작성해주세요.${langInstructionT}
+        max_tokens: 2000,
+        system: '당신은 문서 양식 분석 전문가입니다. 주어진 양식에서 작성해야 할 모든 항목/질문을 파악하고, 각 항목에 구체적인 답변을 작성합니다.',
+        messages: [
+          {
+            role: 'user',
+            content: `아래 양식의 각 항목/질문에 답변을 작성해주세요.${langInstructionT}
 
-제목/이름: ${order.product_name}
-카테고리: ${order.category}
-${userInfo ? `\n작성에 참고할 정보:\n${userInfo}` : ''}
+문서 제목: ${order.product_name}
+${userInfo ? `\n참고 정보 (답변 작성 시 활용):\n${userInfo}` : ''}
 
---- 작성해야 할 양식/템플릿 ---
+=== 양식 내용 ===
 ${templateContent}
---- 양식/템플릿 끝 ---
+=== 양식 끝 ===
 
-작성 규칙:
-1. 양식의 구조와 섹션을 그대로 유지하며 빈칸을 채우세요
-2. 각 항목을 충분히 구체적이고 전문적으로 작성하세요 (각 섹션 100자 이상)
-3. 제공된 참고 정보를 최대한 반영하세요
-4. 공식적이고 명확한 문체로 작성하세요
-5. 양식에서 항목 구분이 명확하지 않으면 논리적으로 섹션을 나누어 작성하세요
+위 양식의 각 항목을 순서대로 아래 형식으로 답변해주세요:
+[항목1 제목]
+(답변 내용 - 최소 2문장 이상, 구체적으로)
 
-양식의 각 항목/섹션을 아래 JSON 형식으로 출력하세요 (다른 텍스트 없이):
+[항목2 제목]
+(답변 내용 - 최소 2문장 이상, 구체적으로)
 
-{
-  "sections": [
-    { "id": 1, "name": "섹션명", "title": "양식 항목 제목", "body": "작성된 내용", "bg_color": "#FFFFFF" },
-    { "id": 2, "name": "섹션명", "title": "양식 항목 제목", "body": "작성된 내용", "bg_color": "#F8F9FA" }
-  ]
-}`,
-        }],
+...
+
+규칙:
+- 양식의 모든 빈칸/항목에 답변
+- 참고 정보를 최대한 반영
+- 공식적이고 전문적인 문체
+- 항목이 명확하지 않으면 논리적으로 섹션을 구성`,
+          },
+        ],
       })
 
-      const tContent = templateMessage.content[0]
-      if (tContent.type !== 'text') throw new Error('AI 응답 형식 오류')
-      // 마크다운 코드블록 제거 후 JSON 추출
-      const tText = tContent.text.trim()
-        .replace(/^```(?:json)?\s*/i, '')
-        .replace(/\s*```\s*$/i, '')
-        .trim()
-      const tJsonMatch = tText.match(/\{[\s\S]*\}/)
-      if (!tJsonMatch) {
-        console.error('[template] JSON not found in response:', tText.slice(0, 500))
-        throw new Error('양식 자동 작성 응답 파싱 실패')
-      }
-      let tParsed: { sections: unknown[] }
-      try {
-        tParsed = JSON.parse(tJsonMatch[0])
-      } catch (parseErr) {
-        console.error('[template] JSON.parse error:', parseErr, '\nRaw:', tJsonMatch[0].slice(0, 500))
-        throw new Error('양식 자동 작성 JSON 파싱 오류')
-      }
-      if (!Array.isArray(tParsed.sections) || tParsed.sections.length === 0) {
-        throw new Error('양식 섹션이 비어 있습니다')
-      }
-      const tResult = { sections: tParsed.sections, output_lang: outputLang, template_mode: true }
+      const analyzeContent = analyzeMsg.content[0]
+      if (analyzeContent.type !== 'text') throw new Error('AI 응답 형식 오류')
+      const filledText = analyzeContent.text.trim()
 
+      // ── 2단계: 텍스트 답변을 JSON sections로 변환 ──────────────
+      const BG_COLORS = ['#FFFFFF', '#F8F9FA', '#F0F7FF', '#FFF8E7', '#F0FFF4', '#FFF0F5']
+      const sections = parseTemplateTextToSections(filledText, BG_COLORS)
+
+      if (sections.length === 0) throw new Error('양식 항목을 파싱하지 못했습니다')
+
+      const tResult = { sections, output_lang: outputLang, template_mode: true }
       await supabase.from('orders').update({ status: 'done', result_json: tResult }).eq('id', orderId)
       return NextResponse.json({ success: true, result: tResult })
     }
@@ -340,4 +329,50 @@ JSON만 출력 (다른 텍스트 없이):
       { status: 500 }
     )
   }
+}
+
+// ── 양식 텍스트 답변 → sections 배열 변환 ─────────────────────────────────
+function parseTemplateTextToSections(
+  text: string,
+  bgColors: string[],
+): { id: number; name: string; title: string; body: string; bg_color: string }[] {
+  const sections: { id: number; name: string; title: string; body: string; bg_color: string }[] = []
+
+  // [항목 제목] 패턴으로 분할
+  const blockPattern = /\[([^\]]+)\]\s*([\s\S]*?)(?=\[[^\]]+\]|$)/g
+  let match: RegExpExecArray | null
+  let id = 1
+
+  while ((match = blockPattern.exec(text)) !== null) {
+    const title = match[1].trim()
+    const body = match[2].trim()
+    if (!title || !body) continue
+    sections.push({
+      id,
+      name: title,
+      title,
+      body,
+      bg_color: bgColors[(id - 1) % bgColors.length],
+    })
+    id++
+  }
+
+  // [항목] 패턴이 없으면 빈 줄로 단락 분리
+  if (sections.length === 0) {
+    const paragraphs = text.split(/\n{2,}/).map(p => p.trim()).filter(Boolean)
+    paragraphs.forEach((para, i) => {
+      const lines = para.split('\n')
+      const title = lines[0].replace(/^#+\s*/, '').trim() || `항목 ${i + 1}`
+      const body = lines.slice(1).join('\n').trim() || para
+      sections.push({
+        id: i + 1,
+        name: title,
+        title,
+        body: body || title,
+        bg_color: bgColors[i % bgColors.length],
+      })
+    })
+  }
+
+  return sections
 }
