@@ -921,16 +921,20 @@ function MarketIntelPanel({
   ui,
   open,
   onToggle,
-  onCopy,
   className = '',
 }: {
   pack: ReturnType<typeof buildMarketIntelHeuristics>
   ui: OrderResultUi
   open: boolean
   onToggle: () => void
-  onCopy: () => void
   className?: string
 }) {
+  function copyText(text: string, toastMsg: string) {
+    navigator.clipboard.writeText(text).then(() => toast.success(toastMsg)).catch(() => toast.error(ui.toastCopyFail))
+  }
+
+  const preview = `${pack.copyFullIntel.slice(0, 520)}${pack.copyFullIntel.length > 520 ? '…' : ''}`
+
   return (
     <div className={`border border-amber-200/90 bg-amber-50/80 rounded-2xl overflow-hidden ${className}`}>
       <button type="button" onClick={onToggle} className="w-full text-left p-3 hover:bg-amber-100/40 transition-colors">
@@ -939,35 +943,131 @@ function MarketIntelPanel({
         <span className="text-[10px] font-bold text-amber-900 mt-1 inline-block">{open ? ui.metaOgHide : ui.metaOgShow}</span>
       </button>
       {open && (
-        <div className="px-3 pb-3 border-t border-amber-200/70 pt-2 space-y-2 text-[11px] text-amber-950/90">
-          <div>
-            <p className="text-[9px] font-black text-amber-800 uppercase mb-0.5">{ui.intelCompetitor}</p>
-            <ul className="list-disc pl-4 space-y-0.5">
-              {pack.competitorPatterns.map((s, i) => (
-                <li key={i}>{s}</li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <p className="text-[9px] font-black text-amber-800 uppercase mb-0.5">{ui.intelKeywords}</p>
-            <p className="leading-snug break-words">{pack.categoryKeywords.join(' · ')}</p>
-          </div>
-          <div>
-            <p className="text-[9px] font-black text-amber-800 uppercase mb-0.5">{ui.intelReviewThemes}</p>
-            <ul className="list-disc pl-4 space-y-0.5">
-              {pack.reviewThemes.map((s, i) => (
-                <li key={i}>{s}</li>
-              ))}
-            </ul>
-          </div>
-          <p className="text-[10px] text-amber-900/75 leading-relaxed">{pack.gapNote}</p>
+        <div className="px-3 pb-3 border-t border-amber-200/70 pt-2 space-y-2 text-[11px] text-amber-950/90 max-h-[min(70vh,520px)] overflow-y-auto">
           <button
             type="button"
-            onClick={onCopy}
-            className="w-full text-left text-xs font-bold bg-white border border-amber-200 rounded-xl px-3 py-2 hover:bg-amber-50"
+            onClick={() => copyText(pack.copyFullIntel, ui.intelToastFull)}
+            className="w-full text-center text-[10px] font-black text-white bg-amber-800 py-2 rounded-xl hover:bg-amber-900"
           >
             {ui.intelCopyChecklist}
           </button>
+          <div className="grid grid-cols-2 gap-1">
+            <button
+              type="button"
+              onClick={() => copyText(pack.competitorsBlob, ui.intelToastCompetitors)}
+              className="text-[9px] font-bold text-amber-950 bg-white border border-amber-200 rounded-lg px-2 py-1.5 hover:bg-amber-50 text-center leading-tight"
+            >
+              {ui.intelCopyCompetitorsOnly}
+            </button>
+            <button
+              type="button"
+              onClick={() => copyText(pack.keywordsBlob, ui.intelToastKeywords)}
+              className="text-[9px] font-bold text-amber-950 bg-white border border-amber-200 rounded-lg px-2 py-1.5 hover:bg-amber-50 text-center leading-tight"
+            >
+              {ui.intelCopyKeywordsOnly}
+            </button>
+            <button
+              type="button"
+              onClick={() => copyText(pack.reviewBlob, ui.intelToastReview)}
+              className="text-[9px] font-bold text-amber-950 bg-white border border-amber-200 rounded-lg px-2 py-1.5 hover:bg-amber-50 text-center leading-tight"
+            >
+              {ui.intelCopyReviewOnly}
+            </button>
+            <button
+              type="button"
+              onClick={() => copyText(pack.gapBlob, ui.intelToastGap)}
+              className="text-[9px] font-bold text-amber-950 bg-white border border-amber-200 rounded-lg px-2 py-1.5 hover:bg-amber-50 text-center leading-tight"
+            >
+              {ui.intelCopyGapOnly}
+            </button>
+          </div>
+
+          <div>
+            <p className="text-[9px] font-black text-amber-800 uppercase mb-1">{ui.intelCompetitor}</p>
+            <ul className="space-y-1.5">
+              {pack.competitorPatterns.map((s, i) => (
+                <li key={i} className="list-none">
+                  <div className="rounded-lg bg-white/90 border border-amber-100 px-2 py-1.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-[10px] text-gray-800 leading-snug break-words flex-1">{s}</p>
+                      <button
+                        type="button"
+                        onClick={() => copyText(s, ui.abCopyToast)}
+                        className="text-[10px] font-bold text-amber-900 border border-amber-200 bg-white px-2 py-0.5 rounded-md hover:bg-amber-50 shrink-0"
+                      >
+                        {ui.abCopyCopy}
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-[9px] font-black text-amber-800 uppercase mb-0.5">{ui.intelKeywords}</p>
+            <div className="flex items-start justify-between gap-2 rounded-lg bg-white/90 border border-amber-100 px-2 py-1.5">
+              <p className="text-[10px] leading-snug break-words flex-1">{pack.categoryKeywords.join(' · ')}</p>
+              <button
+                type="button"
+                onClick={() => copyText(pack.categoryKeywords.join(' · '), ui.abCopyToast)}
+                className="text-[10px] font-bold text-amber-900 border border-amber-200 bg-white px-2 py-0.5 rounded-md hover:bg-amber-50 shrink-0"
+              >
+                {ui.abCopyCopy}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[9px] font-black text-amber-800 uppercase mb-1">{ui.intelReviewThemes}</p>
+            <ul className="space-y-1.5">
+              {pack.reviewThemes.map((s, i) => (
+                <li key={i} className="list-none">
+                  <div className="rounded-lg bg-white/90 border border-amber-100 px-2 py-1.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-[10px] text-gray-800 leading-snug break-words flex-1">{s}</p>
+                      <button
+                        type="button"
+                        onClick={() => copyText(s, ui.abCopyToast)}
+                        className="text-[10px] font-bold text-amber-900 border border-amber-200 bg-white px-2 py-0.5 rounded-md hover:bg-amber-50 shrink-0"
+                      >
+                        {ui.abCopyCopy}
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-[9px] font-black text-amber-800 uppercase mb-0.5">{ui.intelGap}</p>
+            <p className="text-[10px] text-amber-900/80 leading-relaxed">{pack.gapNote}</p>
+          </div>
+
+          <div>
+            <p className="text-[9px] font-black text-amber-800 uppercase mb-1">{ui.intelSearchQueriesLabel}</p>
+            <ul className="space-y-1.5">
+              {pack.searchQueries.map((q, i) => (
+                <li key={i} className="list-none">
+                  <div className="rounded-lg bg-white/90 border border-amber-100 px-2 py-1.5 flex items-center justify-between gap-2">
+                    <p className="text-[10px] text-gray-800 leading-snug break-words flex-1">{q}</p>
+                    <button
+                      type="button"
+                      onClick={() => copyText(q, ui.abCopyToast)}
+                      className="text-[10px] font-bold text-amber-900 border border-amber-200 bg-white px-2 py-0.5 rounded-md hover:bg-amber-50 shrink-0"
+                    >
+                      {ui.abCopyCopy}
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <pre className="text-[9px] text-gray-700 bg-white/90 border border-amber-100 rounded-lg p-2 max-h-28 overflow-auto whitespace-pre-wrap break-words">
+            {preview}
+          </pre>
         </div>
       )}
     </div>
@@ -1023,9 +1123,13 @@ function MetaOgExportPanel({
               {ui.metaOgCopyJson}
             </button>
           </div>
-          <pre className="text-[9px] text-gray-600 bg-white/80 border border-emerald-100 rounded-lg p-2 max-h-28 overflow-auto whitespace-pre-wrap break-all">
+          <pre className="text-[9px] text-gray-600 bg-white/80 border border-emerald-100 rounded-lg p-2 max-h-20 overflow-auto whitespace-pre-wrap break-all">
             {htmlBlock.slice(0, 400)}
             {htmlBlock.length > 400 ? '…' : ''}
+          </pre>
+          <pre className="text-[9px] text-gray-600 bg-white/80 border border-emerald-100 rounded-lg p-2 max-h-20 overflow-auto whitespace-pre-wrap break-all">
+            {jsonBlock.slice(0, 320)}
+            {jsonBlock.length > 320 ? '…' : ''}
           </pre>
         </div>
       )}
@@ -1643,11 +1747,6 @@ export default function OrderResultPage() {
                   ui={t}
                   open={intelOpen}
                   onToggle={() => setIntelOpen(o => !o)}
-                  onCopy={() => {
-                    navigator.clipboard.writeText(intelPack.checklistBlock).then(() => {
-                      toast.success(t.abCopyToast)
-                    }).catch(() => toast.error(t.toastCopyFail))
-                  }}
                 />
               </div>
             )}
@@ -1746,6 +1845,7 @@ export default function OrderResultPage() {
             <div className="flex flex-wrap items-end gap-2">
               {(order.image_urls ?? []).map((url, i) => (
                 <div key={`${url}-${i}`} className="relative flex flex-col items-center gap-1">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary storage URLs; tiny thumbs */}
                   <img
                     src={url}
                     alt={p.imgAlt(i)}
@@ -1882,11 +1982,6 @@ export default function OrderResultPage() {
                 ui={t}
                 open={intelOpen}
                 onToggle={() => setIntelOpen(o => !o)}
-                onCopy={() => {
-                  navigator.clipboard.writeText(intelPack.checklistBlock).then(() => {
-                    toast.success(t.abCopyToast)
-                  }).catch(() => toast.error(t.toastCopyFail))
-                }}
               />
             )}
             {metaExportBlocks && (
@@ -1925,6 +2020,7 @@ export default function OrderResultPage() {
             {order.image_urls && order.image_urls.length > 0 && (
               <div>
                 {order.image_urls.map((url, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element -- dynamic URLs + crossOrigin for html2pdf canvas
                   <img key={i} src={url} alt={p.imgAlt(i)} className="w-full object-cover" crossOrigin="anonymous" />
                 ))}
               </div>
