@@ -162,6 +162,9 @@ export default function Home() {
         </div>
       </nav>
 
+      {/* ─── 실시간 트렌드 티커(슬림) ─────────────────── */}
+      <TrendWidget variant="strip" />
+
       {/* ─── HERO ─────────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-5 pt-12 md:pt-20 pb-10 md:pb-12 text-center">
         {/* 소셜 프루프 배지 */}
@@ -214,7 +217,6 @@ export default function Home() {
       <PromoDemoWidget lang="ko" />
 
       {/* ─── 실시간 트렌드 티커(슬림) + 내부 링크 ───── */}
-      <TrendWidget variant="strip" />
       <InternalSeoPills />
 
       {/* ─── PRODUCT SHOWCASE ────────────────────────── */}

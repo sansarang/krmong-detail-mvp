@@ -97,6 +97,8 @@ export default function EnglishHome() {
         </div>
       </nav>
 
+      <TrendWidget variant="strip" geo="US" uiLocale="en" />
+
       {/* ── HERO ── */}
       <section className="max-w-5xl mx-auto px-5 pt-12 md:pt-20 pb-10 text-center">
         <div className="inline-flex items-center gap-2 bg-gray-50 border border-gray-200 text-gray-600 text-xs font-semibold px-3 md:px-4 py-2 rounded-full mb-6 md:mb-8">
@@ -135,8 +137,6 @@ export default function EnglishHome() {
 
       {/* ── PROMO DEMO ── */}
       <PromoDemoWidget lang="en" />
-
-      <TrendWidget variant="strip" geo="US" uiLocale="en" />
 
       {/* ── LIVE TICKER ── */}
       <LiveTicker lang="en" />
