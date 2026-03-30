@@ -295,7 +295,7 @@ const UI: Record<UiLang, {
     templateToggleLabel: '📋 양식 자동 작성 모드',
     templateToggleSub: '채워야 할 양식·과제를 첨부하면 AI가 빈칸을 채워드립니다',
     templateFormLabel: '양식 내용 (필수)',
-    templateFormSub: '파일 선택(TXT/MD) 또는 직접 붙여넣기',
+    templateFormSub: 'PDF · DOCX · XLSX · PPTX · TXT 파일 선택 또는 직접 붙여넣기',
     templateFormPlaceholder: '채워야 할 양식·과제의 내용을 여기에 붙여넣기 하세요.\n(예: 사업계획서 양식, 과제 요구사항, 신청서 양식 등)',
     templateInfoLabel: '작성에 참고할 내용 (선택)',
     templateInfoPlaceholder: '어떤 내용으로 채울지 알려주세요.\n(예: 회사 소개, 제품 특징, 연구 내용 등)',
@@ -332,7 +332,7 @@ const UI: Record<UiLang, {
     templateToggleLabel: '📋 Template Auto-Fill Mode',
     templateToggleSub: 'Attach a form or assignment and AI will fill in all the blanks',
     templateFormLabel: 'Template Content (required)',
-    templateFormSub: 'Choose file (TXT/MD) or paste directly',
+    templateFormSub: 'PDF · DOCX · XLSX · PPTX · TXT or paste directly',
     templateFormPlaceholder: 'Paste the template or assignment content here.\n(e.g. business plan template, assignment rubric, application form)',
     templateInfoLabel: 'Reference Information (optional)',
     templateInfoPlaceholder: 'Tell AI what content to use for filling in.\n(e.g. company info, product details, research content)',
@@ -369,7 +369,7 @@ const UI: Record<UiLang, {
     templateToggleLabel: '📋 書式自動入力モード',
     templateToggleSub: '記入すべき書式・課題を添付すると、AIが空欄を埋めます',
     templateFormLabel: '書式内容（必須）',
-    templateFormSub: 'ファイル選択（TXT/MD）または直接貼り付け',
+    templateFormSub: 'PDF · DOCX · XLSX · PPTX · TXT 選択または直接貼り付け',
     templateFormPlaceholder: '記入すべき書式・課題の内容をここに貼り付けてください。\n（例：事業計画書の書式、課題の要件、申請書の書式など）',
     templateInfoLabel: '参考情報（任意）',
     templateInfoPlaceholder: 'どんな内容で記入するかお知らせください。\n（例：会社概要、商品の特徴、研究内容など）',
@@ -406,7 +406,7 @@ const UI: Record<UiLang, {
     templateToggleLabel: '📋 表格自动填写模式',
     templateToggleSub: '上传需要填写的表格或作业，AI将自动填写所有空白',
     templateFormLabel: '表格内容（必填）',
-    templateFormSub: '选择文件（TXT/MD）或直接粘贴',
+    templateFormSub: 'PDF · DOCX · XLSX · PPTX · TXT 选择文件或直接粘贴',
     templateFormPlaceholder: '请将需要填写的表格或作业内容粘贴到此处。\n（例：商业计划书模板、作业要求、申请表格等）',
     templateInfoLabel: '参考信息（可选）',
     templateInfoPlaceholder: '请告知AI用什么内容来填写。\n（例：公司简介、产品特点、研究内容等）',
@@ -498,7 +498,8 @@ export default function NewOrderPage() {
     if (!file) return
     const name = file.name.toLowerCase()
     const isText = file.type.startsWith('text/') || name.endsWith('.txt') || name.endsWith('.md') || name.endsWith('.csv')
-    const isPdf  = name.endsWith('.pdf')
+    const isServerParsed = name.endsWith('.pdf') || name.endsWith('.docx') ||
+      name.endsWith('.xlsx') || name.endsWith('.xls') || name.endsWith('.pptx')
 
     if (isText) {
       const reader = new FileReader()
@@ -507,8 +508,9 @@ export default function NewOrderPage() {
         toast.success(L.toastFile)
       }
       reader.readAsText(file)
-    } else if (isPdf) {
-      toast.loading('PDF 파싱 중...')
+    } else if (isServerParsed) {
+      const ext = name.split('.').pop()?.toUpperCase() ?? '파일'
+      const tid = toast.loading(`${ext} 파싱 중...`)
       try {
         const fd = new FormData()
         fd.append('file', file)
@@ -516,11 +518,12 @@ export default function NewOrderPage() {
         const data = await res.json()
         if (!res.ok) throw new Error(data.error)
         setTemplateContent(data.text ?? '')
-        toast.dismiss()
-        toast.success(`PDF 내용 추출 완료 (${data.pages ?? 1}페이지)`)
-      } catch {
-        toast.dismiss()
-        toast.error('PDF 파싱 실패 — 내용을 직접 붙여넣기 해주세요')
+        toast.dismiss(tid)
+        const detail = data.pages ? `${data.pages}페이지` : data.sheets ? `${data.sheets}시트` : data.slides ? `${data.slides}슬라이드` : ''
+        toast.success(`${ext} 내용 추출 완료${detail ? ` (${detail})` : ''}`)
+      } catch (err) {
+        toast.dismiss(tid)
+        toast.error(err instanceof Error ? err.message : `${ext} 파싱 실패 — 내용을 직접 붙여넣기 해주세요`)
       }
     } else {
       toast.info(L.toastFilePaste)
@@ -781,7 +784,7 @@ export default function NewOrderPage() {
                 <div className="flex gap-2 mb-3">
                   <label className="flex items-center gap-2 bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 cursor-pointer hover:bg-indigo-100 transition-all text-sm text-indigo-700 font-medium">
                     {L.fileBtn}
-                    <input ref={templateFileRef} type="file" accept=".txt,.md,.csv,.pdf" className="hidden" onChange={handleTemplateFile} />
+                    <input ref={templateFileRef} type="file" accept=".txt,.md,.csv,.pdf,.docx,.xlsx,.xls,.pptx" className="hidden" onChange={handleTemplateFile} />
                   </label>
                   {templateContent && (
                     <button type="button" onClick={() => setTemplateContent('')} className="text-xs text-gray-400 hover:text-red-500 transition-colors px-3">
