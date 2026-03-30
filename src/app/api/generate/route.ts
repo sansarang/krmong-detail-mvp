@@ -60,6 +60,63 @@ export async function POST(req: NextRequest) {
     // 상태 업데이트
     await supabase.from('orders').update({ status: 'generating' }).eq('id', orderId)
 
+    // ── 양식 자동 작성 모드 감지 ──────────────────────────────
+    const templateMatch = (order.description ?? '').match(/\[TEMPLATE_FORM\]([\s\S]*?)\[\/TEMPLATE_FORM\]/)
+    if (templateMatch) {
+      const templateContent = templateMatch[1].trim()
+      const userInfo = (order.description ?? '').replace(/\[TEMPLATE_FORM\][\s\S]*?\[\/TEMPLATE_FORM\]/, '').trim()
+
+      const LANG_NAMES_T: Record<string, string> = { ko: '한국어', en: 'English', ja: '日本語 (Japanese)', zh: '中文 (Chinese)' }
+      const langInstructionT = outputLang !== 'ko'
+        ? `\n⚠️ IMPORTANT: Write ALL output content entirely in ${LANG_NAMES_T[outputLang] ?? outputLang}. Do NOT use Korean anywhere.`
+        : ''
+
+      const templateMessage = await anthropic.messages.create({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 4000,
+        messages: [{
+          role: 'user',
+          content: `당신은 문서 자동 작성 전문가입니다. 아래에 제공된 양식/과제 템플릿의 모든 빈칸과 항목을 작성해주세요.${langInstructionT}
+
+제목/이름: ${order.product_name}
+카테고리: ${order.category}
+${userInfo ? `\n작성에 참고할 정보:\n${userInfo}` : ''}
+
+--- 작성해야 할 양식/템플릿 ---
+${templateContent}
+--- 양식/템플릿 끝 ---
+
+작성 규칙:
+1. 양식의 구조와 섹션을 그대로 유지하며 빈칸을 채우세요
+2. 각 항목을 충분히 구체적이고 전문적으로 작성하세요 (각 섹션 100자 이상)
+3. 제공된 참고 정보를 최대한 반영하세요
+4. 공식적이고 명확한 문체로 작성하세요
+5. 양식에서 항목 구분이 명확하지 않으면 논리적으로 섹션을 나누어 작성하세요
+
+양식의 각 항목/섹션을 아래 JSON 형식으로 출력하세요 (다른 텍스트 없이):
+
+{
+  "sections": [
+    { "id": 1, "name": "섹션명", "title": "양식 항목 제목", "body": "작성된 내용", "bg_color": "#FFFFFF" },
+    { "id": 2, "name": "섹션명", "title": "양식 항목 제목", "body": "작성된 내용", "bg_color": "#F8F9FA" }
+  ]
+}`,
+        }],
+      })
+
+      const tContent = templateMessage.content[0]
+      if (tContent.type !== 'text') throw new Error('Invalid response')
+      const tText = tContent.text.trim()
+      const tJsonMatch = tText.match(/\{[\s\S]*\}/)
+      if (!tJsonMatch) throw new Error('JSON 파싱 실패')
+      const tParsed = JSON.parse(tJsonMatch[0])
+      const tResult = { sections: tParsed.sections, output_lang: outputLang, template_mode: true }
+
+      await supabase.from('orders').update({ status: 'done', result_json: tResult }).eq('id', orderId)
+      return NextResponse.json({ success: true, result: tResult })
+    }
+    // ──────────────────────────────────────────────────────────
+
     // ── 업종 타입 자동 감지 ────────────────────────────────────
     const SERVICE_CATS = ['car_service','car_repair','interior','window','cleaning','moving',
       'construction','restaurant','cafe','delivery','franchise','academy','coaching','medical',

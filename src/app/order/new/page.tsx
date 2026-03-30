@@ -258,6 +258,13 @@ const UI: Record<UiLang, {
   errRequired: string; errImage: string;
   toastGenerating: string; toastDone: string; toastFile: string; toastFilePaste: string;
   upgradeOver: string;
+  // 양식 모드
+  templateToggleLabel: string; templateToggleSub: string;
+  templateFormLabel: string; templateFormSub: string;
+  templateFormPlaceholder: string;
+  templateInfoLabel: string; templateInfoPlaceholder: string;
+  templateBtn: string; templateFileAdded: string;
+  errTemplateRequired: string;
 }> = {
   ko: {
     newDoc: '새 문서 생성', backDash: '← 대시보드',
@@ -285,6 +292,16 @@ const UI: Record<UiLang, {
     toastGenerating: 'AI가 문서를 생성 중입니다...', toastDone: '완성됐습니다!',
     toastFile: '파일 내용을 불러왔습니다', toastFilePaste: 'PDF/HWP/DOCX는 파일을 열어 내용을 복사 후 아래에 붙여넣기 해주세요',
     upgradeOver: '무료 한도 초과 · ',
+    templateToggleLabel: '📋 양식 자동 작성 모드',
+    templateToggleSub: '채워야 할 양식·과제를 첨부하면 AI가 빈칸을 채워드립니다',
+    templateFormLabel: '양식 내용 (필수)',
+    templateFormSub: '파일 선택(TXT/MD) 또는 직접 붙여넣기',
+    templateFormPlaceholder: '채워야 할 양식·과제의 내용을 여기에 붙여넣기 하세요.\n(예: 사업계획서 양식, 과제 요구사항, 신청서 양식 등)',
+    templateInfoLabel: '작성에 참고할 내용 (선택)',
+    templateInfoPlaceholder: '어떤 내용으로 채울지 알려주세요.\n(예: 회사 소개, 제품 특징, 연구 내용 등)',
+    templateBtn: '양식 자동 완성 →',
+    templateFileAdded: '자 양식 내용 추가됨',
+    errTemplateRequired: '채워야 할 양식 내용을 입력해주세요',
   },
   en: {
     newDoc: 'New Document', backDash: '← Dashboard',
@@ -312,6 +329,16 @@ const UI: Record<UiLang, {
     toastGenerating: 'AI is generating your document...', toastDone: 'Done!',
     toastFile: 'File content loaded', toastFilePaste: 'Please open your PDF/DOCX, copy the content, and paste it below.',
     upgradeOver: 'Free limit reached · ',
+    templateToggleLabel: '📋 Template Auto-Fill Mode',
+    templateToggleSub: 'Attach a form or assignment and AI will fill in all the blanks',
+    templateFormLabel: 'Template Content (required)',
+    templateFormSub: 'Choose file (TXT/MD) or paste directly',
+    templateFormPlaceholder: 'Paste the template or assignment content here.\n(e.g. business plan template, assignment rubric, application form)',
+    templateInfoLabel: 'Reference Information (optional)',
+    templateInfoPlaceholder: 'Tell AI what content to use for filling in.\n(e.g. company info, product details, research content)',
+    templateBtn: 'Auto-Fill Template →',
+    templateFileAdded: ' chars of template content added',
+    errTemplateRequired: 'Please provide the template content to fill in',
   },
   ja: {
     newDoc: '新規ドキュメント作成', backDash: '← ダッシュボード',
@@ -339,6 +366,16 @@ const UI: Record<UiLang, {
     toastGenerating: 'AIがドキュメントを生成中...', toastDone: '完成しました！',
     toastFile: 'ファイルの内容を読み込みました', toastFilePaste: 'PDF/Wordを開いて内容をコピーし、下に貼り付けてください。',
     upgradeOver: '無料制限超過 · ',
+    templateToggleLabel: '📋 書式自動入力モード',
+    templateToggleSub: '記入すべき書式・課題を添付すると、AIが空欄を埋めます',
+    templateFormLabel: '書式内容（必須）',
+    templateFormSub: 'ファイル選択（TXT/MD）または直接貼り付け',
+    templateFormPlaceholder: '記入すべき書式・課題の内容をここに貼り付けてください。\n（例：事業計画書の書式、課題の要件、申請書の書式など）',
+    templateInfoLabel: '参考情報（任意）',
+    templateInfoPlaceholder: 'どんな内容で記入するかお知らせください。\n（例：会社概要、商品の特徴、研究内容など）',
+    templateBtn: '書式を自動完成 →',
+    templateFileAdded: '文字の書式内容を追加',
+    errTemplateRequired: '記入すべき書式の内容を入力してください',
   },
   zh: {
     newDoc: '新建文档', backDash: '← 仪表盘',
@@ -366,6 +403,16 @@ const UI: Record<UiLang, {
     toastGenerating: 'AI正在生成文档...', toastDone: '生成完成！',
     toastFile: '文件内容已加载', toastFilePaste: '请打开PDF/Word，复制内容后粘贴到下方。',
     upgradeOver: '已超免费限额 · ',
+    templateToggleLabel: '📋 表格自动填写模式',
+    templateToggleSub: '上传需要填写的表格或作业，AI将自动填写所有空白',
+    templateFormLabel: '表格内容（必填）',
+    templateFormSub: '选择文件（TXT/MD）或直接粘贴',
+    templateFormPlaceholder: '请将需要填写的表格或作业内容粘贴到此处。\n（例：商业计划书模板、作业要求、申请表格等）',
+    templateInfoLabel: '参考信息（可选）',
+    templateInfoPlaceholder: '请告知AI用什么内容来填写。\n（例：公司简介、产品特点、研究内容等）',
+    templateBtn: '自动完成表格 →',
+    templateFileAdded: '字表格内容已添加',
+    errTemplateRequired: '请提供需要填写的表格内容',
   },
 }
 
@@ -374,15 +421,18 @@ const FREE_LIMIT = 5
 export default function NewOrderPage() {
   const router   = useRouter()
   const supabase = createClient()
-  const [loading, setLoading]         = useState(false)
-  const [images, setImages]           = useState<File[]>([])
-  const [docText, setDocText]         = useState('')
-  const [uiLang, setUiLang]           = useState<UiLang>('ko')
-  const [outputLang, setOutputLang]   = useState<string>('ko')
-  const [form, setForm]               = useState({ product_name: '', category: '', description: '' })
-  const [monthlyUsed, setMonthlyUsed] = useState(0)
-  const [showUpgrade, setShowUpgrade] = useState(false)
-  const docInputRef = useRef<HTMLInputElement>(null)
+  const [loading, setLoading]               = useState(false)
+  const [images, setImages]                 = useState<File[]>([])
+  const [docText, setDocText]               = useState('')
+  const [uiLang, setUiLang]                 = useState<UiLang>('ko')
+  const [outputLang, setOutputLang]         = useState<string>('ko')
+  const [form, setForm]                     = useState({ product_name: '', category: '', description: '' })
+  const [monthlyUsed, setMonthlyUsed]       = useState(0)
+  const [showUpgrade, setShowUpgrade]       = useState(false)
+  const [templateMode, setTemplateMode]     = useState(false)
+  const [templateContent, setTemplateContent] = useState('')
+  const docInputRef     = useRef<HTMLInputElement>(null)
+  const templateFileRef = useRef<HTMLInputElement>(null)
 
   // 저장된 UI 언어(랜딩에서 선택) 우선, 없으면 브라우저 언어
   useEffect(() => {
@@ -443,10 +493,29 @@ export default function NewOrderPage() {
     if (docInputRef.current) docInputRef.current.value = ''
   }
 
+  function handleTemplateFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.type === 'text/plain' || file.name.endsWith('.txt') || file.name.endsWith('.md') || file.name.endsWith('.csv')) {
+      const reader = new FileReader()
+      reader.onload = ev => setTemplateContent(ev.target?.result as string)
+      reader.readAsText(file)
+      toast.success(L.toastFile)
+    } else {
+      toast.info(L.toastFilePaste)
+    }
+    if (templateFileRef.current) templateFileRef.current.value = ''
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.product_name || !form.category || !form.description) {
-      toast.error(L.errRequired); return
+    if (templateMode) {
+      if (!form.product_name || !form.category) { toast.error(L.errRequired); return }
+      if (!templateContent.trim()) { toast.error(L.errTemplateRequired); return }
+    } else {
+      if (!form.product_name || !form.category || !form.description) {
+        toast.error(L.errRequired); return
+      }
     }
     if (monthlyUsed >= FREE_LIMIT) { setShowUpgrade(true); return }
 
@@ -469,9 +538,14 @@ export default function NewOrderPage() {
         imageUrls.push(publicUrl)
       }
 
-      const combinedDesc = docText.trim()
-        ? `${form.description}\n\n[첨부 문서 내용]\n${docText.trim()}`
-        : form.description
+      let combinedDesc: string
+      if (templateMode) {
+        combinedDesc = `${form.description ? form.description + '\n\n' : ''}[TEMPLATE_FORM]\n${templateContent.trim()}\n[/TEMPLATE_FORM]`
+      } else if (docText.trim()) {
+        combinedDesc = `${form.description}\n\n[첨부 문서 내용]\n${docText.trim()}`
+      } else {
+        combinedDesc = form.description
+      }
 
       const { data: order, error } = await supabase
         .from('orders')
@@ -655,20 +729,89 @@ export default function NewOrderPage() {
             </div>
           </div>
 
-          {/* 설명 */}
-          <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-              {isDocCat ? L.docDescLabel : L.descLabel}
-            </label>
-            <textarea
-              placeholder={isDocCat ? L.docDescPlaceholder : L.descPlaceholder}
-              rows={6}
-              value={form.description}
-              onChange={e => setForm({ ...form, description: e.target.value })}
-              required
-              className="w-full border border-gray-200 rounded-2xl px-5 py-4 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm resize-none"
-            />
+          {/* 양식 자동 작성 모드 토글 */}
+          <div
+            onClick={() => setTemplateMode(v => !v)}
+            className={`flex items-start gap-3 rounded-2xl p-4 border cursor-pointer transition-all ${
+              templateMode
+                ? 'bg-indigo-50 border-indigo-300'
+                : 'bg-gray-50 border-gray-200 hover:border-gray-400'
+            }`}
+          >
+            <div className={`mt-0.5 w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-all ${
+              templateMode ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300 bg-white'
+            }`}>
+              {templateMode && <span className="text-white text-[10px] font-black">✓</span>}
+            </div>
+            <div>
+              <p className="text-sm font-bold text-gray-800">{L.templateToggleLabel}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{L.templateToggleSub}</p>
+            </div>
           </div>
+
+          {/* 양식 모드: 양식 내용 + 참고 정보 */}
+          {templateMode ? (
+            <>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  {L.templateFormLabel}{' '}
+                  <span className="text-gray-300 normal-case font-normal">({L.templateFormSub})</span>
+                </label>
+                <div className="flex gap-2 mb-3">
+                  <label className="flex items-center gap-2 bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 cursor-pointer hover:bg-indigo-100 transition-all text-sm text-indigo-700 font-medium">
+                    {L.fileBtn}
+                    <input ref={templateFileRef} type="file" accept=".txt,.md,.csv" className="hidden" onChange={handleTemplateFile} />
+                  </label>
+                  {templateContent && (
+                    <button type="button" onClick={() => setTemplateContent('')} className="text-xs text-gray-400 hover:text-red-500 transition-colors px-3">
+                      {L.fileReset}
+                    </button>
+                  )}
+                </div>
+                <textarea
+                  placeholder={L.templateFormPlaceholder}
+                  rows={8}
+                  value={templateContent}
+                  onChange={e => setTemplateContent(e.target.value)}
+                  required={templateMode}
+                  className="w-full border border-indigo-200 rounded-2xl px-5 py-4 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm resize-none bg-indigo-50/30"
+                />
+                {templateContent && (
+                  <p className="text-xs text-indigo-600 font-medium mt-1.5">
+                    ✓ {templateContent.length.toLocaleString()}{L.templateFileAdded}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  {L.templateInfoLabel}
+                </label>
+                <textarea
+                  placeholder={L.templateInfoPlaceholder}
+                  rows={4}
+                  value={form.description}
+                  onChange={e => setForm({ ...form, description: e.target.value })}
+                  className="w-full border border-gray-200 rounded-2xl px-5 py-4 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm resize-none"
+                />
+              </div>
+            </>
+          ) : (
+            /* 일반 모드: 설명 */
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                {isDocCat ? L.docDescLabel : L.descLabel}
+              </label>
+              <textarea
+                placeholder={isDocCat ? L.docDescPlaceholder : L.descPlaceholder}
+                rows={6}
+                value={form.description}
+                onChange={e => setForm({ ...form, description: e.target.value })}
+                required={!templateMode}
+                className="w-full border border-gray-200 rounded-2xl px-5 py-4 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm resize-none"
+              />
+            </div>
+          )}
 
           {/* 문서 첨부 (문서 카테고리만) */}
           {isDocCat && (
@@ -748,7 +891,7 @@ export default function NewOrderPage() {
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 {L.generating}
               </>
-            ) : isDocCat ? L.docBtn : L.generateBtn}
+            ) : templateMode ? L.templateBtn : isDocCat ? L.docBtn : L.generateBtn}
           </button>
         </form>
       </div>
