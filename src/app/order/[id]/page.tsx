@@ -1375,6 +1375,34 @@ export default function OrderResultPage() {
     finally { setPdfLoading(false) }
   }
 
+  async function handleCopyShareLink() {
+    if (!order) return
+    try {
+      const res = await fetch(`/api/orders/${order.id}/share-link`, { method: 'POST' })
+      const data = (await res.json()) as { url?: string }
+      if (res.status === 401) {
+        toast.error(p.shareLinkNeedLogin)
+        return
+      }
+      if (res.status === 503) {
+        toast.error(p.shareLinkNotConfigured)
+        return
+      }
+      if (res.status === 400) {
+        toast.error(p.shareLinkNoResult)
+        return
+      }
+      if (!res.ok || !data.url) {
+        toast.error(p.shareLinkFail)
+        return
+      }
+      await navigator.clipboard.writeText(data.url)
+      toast.success(p.shareLinkToast)
+    } catch {
+      toast.error(p.shareLinkFail)
+    }
+  }
+
   async function handleChatSend() {
     if (!chatInput.trim() || chatLoading || !order) return
     const userMsg = chatInput.trim()
@@ -1591,6 +1619,15 @@ export default function OrderResultPage() {
             >
               {pdfLoading ? <><span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />{p.pdfLoading}</> : p.pdf}
             </button>
+            {sections.length > 0 && (
+              <button
+                type="button"
+                onClick={handleCopyShareLink}
+                className="border border-amber-200 bg-amber-50 text-amber-900 px-4 py-2 rounded-xl text-sm font-bold hover:bg-amber-100 transition-all"
+              >
+                {p.shareLinkBtn}
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -2099,6 +2136,15 @@ export default function OrderResultPage() {
             <button type="button" onClick={handleDownloadPDF} disabled={pdfLoading} className="bg-black text-white px-10 py-3 rounded-xl text-sm font-bold hover:bg-gray-800 transition-all disabled:opacity-40">
               {pdfLoading ? p.pdfGen : p.pdfBottom}
             </button>
+            {sections.length > 0 && (
+              <button
+                type="button"
+                onClick={handleCopyShareLink}
+                className="border border-amber-200 bg-amber-50 text-amber-900 px-6 py-3 rounded-xl text-sm font-bold hover:bg-amber-100 transition-all"
+              >
+                {p.shareLinkBtn}
+              </button>
+            )}
           </div>
           <p className="text-center text-xs text-gray-300 mt-4">{p.bottomHint}</p>
         </div>

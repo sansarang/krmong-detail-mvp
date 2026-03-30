@@ -29,7 +29,7 @@
 | **P0** | **채널 발행 키트 v1** | 스마트스토어·쿠팡 파트너 블로거, 1인 셀러 | 발행 직전에 채널별로 무엇을 할지 고정 | **출시** |
 | P1 | 전환 A/B 카피 (제목·첫문장 3안) + 복사·적용 | 트래픽은 있으나 클릭이 약한 사용자 | 같은 본문으로 상단만 갈아 끼우기 | **v1 출시** (템플릿 기반) |
 | P2 | 메타/OG·검색 스니펫 패키지 export | SEO 의식 있는 셀러 | 블로그 외 사이트·링크 공유까지 | **v1 출시** |
-| P3 | 팀/승인 (읽기 전용 링크 + 코멘트) | 소규모 팀 | 리스크 문구 수정을 사람이 확인 | 미착수 |
+| P3 | 팀/승인 (읽기 전용 링크 + 코멘트) | 소규모 팀 | 리스크 문구 수정을 사람이 확인 | **v0** (`ORDER_SHARE_SECRET` 서명 링크 + 공유 페이지; 인라인 코멘트 저장은 후속) |
 | P4 | 규칙 엔진 고도화 (업종별 금칙어 세트) | 건강·뷰티·식품 등 민감 카테고리 | 오탐·미탐 줄이기 | **v1 출시** (휴리스틱 확장, 지속 개선) |
 
 ---
@@ -77,3 +77,4 @@
 - P1: `src/lib/conversionAbCopy.ts`, `ConversionAbPanel` (주문 결과)
 - P2: `src/lib/metaOgPackage.ts`, `MetaOgExportPanel` (주문 결과)
 - P4: `src/lib/postPublishCheck.ts` — `detectIndustryBucket`, 업종별 추가 규칙 + 안전 점검 배지
+- P3 v0: `src/lib/orderShareToken.ts`, `POST /api/orders/[id]/share-link`, `src/app/share/order/[id]/page.tsx`, 주문 결과 「팀 공유 링크 복사」

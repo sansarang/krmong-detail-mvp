@@ -342,6 +342,13 @@ export type OrderPageUi = {
   toastUploadFail: string
   pdfFilename: (name: string) => string
   imgAlt: (i: number) => string
+  /** P3 v0: 팀 읽기 전용 공유 링크 */
+  shareLinkBtn: string
+  shareLinkToast: string
+  shareLinkFail: string
+  shareLinkNeedLogin: string
+  shareLinkNotConfigured: string
+  shareLinkNoResult: string
 }
 
 export const ORDER_PAGE_UI: Record<UiLang, OrderPageUi> = {
@@ -411,6 +418,12 @@ export const ORDER_PAGE_UI: Record<UiLang, OrderPageUi> = {
     toastUploadFail: '업로드 실패',
     pdfFilename: (name) => `상품상세페이지_${name}.pdf`,
     imgAlt: (i) => `제품 ${i + 1}`,
+    shareLinkBtn: '팀 공유 링크 복사',
+    shareLinkToast: '읽기 전용 공유 링크를 복사했습니다',
+    shareLinkFail: '공유 링크를 만들지 못했습니다',
+    shareLinkNeedLogin: '로그인 후 이용할 수 있습니다',
+    shareLinkNotConfigured: '공유 링크 기능이 아직 설정되지 않았습니다 (ORDER_SHARE_SECRET)',
+    shareLinkNoResult: '생성된 본문이 있을 때만 공유할 수 있습니다',
   },
   en: {
     brand: 'PageAI',
@@ -478,6 +491,12 @@ export const ORDER_PAGE_UI: Record<UiLang, OrderPageUi> = {
     toastUploadFail: 'Upload failed',
     pdfFilename: (name) => `landing_${name.replace(/\s+/g, '_')}.pdf`,
     imgAlt: (i) => `Product ${i + 1}`,
+    shareLinkBtn: 'Copy team share link',
+    shareLinkToast: 'Read-only share link copied',
+    shareLinkFail: 'Could not create share link',
+    shareLinkNeedLogin: 'Sign in to use this',
+    shareLinkNotConfigured: 'Share links are not configured (ORDER_SHARE_SECRET)',
+    shareLinkNoResult: 'Share is available after the page is generated',
   },
   ja: {
     brand: 'PageAI',
@@ -545,6 +564,12 @@ export const ORDER_PAGE_UI: Record<UiLang, OrderPageUi> = {
     toastUploadFail: 'アップロードに失敗しました',
     pdfFilename: (name) => `landing_${name.replace(/\s+/g, '_')}.pdf`,
     imgAlt: (i) => `商品 ${i + 1}`,
+    shareLinkBtn: '共有リンクをコピー',
+    shareLinkToast: '読み取り専用の共有リンクをコピーしました',
+    shareLinkFail: '共有リンクを作成できませんでした',
+    shareLinkNeedLogin: 'ログインが必要です',
+    shareLinkNotConfigured: '共有リンクが未設定です（ORDER_SHARE_SECRET）',
+    shareLinkNoResult: '生成結果があるときのみ共有可能です',
   },
   zh: {
     brand: 'PageAI',
@@ -612,6 +637,12 @@ export const ORDER_PAGE_UI: Record<UiLang, OrderPageUi> = {
     toastUploadFail: '上传失败',
     pdfFilename: (name) => `landing_${name.replace(/\s+/g, '_')}.pdf`,
     imgAlt: (i) => `产品 ${i + 1}`,
+    shareLinkBtn: '复制团队分享链接',
+    shareLinkToast: '已复制只读分享链接',
+    shareLinkFail: '无法生成分享链接',
+    shareLinkNeedLogin: '请先登录',
+    shareLinkNotConfigured: '未配置分享链接（ORDER_SHARE_SECRET）',
+    shareLinkNoResult: '请先生成详情页后再分享',
   },
 }
 
