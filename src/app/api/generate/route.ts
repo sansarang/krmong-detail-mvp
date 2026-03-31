@@ -6,12 +6,23 @@ import { buildDataContextBlock } from '@/lib/marketIntelCopy'
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 const FREE_LIMIT = 5
 
+// ── 글로벌 프리미엄 시스템 프롬프트 ────────────────────────────────────
+const GLOBAL_SYSTEM_PROMPT = `You are PageAI — the world's most sophisticated global e-commerce copywriter and product page architect. You write premium, culturally-native, conversion-optimized product pages for the world's top marketplaces.
+
+YOUR NON-NEGOTIABLE STANDARDS:
+1. SPECIFICITY: Every claim must be quantified. Never write vague sentences like "high quality" or "great product." Write "tested to 10,000+ wash cycles" or "98.7% customer satisfaction rate."
+2. CULTURAL FLUENCY: Content must feel native — not translated. Japanese reads like a Japanese copywriter wrote it. Chinese reads like a Tmall expert. English reads like an Amazon A+ specialist.
+3. ZERO FILLER: Every single sentence exists to move the reader toward purchase. Delete any sentence that doesn't serve conversion.
+4. STORYTELLING: The best product pages tell a story. Hero narrative → problem agitation → solution reveal → proof → CTA.
+5. PREMIUM FEEL: You write for luxury and premium brands. Sophisticated vocabulary. Confident voice. Never desperate or pushy.
+6. JSON ONLY: Output must be valid JSON with no extra text before or after.`
+
 export async function POST(req: NextRequest) {
   let orderId: string | undefined
   try {
     const body = await req.json()
     orderId = body.orderId
-    const { outputLang = 'ko' } = body as { outputLang?: string }
+    const { outputLang = 'ko', customInstructions = '' } = body as { outputLang?: string; customInstructions?: string }
     const supabase = createAdminClient()
 
     // 주문 조회
@@ -399,7 +410,10 @@ TONE: 高端品质感 × 社会认同 × 限时紧迫 = 爆款三角公式
           ja: '日本語カピーライター（楽天・Amazon.co.jp専門）',
           zh: '中文电商文案专家（天猫A+详情页专业）',
         }
-        return `You are a world-class ${langLabel[lang] ?? roleDesc}.${lInst}
+        const customBlock = customInstructions
+          ? `\n\n🔴 USER'S CUSTOM INSTRUCTIONS (HIGHEST PRIORITY — override defaults if conflicting):\n${customInstructions}\n🔴 END CUSTOM INSTRUCTIONS\n`
+          : ''
+        return `${customBlock}You are a world-class ${langLabel[lang] ?? roleDesc}.${lInst}
 
 Product: ${order.product_name}
 Category: ${order.category}
@@ -408,21 +422,23 @@ ${dCtx}
 ${cCtx ? `\n=== CULTURAL MARKET OPTIMIZATION ===\n${cCtx}\n=== END ===\n` : ''}${platformGuide ? '\n' + platformGuide : ''}
 ${sectionGuide}
 
-QUALITY RULES (all mandatory):
-1. Each section body: minimum 150 characters, rich with specific details
-2. Use culturally appropriate vocabulary and tone for the target market
-3. Include quantified claims, social proof, and trust signals
-4. Never use generic filler text — every sentence must be persuasive and specific
+MANDATORY QUALITY STANDARDS:
+1. SPECIFICITY: Every body section must contain at least 1 quantified claim (number, %, stat, or metric)
+2. CULTURAL VOICE: Write as a native speaker of the target market — not a translation
+3. MINIMUM LENGTH: Each section body minimum 200 characters
+4. ZERO FILLER: Never write "high quality," "great product," or any generic phrase
+5. SOCIAL PROOF: Include trust signals (reviews, certifications, sales numbers) in at least 2 sections
+6. STORY ARC: Sections must flow as a narrative — problem → solution → proof → CTA
 ${docRules}
 
-Output JSON only (no other text):
+Output JSON only (no other text, no markdown):
 {"sections": [
-  {"id": 1, "name": "Section Name", "title": "Title", "body": "Body 150+ chars", "bg_color": "#FFFFFF"},
-  {"id": 2, "name": "Section Name", "title": "Title", "body": "Body 150+ chars", "bg_color": "#F8F9FA"},
-  {"id": 3, "name": "Section Name", "title": "Title", "body": "Body 150+ chars", "bg_color": "#FFFFFF"},
-  {"id": 4, "name": "Section Name", "title": "Title", "body": "Body 150+ chars", "bg_color": "#F0F7FF"},
-  {"id": 5, "name": "Section Name", "title": "Title", "body": "Body 150+ chars", "bg_color": "#FFFFFF"},
-  {"id": 6, "name": "Section Name", "title": "Title", "body": "Body 150+ chars", "bg_color": "#FFF8E7"}
+  {"id": 1, "name": "Section Name", "title": "Compelling Title", "body": "Body 200+ chars", "bg_color": "#FFFFFF"},
+  {"id": 2, "name": "Section Name", "title": "Compelling Title", "body": "Body 200+ chars", "bg_color": "#F8F9FA"},
+  {"id": 3, "name": "Section Name", "title": "Compelling Title", "body": "Body 200+ chars", "bg_color": "#FFFFFF"},
+  {"id": 4, "name": "Section Name", "title": "Compelling Title", "body": "Body 200+ chars", "bg_color": "#F0F7FF"},
+  {"id": 5, "name": "Section Name", "title": "Compelling Title", "body": "Body 200+ chars", "bg_color": "#FFFFFF"},
+  {"id": 6, "name": "Section Name", "title": "Compelling Title", "body": "Body 200+ chars", "bg_color": "#FFF8E7"}
 ]}`
       }
 
@@ -430,7 +446,8 @@ Output JSON only (no other text):
         LANGS_ALL.map(async (lang) => {
           const msg = await anthropic.messages.create({
             model: 'claude-sonnet-4-5',
-            max_tokens: 3000,
+            max_tokens: 3500,
+            system: GLOBAL_SYSTEM_PROMPT,
             messages: [{ role: 'user', content: buildMultiPrompt(lang) }],
           })
           const c = msg.content[0]
@@ -456,46 +473,49 @@ Output JSON only (no other text):
     }
     // ─────────────────────────────────────────────────────────
 
+    const customBlock = customInstructions
+      ? `\n🔴 USER'S CUSTOM INSTRUCTIONS (HIGHEST PRIORITY):\n${customInstructions}\n🔴 END\n`
+      : ''
+
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-5',
-      max_tokens: 4000,
+      max_tokens: 4500,
+      system: GLOBAL_SYSTEM_PROMPT,
       messages: [{
         role: 'user',
-        content: `당신은 ${roleDesc}입니다.
-아래 카테고리와 정보를 분석하여, 업종에 맞는 고품질 문서를 작성해주세요.${langInstruction}
+        content: `${customBlock}당신은 ${roleDesc}입니다.${langInstruction}
 
 카테고리: ${order.category}
 제목/이름: ${order.product_name}
 내용: ${cleanDescription}
 ${dataContext}
-${culturalContext ? `\n${culturalContext}` : ''}${platformGuide ? `\n${platformGuide}` : ''}
+${culturalContext ? `\n=== CULTURAL MARKET CONTEXT ===\n${culturalContext}\n=== END ===\n` : ''}${platformGuide ? `\n${platformGuide}` : ''}
 ${sectionGuide}
 
-반드시 지켜야 할 규칙:
-1. 각 섹션 본문 150자 이상 (구체적 정보, 설득력 있는 문장)
-2. 제목 길이 15~40자
+반드시 지켜야 할 품질 기준:
+1. 각 섹션 본문 200자 이상 (구체적 수치, 사회적 증거, 설득력 있는 표현)
+2. 제목에 구체적 숫자 또는 키워드 포함 (최소 3개 섹션)
 3. 카테고리 업종에 맞는 전문 용어 사용
+4. 첫 번째 섹션: 강력한 후킹 (의문형 또는 수치 포함 헤드라인)
+5. 마지막 섹션: 명확한 CTA + 구매 촉진 트리거
+6. 전체 섹션 본문 합계 1200자 이상
 ${docRules}
 
-⚠️ SEO 100점 필수 조건 (아래 7가지 모두 충족할 것):
-[1] 키워드 밀도: "${order.product_name.slice(0, 4)}" 또는 제품명 키워드를 3개 이상의 섹션 제목에 자연스럽게 포함
-[2] 충분한 본문량: 6개 섹션 본문 합계 900자 이상
-[3] 제목 길이: 모든 섹션 제목 15~40자 유지
-[4] 숫자 활용: 최소 3개 이상의 섹션 제목에 숫자(%, 회, 개, mg, ml, 배, 원, 일, 명, 단계 등) 포함
-[5] 의문형 제목: 최소 1개 섹션 제목에 "?" 또는 "인가요", "나요", "까요", "세요" 포함
-[6] CTA 강화: 마지막(6번) 섹션 본문에 "지금", "바로", "구매", "시작", "할인", "무료" 중 2개 이상 포함
-[7] 섹션별 분량: 모든 섹션 본문 각 100자 이상
+⚠️ SEO 최적화 필수:
+- 제품명 핵심 키워드를 3개 이상 섹션 제목에 자연스럽게 포함
+- 숫자/수치를 최소 3개 섹션 제목에 활용 (%, 개, mg, ml, 배, 원, 일, 명 등)
+- 최소 1개 섹션 제목에 의문형 ("?", "나요", "까요", "세요")
+- 마지막 섹션 본문에 행동 유도 키워드 2개 이상
 
-JSON만 출력 (다른 텍스트 없이):
-
+JSON만 출력 (마크다운 없이, 앞뒤 텍스트 없이):
 {
   "sections": [
-    { "id": 1, "name": "섹션명", "title": "제목", "body": "본문 150자 이상", "bg_color": "#FFFFFF" },
-    { "id": 2, "name": "섹션명", "title": "제목", "body": "본문 150자 이상", "bg_color": "#F8F9FA" },
-    { "id": 3, "name": "섹션명", "title": "제목", "body": "본문 150자 이상", "bg_color": "#FFFFFF" },
-    { "id": 4, "name": "섹션명", "title": "제목", "body": "본문 150자 이상", "bg_color": "#F0F7FF" },
-    { "id": 5, "name": "섹션명", "title": "제목", "body": "본문 150자 이상", "bg_color": "#FFFFFF" },
-    { "id": 6, "name": "섹션명", "title": "제목", "body": "본문 150자 이상", "bg_color": "#FFF8E7" }
+    { "id": 1, "name": "섹션명", "title": "제목", "body": "본문 200자 이상", "bg_color": "#FFFFFF" },
+    { "id": 2, "name": "섹션명", "title": "제목", "body": "본문 200자 이상", "bg_color": "#F8F9FA" },
+    { "id": 3, "name": "섹션명", "title": "제목", "body": "본문 200자 이상", "bg_color": "#FFFFFF" },
+    { "id": 4, "name": "섹션명", "title": "제목", "body": "본문 200자 이상", "bg_color": "#F0F7FF" },
+    { "id": 5, "name": "섹션명", "title": "제목", "body": "본문 200자 이상", "bg_color": "#FFFFFF" },
+    { "id": 6, "name": "섹션명", "title": "제목", "body": "본문 200자 이상", "bg_color": "#FFF8E7" }
   ]
 }`,
       }],

@@ -548,6 +548,8 @@ export default function NewOrderPage() {
   const [activeTab, setActiveTab] = useState<'product' | 'template'>('product')
   const [catSearch, setCatSearch] = useState('')
   const [selectedMarkets, setSelectedMarkets] = useState<string[]>([])
+  const [customInstructions, setCustomInstructions] = useState('')
+  const [showCustomInstr, setShowCustomInstr] = useState(false)
   const docInputRef     = useRef<HTMLInputElement>(null)
   const templateFileRef = useRef<HTMLInputElement>(null)
 
@@ -653,7 +655,7 @@ export default function NewOrderPage() {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: order.id, outputLang: overrideLang ?? outputLang }),
+        body: JSON.stringify({ orderId: order.id, outputLang: overrideLang ?? outputLang, customInstructions: customInstructions.trim() || undefined }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -1372,6 +1374,52 @@ export default function NewOrderPage() {
               <p className={`text-[10px] mt-1 text-right ${form.description.length > 50 ? 'text-emerald-600' : 'text-gray-300'}`}>
                 {form.description.length}자 {form.description.length > 50 ? '✓' : ''}
               </p>
+            </div>
+
+            {/* ── Custom AI Instructions ── */}
+            <div className="border border-dashed border-violet-200 rounded-xl overflow-hidden">
+              <button type="button"
+                onClick={() => setShowCustomInstr(v => !v)}
+                className="w-full flex items-center justify-between px-4 py-3 bg-violet-50 hover:bg-violet-100 transition-colors text-left">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">✦</span>
+                  <span className="text-xs font-black text-violet-700">
+                    {uiLang === 'ko' ? 'Custom AI Instructions' : uiLang === 'ja' ? 'カスタム指示' : uiLang === 'zh' ? '自定义AI指令' : 'Custom AI Instructions'}
+                  </span>
+                  {customInstructions.trim() && (
+                    <span className="text-[9px] font-black bg-violet-500 text-white px-1.5 py-0.5 rounded-full">ON</span>
+                  )}
+                </div>
+                <span className="text-gray-400 text-xs">{showCustomInstr ? '▲' : '▼'}</span>
+              </button>
+              {showCustomInstr && (
+                <div className="p-4 bg-white">
+                  <p className="text-[10px] text-violet-600 font-bold mb-2">
+                    {uiLang === 'ko'
+                      ? 'AI가 글을 쓸 때 반드시 따라야 할 지시사항을 입력하세요. 예: "럭셔리 브랜드 톤으로", "일본 Z세대 타겟", "경쟁사 언급 금지"'
+                      : uiLang === 'ja' ? '例: 「ラグジュアリーブランドのトーンで」「Z世代向け」'
+                      : uiLang === 'zh' ? '例：「奢侈品牌风格」「针对Z世代」「禁止提及竞争对手」'
+                      : 'e.g. "luxury brand tone", "target Z-gen women", "avoid mentioning competitors"'}
+                  </p>
+                  <textarea
+                    placeholder={
+                      uiLang === 'ko'
+                        ? '예시:\n- 20-30대 여성 타겟, 럭셔리 감성\n- 경쟁 브랜드 언급 절대 금지\n- 브랜드 스토리 강조 (창업 배경 포함)\n- 가격 민감 고객 고려한 가성비 강조'
+                        : 'e.g.:\n- Target: women 20-35, luxury tone\n- No competitor mentions\n- Emphasize brand story\n- Highlight value-for-money'
+                    }
+                    rows={5}
+                    value={customInstructions}
+                    onChange={e => setCustomInstructions(e.target.value)}
+                    className="w-full border border-violet-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-400 text-xs resize-none bg-violet-50/50"
+                  />
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-[10px] text-gray-400">{customInstructions.length}자</p>
+                    {customInstructions && (
+                      <button type="button" onClick={() => setCustomInstructions('')} className="text-[10px] text-gray-400 hover:text-red-500 font-bold">초기화</button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* ── 문서 첨부 ── */}
