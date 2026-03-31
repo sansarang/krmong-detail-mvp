@@ -1319,6 +1319,12 @@ export default function OrderResultPage() {
   const [showBlogPreview, setShowBlogPreview] = useState(false)
   const [copyDone, setCopyDone] = useState(false)
   const [platform, setPlatform] = useState<PublishPlatform>('naver')
+  const [previewViewport, setPreviewViewport] = useState<'desktop'|'mobile'>('desktop')
+  const [photoEditMode, setPhotoEditMode] = useState(false)
+  const [photoLayouts, setPhotoLayouts] = useState<{ url:string; insertAfter:number; width:number; align:'left'|'center'|'right'; caption:string }[]>([])
+  const [selectedPhotoIdx, setSelectedPhotoIdx] = useState<number|null>(null)
+  const [dragPhotoIdx, setDragPhotoIdx] = useState<number|null>(null)
+  const [dragOverSection, setDragOverSection] = useState<number|null>(null)
   const [uiLang, setUiLang] = useState<UiLang>('ko')
   const [showChat, setShowChat] = useState(false)
   const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'ai'; text: string; sections?: { id: number; name: string; title: string; body: string }[] }[]>([])
@@ -1949,6 +1955,22 @@ export default function OrderResultPage() {
     }).catch(() => toast.error(t.toastCopyFail))
   }
 
+  function openPreview(targetPlatform?: PublishPlatform) {
+    if (targetPlatform) setPlatform(targetPlatform)
+    // Init photo layouts from order image_urls if not set
+    const imgs = order?.image_urls ?? []
+    if (imgs.length > 0 && photoLayouts.length === 0) {
+      setPhotoLayouts(imgs.map((url, i) => ({
+        url,
+        insertAfter: Math.floor(i * sections.length / (imgs.length + 1)),
+        width: 100,
+        align: 'center' as const,
+        caption: '',
+      })))
+    }
+    setShowBlogPreview(true)
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0F172A] flex items-center justify-center">
@@ -2107,7 +2129,7 @@ export default function OrderResultPage() {
             {!order.result_json?.template_mode && (
               <div className="space-y-2">
                 <button type="button"
-                  onClick={() => { setPlatform(primaryPlatform); setShowBlogPreview(true) }}
+                  onClick={() => openPreview(primaryPlatform)}
                   className={`w-full ${primStyle.bg} ${primStyle.hover} text-white rounded-2xl py-3 px-4 text-sm font-black transition-all hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2`}>
                   <span className="text-base">{primaryRow?.icon}</span>
                   {t.primaryPublishLabel}
@@ -2846,7 +2868,7 @@ export default function OrderResultPage() {
                     {pdfLoading ? p.pdfGen : p.pdfBottom}
                   </button>
                   <button type="button"
-                    onClick={() => { setPlatform(primaryPlatform); setShowBlogPreview(true) }}
+                    onClick={() => openPreview(primaryPlatform)}
                     className={`${primStyle.bg} ${primStyle.hover} text-white px-6 py-2.5 rounded-2xl text-sm font-black transition-all hover:shadow-lg hover:shadow-black/20 flex items-center gap-2`}>
                     <span>{primaryRow?.icon}</span>
                     {copyDone ? t.mobileCopyDone : t.bottomCopyLabel}
@@ -3095,7 +3117,7 @@ export default function OrderResultPage() {
                           </div>
                           <div className="px-3.5 pb-3 flex gap-2">
                             <button type="button"
-                              onClick={() => { setPlatform('naver'); setShowBlogPreview(true) }}
+                              onClick={() => openPreview('naver')}
                               className="flex-1 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white text-[11px] font-black transition-all">
                               {uiLang==='ko'?'미리보기 + HTML 복사':'Preview + Copy HTML'}
                             </button>
@@ -3549,7 +3571,7 @@ export default function OrderResultPage() {
           className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5">
           🛠 {uiLang==='ko'?'도구':uiLang==='ja'?'ツール':uiLang==='zh'?'工具':'Tools'}
         </button>
-        <button type="button" onClick={() => { setPlatform(primaryPlatform); setShowBlogPreview(true) }}
+        <button type="button" onClick={() => openPreview(primaryPlatform)}
           className={`flex-1 ${primStyle.bg} ${primStyle.hover} text-white py-3 rounded-xl text-sm font-black flex items-center justify-center gap-1.5`}>
           <span>{primaryRow?.icon}</span>
           {t.primaryPublishLabel}
@@ -3627,7 +3649,7 @@ export default function OrderResultPage() {
                 </div>
               </div>
 
-              <button type="button" onClick={() => { setShowSeo(false); setPlatform(primaryPlatform); setShowBlogPreview(true) }}
+              <button type="button" onClick={() => { setShowSeo(false); openPreview(primaryPlatform) }}
                 className={`w-full ${primStyle.bg} ${primStyle.hover} text-white py-4 rounded-2xl font-black text-sm transition-all hover:shadow-lg flex items-center justify-center gap-2`}>
                 <span className="text-base">{primaryRow?.icon}</span>
                 {t.openBlogPreview}
@@ -3756,262 +3778,351 @@ export default function OrderResultPage() {
         </div>
       </div>
 
-      {/* 블로그 미리보기 모달 */}
+      {/* ═══ 플랫폼 미리보기 모달 (강화 버전) ═══ */}
       {showBlogPreview && order && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowBlogPreview(false)}>
-          <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
-            {/* 헤더 */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
-              <div>
-                <p className="text-xs font-black text-gray-400 uppercase tracking-wider">{t.blogModalTitle}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{t.blogModalSub}</p>
+        <div className="fixed inset-0 z-50 flex bg-black/70 backdrop-blur-sm" onClick={() => setShowBlogPreview(false)}>
+          <div className="relative m-auto bg-white rounded-3xl w-full max-w-[1200px] max-h-[96vh] flex flex-col shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+
+            {/* ── HEADER ─────────────────────────────────────── */}
+            <div className="flex items-center gap-3 px-5 py-3 border-b border-gray-100 shrink-0 bg-white">
+              <p className="text-xs font-black text-gray-700 uppercase tracking-wider shrink-0">📱 플랫폼 미리보기</p>
+              {/* Platform tabs */}
+              <div className="flex gap-1 overflow-x-auto flex-1 min-w-0">
+                {PLATFORMS.map(pl => (
+                  <button key={pl.id} type="button" onClick={() => setPlatform(pl.id)}
+                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all shrink-0 ${
+                      platform === pl.id ? 'bg-[#0F172A] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                    }`}>
+                    <span>{pl.icon}</span>{pl.label}
+                  </button>
+                ))}
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleNaverCopy}
-                  className="flex items-center gap-1.5 bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-black transition-all"
-                >
-                  {copyDone ? t.copyBtnDone : t.copyBtn}
-                </button>
-                <button onClick={() => setShowBlogPreview(false)} className="text-gray-300 hover:text-black text-2xl leading-none">×</button>
+              {/* Viewport toggle */}
+              <div className="flex items-center gap-0.5 bg-gray-100 rounded-xl p-0.5 shrink-0">
+                {(['desktop','mobile'] as const).map(v => (
+                  <button key={v} type="button" onClick={() => setPreviewViewport(v)}
+                    className={`px-3 py-1.5 rounded-lg text-[11px] font-black transition-all ${previewViewport===v?'bg-white shadow-sm text-gray-800':'text-gray-400 hover:text-gray-600'}`}>
+                    {v==='desktop'?'🖥 PC':'📱'}
+                  </button>
+                ))}
               </div>
+              {/* Photo edit toggle */}
+              <button type="button" onClick={() => setPhotoEditMode(v=>!v)}
+                className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-black transition-all border ${
+                  photoEditMode ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
+                }`}>
+                🖼 {photoEditMode ? '사진편집 ON' : '사진편집'}
+              </button>
+              <button type="button" onClick={handleNaverCopy}
+                className="shrink-0 flex items-center gap-1.5 bg-[#0F172A] hover:bg-gray-700 text-white px-4 py-2 rounded-xl text-xs font-black transition-all">
+                {copyDone ? '✓ 복사됨' : '📋 복사'}
+              </button>
+              <button onClick={() => setShowBlogPreview(false)} className="text-gray-300 hover:text-black text-2xl leading-none shrink-0">×</button>
             </div>
 
-            {/* 플랫폼 탭 */}
-            <div className="flex gap-1.5 px-6 py-3 border-b border-gray-100 shrink-0 overflow-x-auto">
-              {PLATFORMS.map(p => (
-                <button
-                  key={p.id}
-                  onClick={() => setPlatform(p.id)}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                    platform === p.id
-                      ? 'bg-black text-white'
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                  }`}
-                >
-                  <span>{p.icon}</span>
-                  {p.label}
-                </button>
-              ))}
-            </div>
+            {/* ── BODY ─────────────────────────────────────────── */}
+            <div className="flex flex-1 overflow-hidden">
 
-            {/* 미리보기 영역 */}
-            <div className="flex-1 overflow-auto p-4">
-              {(platform === 'naver' || platform === 'tistory' || platform === 'wordpress' || platform === 'medium' || platform === 'shopify' || platform === 'linkedin') ? (
-                <div className="border border-gray-200 rounded-2xl overflow-hidden">
-                  <div className="bg-gray-100 px-4 py-2.5 flex items-center gap-2 border-b border-gray-200">
-                    <div className="flex gap-1.5">
-                      <span className="w-3 h-3 rounded-full bg-red-400" />
-                      <span className="w-3 h-3 rounded-full bg-yellow-400" />
-                      <span className="w-3 h-3 rounded-full bg-green-400" />
-                    </div>
-                    <div className="flex-1 bg-white rounded-lg px-3 py-1 text-xs text-gray-400 ml-2 truncate">
-                      {previewFakeHost(platform)}
-                    </div>
+              {/* LEFT: Photo layout editor */}
+              {photoEditMode && (
+                <div className="w-56 border-r border-gray-100 flex flex-col bg-gray-50 shrink-0 overflow-y-auto">
+                  <div className="px-4 py-3 border-b border-gray-100 bg-white sticky top-0">
+                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider">📸 사진 배치 편집</p>
+                    <p className="text-[9px] text-gray-400 mt-0.5">사진 클릭 → 위치·크기·정렬 조정</p>
                   </div>
-                  <iframe
-                    key={platform}
-                    srcDoc={getFormatContent()}
-                    className="w-full"
-                    style={{ height: '520px', border: 'none' }}
-                    title={t.iframeTitle}
-                  />
-                </div>
-              ) : (
-                <div className="border border-gray-200 rounded-2xl overflow-hidden">
-                  {platform === 'instagram' && (
-                    <div className="bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 p-0.5 rounded-2xl">
-                      <div className="bg-white rounded-[14px] p-5">
-                        <div className="flex items-center gap-2 mb-4">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500" />
-                          <span className="font-bold text-sm">your_store</span>
+                  {photoLayouts.length === 0 && (
+                    <div className="flex-1 flex items-center justify-center p-5">
+                      <p className="text-xs text-gray-400 text-center">업로드된 사진이 없습니다</p>
+                    </div>
+                  )}
+                  {photoLayouts.map((ph, pi) => (
+                    <div key={pi} onClick={() => setSelectedPhotoIdx(selectedPhotoIdx === pi ? null : pi)}
+                      className={`p-3 border-b border-gray-100 cursor-pointer transition-all ${
+                        selectedPhotoIdx===pi ? 'bg-blue-50 border-l-[3px] border-l-blue-500' : 'hover:bg-gray-100'
+                      }`}>
+                      <img src={ph.url} alt="" className="w-full h-16 object-cover rounded-lg mb-2" />
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-[10px] font-black text-gray-600">사진 {pi+1}</p>
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
+                          selectedPhotoIdx===pi ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-500'
+                        }`}>{selectedPhotoIdx===pi?'편집중':'클릭'}</span>
+                      </div>
+                      {selectedPhotoIdx === pi && (
+                        <div className="space-y-2.5 mt-2">
+                          {/* Insert position */}
+                          <div>
+                            <p className="text-[9px] font-black text-gray-400 uppercase mb-1">삽입 위치</p>
+                            <select value={ph.insertAfter}
+                              onChange={e => setPhotoLayouts(prev => prev.map((p2,i2) => i2===pi ? {...p2, insertAfter:+e.target.value} : p2))}
+                              className="w-full text-[10px] border border-gray-200 rounded-lg px-2 py-1.5 bg-white">
+                              <option value={-1}>🔝 맨 위</option>
+                              {sections.map((s,si) => (
+                                <option key={si} value={si}>
+                                  {si+1}. {(s.name||s.title||'').slice(0,15)} 뒤
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          {/* Width */}
+                          <div>
+                            <p className="text-[9px] font-black text-gray-400 uppercase mb-1">너비 — {ph.width}%</p>
+                            <input type="range" min={20} max={100} step={5} value={ph.width}
+                              onChange={e => setPhotoLayouts(prev => prev.map((p2,i2) => i2===pi ? {...p2, width:+e.target.value} : p2))}
+                              className="w-full accent-blue-600" />
+                            <div className="flex gap-1 mt-1">
+                              {[25,50,75,100].map(w => (
+                                <button key={w} type="button"
+                                  onClick={() => setPhotoLayouts(prev => prev.map((p2,i2) => i2===pi ? {...p2, width:w} : p2))}
+                                  className={`flex-1 py-1 rounded text-[9px] font-black transition-all ${
+                                    ph.width===w ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                                  }`}>{w}%</button>
+                              ))}
+                            </div>
+                          </div>
+                          {/* Align */}
+                          <div>
+                            <p className="text-[9px] font-black text-gray-400 uppercase mb-1">정렬</p>
+                            <div className="flex gap-1">
+                              {(['left','center','right'] as const).map(a => (
+                                <button key={a} type="button"
+                                  onClick={() => setPhotoLayouts(prev => prev.map((p2,i2) => i2===pi ? {...p2, align:a} : p2))}
+                                  className={`flex-1 py-1.5 rounded text-[10px] font-black transition-all ${
+                                    ph.align===a ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
+                                  }`}>
+                                  {a==='left'?'◀':a==='center'?'▪':' ▶'}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          {/* Caption */}
+                          <div>
+                            <p className="text-[9px] font-black text-gray-400 uppercase mb-1">캡션</p>
+                            <input value={ph.caption}
+                              onChange={e => setPhotoLayouts(prev => prev.map((p2,i2) => i2===pi ? {...p2, caption:e.target.value} : p2))}
+                              placeholder="사진 설명 입력..."
+                              className="w-full text-[10px] border border-gray-200 rounded-lg px-2 py-1.5 bg-white" />
+                          </div>
                         </div>
-                        <pre className="whitespace-pre-wrap text-sm text-gray-800 leading-relaxed font-sans">{getFormatContent()}</pre>
-                      </div>
+                      )}
                     </div>
-                  )}
-                  {platform === 'brunch' && (
-                    <div className="bg-white p-8">
-                      <pre className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed font-serif">{getFormatContent()}</pre>
-                    </div>
-                  )}
-                  {(platform === 'smartstore' || platform === 'coupang') && (
-                    <div className="bg-white p-6 max-h-[520px] overflow-auto">
-                      <pre className="whitespace-pre-wrap text-xs text-gray-800 leading-relaxed font-sans">{getFormatContent()}</pre>
-                    </div>
-                  )}
+                  ))}
                 </div>
               )}
+
+              {/* CENTER: Platform preview */}
+              <div className="flex-1 overflow-auto bg-[#F1F5F9] p-4">
+                <div className={`mx-auto transition-all duration-300 ${previewViewport==='mobile' ? 'max-w-[390px]' : 'max-w-full'}`}>
+
+                  {/* Helper: render photos for a section index */}
+                  {(() => {
+                    const renderPhotos = (afterIdx: number) =>
+                      photoLayouts
+                        .filter(ph => ph.insertAfter === afterIdx)
+                        .map((ph, pi) => (
+                          <div key={pi} className="my-3" style={{textAlign: ph.align}}>
+                            <img src={ph.url} alt={ph.caption}
+                              style={{width:`${ph.width}%`, maxWidth:'100%', display:'inline-block', borderRadius:'8px'}}
+                              className="shadow-sm" />
+                            {ph.caption && <p className="text-xs text-gray-400 mt-1 text-center">{ph.caption}</p>}
+                          </div>
+                        ))
+
+                    /* ─── NAVER BLOG ─── */
+                    if (platform==='naver'||platform==='tistory') return (
+                      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                        <div className="bg-[#03C75A] px-4 py-2.5 flex items-center gap-2">
+                          <span className="text-white font-black text-sm">N</span>
+                          <span className="text-white/80 text-xs">BLOG</span>
+                          <div className="flex-1 bg-white/20 rounded-full h-5 ml-3" />
+                        </div>
+                        <div className="px-8 py-7 max-w-[680px] mx-auto">
+                          <h1 className="text-xl font-bold text-gray-900 mb-2">{order.product_name}</h1>
+                          <div className="flex items-center gap-2 text-xs text-gray-400 mb-5 pb-4 border-b border-gray-100">
+                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-400 to-teal-500" />
+                            <span className="font-medium">블로거</span><span>·</span>
+                            <span>{new Date().toLocaleDateString('ko-KR')}</span>
+                          </div>
+                          {renderPhotos(-1)}
+                          {sections.map((s, si) => (
+                            <div key={si}>
+                              {s.name && s.name !== s.title && <h3 className="text-[15px] font-bold text-gray-800 mt-5 mb-2 pb-1 border-b border-gray-100">{s.name}</h3>}
+                              <p className="text-sm text-gray-700 leading-[2] mb-3 whitespace-pre-wrap">{s.body}</p>
+                              {renderPhotos(si)}
+                            </div>
+                          ))}
+                          <div className="mt-6 pt-4 border-t border-gray-100 flex flex-wrap gap-1.5">
+                            {(order.category||'제품').split(' ').slice(0,4).map((tag,i)=>(
+                              <span key={i} className="text-[11px] text-[#03C75A] bg-green-50 px-2 py-0.5 rounded-full">#{tag}</span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )
+
+                    /* ─── SMARTSTORE ─── */
+                    if (platform==='smartstore') return (
+                      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                        <div className="bg-white border-b border-gray-100 px-4 py-2 flex items-center gap-2">
+                          <span className="text-[#03C75A] font-black text-sm">스마트스토어</span>
+                        </div>
+                        <div className={`px-5 py-5 ${previewViewport==='mobile'?'':'max-w-[500px] mx-auto'}`}>
+                          <div className="bg-gray-50 rounded-xl p-3 mb-4">
+                            <p className="text-base font-black text-gray-900 leading-snug">{order.product_name}</p>
+                          </div>
+                          {renderPhotos(-1)}
+                          {sections.map((s,si) => (
+                            <div key={si} className="mb-5">
+                              {s.name && <p className="text-[11px] font-black text-[#03C75A] mb-1.5 uppercase tracking-wider">{s.name}</p>}
+                              <p className="text-sm text-gray-800 leading-6 whitespace-pre-wrap">{s.body}</p>
+                              {renderPhotos(si)}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+
+                    /* ─── COUPANG ─── */
+                    if (platform==='coupang') return (
+                      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                        <div className="bg-[#E65F2E] px-4 py-2">
+                          <span className="text-white font-black text-sm italic">coupang</span>
+                        </div>
+                        <div className="p-5">
+                          <div className="border border-orange-100 rounded-xl p-3 mb-4 bg-orange-50/50">
+                            <p className="text-sm font-bold text-gray-900">{order.product_name}</p>
+                          </div>
+                          {renderPhotos(-1)}
+                          {sections.map((s,si) => (
+                            <div key={si} className="mb-4">
+                              {s.name && <p className="text-[11px] font-black text-[#E65F2E] mb-1 uppercase">{s.name}</p>}
+                              <p className="text-xs text-gray-700 leading-5 whitespace-pre-wrap">{s.body}</p>
+                              {renderPhotos(si)}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+
+                    /* ─── AMAZON JP ─── */
+                    if ((platform as string)==='amazon'||(platform as string)==='amazon_jp') return (
+                      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                        <div className="bg-[#FF9900] px-4 py-2 flex items-center gap-2">
+                          <span className="text-white font-black text-sm">amazon</span>
+                          <span className="text-white/70 text-xs">JP</span>
+                        </div>
+                        <div className="p-6 max-w-[760px] mx-auto">
+                          <h1 className="text-[15px] font-bold text-gray-900 mb-4 leading-snug">{order.product_name}</h1>
+                          {renderPhotos(-1)}
+                          {sections.map((s,si) => (
+                            <div key={si} className="mb-4">
+                              {s.name && <p className="text-xs font-black text-[#FF9900] mb-1.5 uppercase">{s.name}</p>}
+                              <div className="text-sm text-gray-700 leading-6 whitespace-pre-wrap pl-4 border-l-2 border-orange-100">{s.body}</div>
+                              {renderPhotos(si)}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+
+                    /* ─── SHOPIFY / WordPress / Medium ─── */
+                    if (platform==='shopify'||platform==='wordpress'||platform==='medium') return (
+                      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                        <div className="bg-[#96BF48] px-4 py-2">
+                          <span className="text-white font-black text-xs uppercase">
+                            {platform==='shopify'?'Shopify':platform==='wordpress'?'WordPress':'Medium'}
+                          </span>
+                        </div>
+                        <div className="px-10 py-8 max-w-[780px] mx-auto">
+                          <h1 className="text-2xl font-black text-gray-900 mb-2">{order.product_name}</h1>
+                          <div className="w-16 h-0.5 bg-[#96BF48] mb-6" />
+                          {renderPhotos(-1)}
+                          {sections.map((s,si) => (
+                            <div key={si} className="mb-6">
+                              {s.name && <h2 className="text-base font-bold text-gray-800 mb-2">{s.name}</h2>}
+                              <p className="text-sm text-gray-600 leading-7 whitespace-pre-wrap">{s.body}</p>
+                              {renderPhotos(si)}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+
+                    /* ─── TMALL / Rakuten / others ─── */
+                    return (
+                      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                        <div className="bg-[#FF4400] px-4 py-2">
+                          <span className="text-white font-black text-xs">
+                            {PLATFORMS.find(pl=>pl.id===platform)?.label ?? platform}
+                          </span>
+                        </div>
+                        <div className="p-6">
+                          <h2 className="text-base font-bold text-gray-900 mb-4">{order.product_name}</h2>
+                          {renderPhotos(-1)}
+                          {sections.map((s,si) => (
+                            <div key={si} className="mb-4">
+                              {s.name && <p className="text-xs font-black text-[#FF4400] mb-1">{s.name}</p>}
+                              <p className="text-sm text-gray-700 leading-6 whitespace-pre-wrap">{s.body}</p>
+                              {renderPhotos(si)}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })()}
+                </div>
+              </div>
+
+              {/* RIGHT: Publish guide */}
+              <div className="w-56 border-l border-gray-100 bg-gray-50 shrink-0 overflow-y-auto flex flex-col hidden xl:flex">
+                <div className="px-4 py-3 border-b border-gray-100 bg-white sticky top-0">
+                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider">🚀 발행 가이드</p>
+                </div>
+                <div className="p-4 flex-1 space-y-3">
+                  <button type="button" onClick={handleNaverCopy}
+                    className={`w-full ${primStyle.bg} ${primStyle.hover} text-white py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5`}>
+                    {copyDone ? '✓ 복사됨' : `${primaryRow?.icon} HTML 복사`}
+                  </button>
+                  <button type="button" onClick={() => { handleNaverCopy(); window.open(editorOpenUrl(platform), '_blank') }}
+                    className="w-full border border-gray-200 hover:border-gray-300 bg-white text-gray-700 py-2.5 rounded-xl text-xs font-black transition-all">
+                    🔗 에디터 열기
+                  </button>
+                  <div className="bg-white rounded-xl border border-gray-100 p-3">
+                    <p className="text-[9px] font-black text-gray-400 uppercase mb-2">발행 순서</p>
+                    {['HTML 복사', '에디터 열기', '붙여넣기', '사진 업로드', '발행'].map((step,i) => (
+                      <div key={i} className="flex items-center gap-2 mb-1.5">
+                        <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 ${
+                          i===0&&copyDone ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}>{i===0&&copyDone?'✓':i+1}</span>
+                        <span className="text-[10px] text-gray-600">{step}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+            </div>{/* end BODY */}
+
+            {/* ── FOOTER ───────────────────────────────────────── */}
+            <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 shrink-0 flex items-center justify-between">
+              <p className="text-[10px] text-gray-400">
+                {previewViewport==='mobile'?'📱 모바일 미리보기':'🖥 데스크톱 미리보기'} · {platform.toUpperCase()} ·
+                사진 {photoLayouts.length}장 배치됨
+              </p>
+              <div className="flex gap-2">
+                <button type="button" onClick={handleDownloadZip}
+                  className="flex items-center gap-1.5 text-xs font-black text-gray-600 hover:text-gray-900 border border-gray-200 hover:border-gray-300 px-3 py-1.5 rounded-xl transition-all">
+                  ⬇ ZIP 다운로드
+                </button>
+                <button type="button" onClick={() => { handleNaverCopy(); window.open(editorOpenUrl(platform),'_blank') }}
+                  className={`flex items-center gap-1.5 text-xs font-black text-white ${primStyle.bg} ${primStyle.hover} px-4 py-1.5 rounded-xl transition-all`}>
+                  {copyDone?'✓ 복사됨':'복사 + 에디터 열기 →'}
+                </button>
+              </div>
             </div>
 
-            {/* 붙여넣기 안내 */}
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 rounded-b-3xl shrink-0">
-              {platform === 'naver' && (
-                <div>
-                  <p className="text-xs font-black text-gray-700 mb-3">{t.naver.title}</p>
-                  <div className="grid grid-cols-3 gap-2 mb-3">
-                    {t.naver.steps.map(s => (
-                      <div key={s.step} className="text-center">
-                        <div className="w-7 h-7 bg-[#03C75A] text-white rounded-lg flex items-center justify-center text-xs font-black mx-auto mb-1">{s.step}</div>
-                        <p className="text-[10px] font-bold text-gray-700">{s.label}</p>
-                        <p className="text-[9px] text-gray-400">{s.desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => { handleNaverCopy(); window.open(editorOpenUrl('naver'), '_blank') }}
-                    className="w-full bg-[#03C75A] hover:bg-[#02b050] text-white py-2.5 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2"
-                  >
-                    <span className="font-black text-base">N</span>
-                    {copyDone ? t.naver.ctaDone : t.naver.cta}
-                  </button>
-                </div>
-              )}
-              {platform === 'tistory' && (
-                <div>
-                  <p className="text-xs font-black text-gray-700 mb-3">{t.tistory.title}</p>
-                  <div className="grid grid-cols-3 gap-2 mb-3">
-                    {t.tistory.steps.map(s => (
-                      <div key={s.step} className="text-center">
-                        <div className="w-7 h-7 bg-orange-500 text-white rounded-lg flex items-center justify-center text-xs font-black mx-auto mb-1">{s.step}</div>
-                        <p className="text-[10px] font-bold text-gray-700">{s.label}</p>
-                        <p className="text-[9px] text-gray-400">{s.desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => { handleNaverCopy(); window.open(editorOpenUrl('tistory'), '_blank') }}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2.5 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2"
-                  >
-                    {copyDone ? t.tistory.ctaDone : t.tistory.cta}
-                  </button>
-                </div>
-              )}
-              {platform === 'wordpress' && (
-                <div>
-                  <p className="text-xs font-black text-gray-700 mb-3">{t.wordpress.title}</p>
-                  <div className="grid grid-cols-3 gap-2 mb-3">
-                    {t.wordpress.steps.map(s => (
-                      <div key={s.step} className="text-center">
-                        <div className="w-7 h-7 bg-blue-600 text-white rounded-lg flex items-center justify-center text-xs font-black mx-auto mb-1">{s.step}</div>
-                        <p className="text-[10px] font-bold text-gray-700">{s.label}</p>
-                        <p className="text-[9px] text-gray-400">{s.desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => { handleNaverCopy(); window.open(editorOpenUrl('wordpress'), '_blank') }}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2"
-                  >
-                    {copyDone ? t.wordpress.ctaDone : t.wordpress.cta}
-                  </button>
-                </div>
-              )}
-              {platform === 'instagram' && (
-                <div>
-                  <p className="text-xs font-black text-gray-700 mb-3">{t.instagram.title}</p>
-                  <div className="grid grid-cols-3 gap-2 mb-3">
-                    {t.instagram.steps.map(s => (
-                      <div key={s.step} className="text-center">
-                        <div className="w-7 h-7 bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-lg flex items-center justify-center text-xs font-black mx-auto mb-1">{s.step}</div>
-                        <p className="text-[10px] font-bold text-gray-700">{s.label}</p>
-                        <p className="text-[9px] text-gray-400">{s.desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => { handleNaverCopy(); window.open(editorOpenUrl('instagram'), '_blank') }}
-                    className="w-full text-white py-2.5 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2"
-                    style={{ background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)' }}
-                  >
-                    {copyDone ? t.instagram.ctaDone : t.instagram.cta}
-                  </button>
-                </div>
-              )}
-              {(platform === 'medium' || platform === 'shopify' || platform === 'linkedin') && (
-                <div>
-                  <p className="text-xs font-black text-gray-700 mb-3">{t.genericHtml.title}</p>
-                  <div className="grid grid-cols-3 gap-2 mb-3">
-                    {t.genericHtml.steps.map(s => (
-                      <div key={s.step} className="text-center">
-                        <div className="w-7 h-7 bg-black text-white rounded-lg flex items-center justify-center text-xs font-black mx-auto mb-1">{s.step}</div>
-                        <p className="text-[10px] font-bold text-gray-700">{s.label}</p>
-                        <p className="text-[9px] text-gray-400">{s.desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => { handleNaverCopy(); window.open(editorOpenUrl(platform), '_blank') }}
-                    className="w-full bg-black hover:bg-gray-800 text-white py-2.5 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2"
-                  >
-                    {copyDone ? t.genericHtml.ctaDone : t.genericHtml.cta}
-                  </button>
-                </div>
-              )}
-              {platform === 'brunch' && (
-                <p className="text-xs text-gray-500">
-                  <span className="font-bold text-gray-700">{t.brunch.line}</span> {t.brunch.desc}
-                  <button
-                    type="button"
-                    onClick={() => { handleNaverCopy(); window.open(editorOpenUrl('brunch'), '_blank') }}
-                    className="ml-2 underline text-black font-bold"
-                  >
-                    {t.brunch.open}
-                  </button>
-                </p>
-              )}
-              {platform === 'smartstore' && (
-                <div>
-                  <p className="text-xs font-black text-gray-700 mb-3">{t.smartstore.title}</p>
-                  <div className="grid grid-cols-3 gap-2 mb-3">
-                    {t.smartstore.steps.map(s => (
-                      <div key={s.step} className="text-center">
-                        <div className="w-7 h-7 bg-[#03C75A] text-white rounded-lg flex items-center justify-center text-xs font-black mx-auto mb-1">{s.step}</div>
-                        <p className="text-[10px] font-bold text-gray-700">{s.label}</p>
-                        <p className="text-[9px] text-gray-400">{s.desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => { handleNaverCopy(); window.open(editorOpenUrl('smartstore'), '_blank') }}
-                    className="w-full bg-[#03C75A] hover:bg-[#02b050] text-white py-2.5 rounded-xl text-sm font-black transition-all"
-                  >
-                    {copyDone ? t.smartstore.ctaDone : t.smartstore.cta}
-                  </button>
-                </div>
-              )}
-              {platform === 'coupang' && (
-                <div>
-                  <p className="text-xs font-black text-gray-700 mb-3">{t.coupang.title}</p>
-                  <div className="grid grid-cols-3 gap-2 mb-3">
-                    {t.coupang.steps.map(s => (
-                      <div key={s.step} className="text-center">
-                        <div className="w-7 h-7 bg-[#E65F2E] text-white rounded-lg flex items-center justify-center text-xs font-black mx-auto mb-1">{s.step}</div>
-                        <p className="text-[10px] font-bold text-gray-700">{s.label}</p>
-                        <p className="text-[9px] text-gray-400">{s.desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => { handleNaverCopy(); window.open(editorOpenUrl('coupang'), '_blank') }}
-                    className="w-full bg-[#E65F2E] hover:bg-[#cf5528] text-white py-2.5 rounded-xl text-sm font-black transition-all"
-                  >
-                    {copyDone ? t.coupang.ctaDone : t.coupang.cta}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+          </div>{/* end modal card */}
+        </div>{/* end overlay */}
+      )}{/* end showBlogPreview */}
     </main>
   )
 }
