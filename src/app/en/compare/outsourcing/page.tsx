@@ -93,7 +93,7 @@ export default function CompareEnOutsourcingPage() {
 
         <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 border border-green-500/20 rounded-3xl p-10 text-center">
           <h2 className="text-2xl font-black text-white mb-3">Save 95% starting today</h2>
-          <p className="text-gray-400 mb-6 text-sm">Free plan · No credit card · Generate Amazon JP, Shopify, Tmall in 90 seconds</p>
+          <p className="text-gray-400 mb-6 text-sm">Free plan · Generate Amazon JP, Shopify, Tmall in 90 seconds</p>
           <Link
             href="/login"
             className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white font-black px-8 py-4 rounded-xl transition-colors text-sm"

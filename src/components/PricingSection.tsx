@@ -21,7 +21,7 @@ const LABELS: Record<Lang, {
     title: '합리적인 가격으로', subtitle: '외주 비용을 없애세요.',
     monthly: '월간', yearly: '연간', free2mo: '2개월 무료',
     free: '무료', perMonth: '/월', yearlyNote: '연간 결제 시',
-    guarantee: '30일 환불 보장', noCard: '신용카드 없이 무료 시작', cancel: '언제든지 해지 가능',
+    guarantee: '30일 환불 보장', noCard: 'Visa · Mastercard · Apple Pay · Samsung Pay 지원', cancel: '언제든지 해지 가능',
     plans: [
       { name: '무료', desc: '시작해보고 싶은 분', cta: '무료로 시작',
         features: ['월 5회 생성', 'PDF 다운로드', '인라인 편집', 'SEO 분석 ✗', '블로그 발행 ✗', 'A/B 자동 생성 ✗'] },
@@ -35,7 +35,7 @@ const LABELS: Record<Lang, {
     title: 'Replace your agency bills', subtitle: 'with one affordable plan.',
     monthly: 'Monthly', yearly: 'Yearly', free2mo: '2 months free',
     free: 'Free', perMonth: '/mo', yearlyNote: 'billed annually',
-    guarantee: '30-day refund', noCard: 'No credit card required', cancel: 'Cancel anytime',
+    guarantee: '30-day refund', noCard: 'Visa · Mastercard · Apple Pay · Samsung Pay', cancel: 'Cancel anytime',
     plans: [
       { name: 'Free', desc: 'Try it out', cta: 'Start Free',
         features: ['5 generations/month', 'PDF download', 'Inline editing', 'SEO analysis ✗', 'Blog publishing ✗', 'A/B auto-generate ✗'] },
@@ -49,7 +49,7 @@ const LABELS: Record<Lang, {
     title: '外注コストをなくす', subtitle: '手頃な料金プラン。',
     monthly: '月払い', yearly: '年払い', free2mo: '2ヶ月無料',
     free: '無料', perMonth: '/月', yearlyNote: '年払いの場合',
-    guarantee: '30日間返金保証', noCard: 'クレジットカード不要', cancel: 'いつでもキャンセル可',
+    guarantee: '30日間返金保証', noCard: 'Visa · Mastercard · Apple Pay · Samsung Pay対応', cancel: 'いつでもキャンセル可',
     plans: [
       { name: '無料', desc: 'まずお試しに', cta: '無料で始める',
         features: ['月5回生成', 'PDFダウンロード', 'インライン編集', 'SEO分析 ✗', 'ブログ投稿 ✗', 'A/B自動生成 ✗'] },
@@ -63,7 +63,7 @@ const LABELS: Record<Lang, {
     title: '合理价格', subtitle: '告别昂贵的外包费用。',
     monthly: '按月付', yearly: '按年付', free2mo: '赠2个月',
     free: '免费', perMonth: '/月', yearlyNote: '按年计费',
-    guarantee: '30天退款保证', noCard: '无需信用卡', cancel: '随时取消',
+    guarantee: '30天退款保证', noCard: 'Visa · Mastercard · Apple Pay · Samsung Pay', cancel: '随时取消',
     plans: [
       { name: '免费版', desc: '先体验一下', cta: '免费开始',
         features: ['每月5次生成', 'PDF下载', '在线编辑', 'SEO分析 ✗', '博客发布 ✗', 'A/B自动生成 ✗'] },

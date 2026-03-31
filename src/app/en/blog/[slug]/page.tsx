@@ -125,7 +125,7 @@ export default async function EnBlogPostPage({ params }: { params: Promise<{ slu
           <div className="mt-16 bg-gradient-to-r from-blue-600/20 to-violet-600/20 border border-blue-500/20 rounded-3xl p-10 text-center">
             <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Apply what you just learned</p>
             <h2 className="text-2xl font-black text-white mb-3">Generate your product page<br /><span className="text-gray-500">in 90 seconds.</span></h2>
-            <p className="text-gray-500 text-sm mb-6">No credit card · Free to start · Amazon JP, Shopify, Tmall, Rakuten</p>
+            <p className="text-gray-500 text-sm mb-6">Free to start · Amazon JP, Shopify, Tmall, Rakuten</p>
             <Link href="/login" className="inline-block bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-xl font-black text-sm transition-colors">
               Generate Your Product Page with PageAI →
             </Link>

@@ -5,6 +5,7 @@ import ReferralWidget from '@/components/ReferralWidget'
 import TrendWidget from '@/components/TrendWidget'
 import Logo from '@/components/Logo'
 import BenchmarkWidget from '@/components/BenchmarkWidget'
+import BillingPortalButton from '@/components/BillingPortalButton'
 
 const TIPS = [
   {
@@ -67,6 +68,15 @@ export default async function DashboardPage() {
     .select('*')
     .order('created_at', { ascending: false })
 
+  const { data: userProfile } = await supabase
+    .from('user_profiles')
+    .select('plan, monthly_usage')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  const currentPlan = userProfile?.plan ?? 'free'
+  const monthlyUsageFromProfile = userProfile?.monthly_usage ?? 0
+
   const total       = orders?.length ?? 0
   const doneCount   = orders?.filter(o => o.status === 'done').length ?? 0
   const savedAmount = doneCount * 50000
@@ -107,20 +117,30 @@ export default async function DashboardPage() {
             </h1>
             <p className="text-gray-400 text-sm mt-1">오늘도 팔리는 상세페이지를 만들어볼까요?</p>
           </div>
-          {/* 무료 플랜 업그레이드 배너 */}
-          <div className="bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-2xl px-5 py-4 max-w-xs">
-            <p className="text-xs font-black uppercase tracking-widest opacity-80 mb-1">무료 플랜</p>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-bold">이번 달 {monthlyUsed}/{FREE_LIMIT}회 사용</span>
-              <span className="text-xs opacity-70">{FREE_LIMIT - monthlyUsed}회 남음</span>
+          {/* 플랜 배너 */}
+          {currentPlan === 'free' ? (
+            <div className="bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-2xl px-5 py-4 max-w-xs">
+              <p className="text-xs font-black uppercase tracking-widest opacity-80 mb-1">무료 플랜</p>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-bold">이번 달 {monthlyUsed}/{FREE_LIMIT}회 사용</span>
+                <span className="text-xs opacity-70">{FREE_LIMIT - monthlyUsed}회 남음</span>
+              </div>
+              <div className="w-full bg-white/20 rounded-full h-1.5 mb-3">
+                <div className="bg-white rounded-full h-1.5 transition-all" style={{ width: `${usagePct}%` }} />
+              </div>
+              <Link href="/pricing" className="text-xs font-black underline underline-offset-2 opacity-90 hover:opacity-100">
+                프로로 무제한 업그레이드 →
+              </Link>
             </div>
-            <div className="w-full bg-white/20 rounded-full h-1.5 mb-3">
-              <div className="bg-white rounded-full h-1.5 transition-all" style={{ width: `${usagePct}%` }} />
+          ) : (
+            <div className="bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-2xl px-5 py-4 max-w-xs">
+              <p className="text-xs font-black uppercase tracking-widest opacity-80 mb-1">
+                {currentPlan === 'pro' ? '프로 플랜' : '비즈니스 플랜'}
+              </p>
+              <p className="text-sm font-bold mb-3">무제한 생성 중</p>
+              <BillingPortalButton />
             </div>
-            <Link href="/#pricing" className="text-xs font-black underline underline-offset-2 opacity-90 hover:opacity-100">
-              프로로 무제한 업그레이드 →
-            </Link>
-          </div>
+          )}
         </div>
 
         {/* 통계 카드 */}
@@ -227,6 +247,30 @@ export default async function DashboardPage() {
               }))}
               doneCount={doneCount}
             />
+
+            {/* Billing 카드 */}
+            <div className="bg-white border border-gray-100 rounded-2xl p-5">
+              <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-3">구독 관리</p>
+              <div className="flex items-center gap-2 mb-4">
+                <span className={`text-xs font-black px-2.5 py-1 rounded-full border ${
+                  currentPlan === 'pro' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                  currentPlan === 'business' ? 'bg-violet-50 text-violet-600 border-violet-200' :
+                  'bg-gray-50 text-gray-500 border-gray-200'
+                }`}>
+                  {currentPlan === 'pro' ? '프로' : currentPlan === 'business' ? '비즈니스' : '무료'} 플랜
+                </span>
+                {currentPlan !== 'free' && (
+                  <span className="text-[10px] text-gray-300">무제한 생성</span>
+                )}
+              </div>
+              {currentPlan === 'free' ? (
+                <Link href="/pricing" className="block w-full text-center bg-black text-white py-2.5 rounded-xl text-xs font-black hover:bg-gray-800 transition-all">
+                  업그레이드 →
+                </Link>
+              ) : (
+                <BillingPortalButton className="block w-full text-center border border-gray-200 text-gray-600 py-2.5 rounded-xl text-xs font-bold hover:bg-gray-50 transition-all" />
+              )}
+            </div>
 
             {/* 래퍼럴 위젯 */}
             <ReferralWidget />

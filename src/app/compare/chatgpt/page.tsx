@@ -94,7 +94,7 @@ export default function CompareChatGptKoPage() {
 
         <div className="bg-gradient-to-r from-blue-600/20 to-violet-600/20 border border-blue-500/20 rounded-3xl p-10 text-center">
           <h2 className="text-2xl font-black text-white mb-3">직접 비교해보세요</h2>
-          <p className="text-gray-400 mb-6 text-sm">무료 플랜으로 지금 바로 상세페이지 생성 — 신용카드 불필요</p>
+          <p className="text-gray-400 mb-6 text-sm">무료 플랜으로 지금 바로 상세페이지 생성</p>
           <Link
             href="/login"
             className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-black px-8 py-4 rounded-xl transition-colors text-sm"

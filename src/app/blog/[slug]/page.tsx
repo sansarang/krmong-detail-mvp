@@ -114,7 +114,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             읽었으면 만들어보세요.<br />
             <span className="text-gray-500">5분이면 충분합니다.</span>
           </h2>
-          <p className="text-gray-500 text-sm mb-6">신용카드 불필요 · 무료로 시작 · 즉시 PDF 다운로드</p>
+          <p className="text-gray-500 text-sm mb-6">무료로 시작 · 즉시 PDF 다운로드</p>
           <Link href="/login" className="inline-block bg-white text-black px-10 py-4 rounded-2xl font-black hover:bg-gray-100 transition-all hover:scale-105">
             무료로 시작하기 →
           </Link>
