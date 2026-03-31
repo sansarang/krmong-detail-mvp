@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export function generateStaticParams() {
-  return Object.keys(SAMPLE_DATA).map(cat => ({ category: encodeURIComponent(cat) }))
+  return Object.keys(SAMPLE_DATA).map(cat => ({ category: cat }))
 }
 
 export default async function CategorySamplePage({ params }: Props) {

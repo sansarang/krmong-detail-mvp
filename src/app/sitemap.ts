@@ -33,7 +33,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const SAMPLE_CATEGORIES = ['뷰티', '식품', '패션', '전자기기', '생활용품', '반려동물', '스포츠', '유아동']
   const sampleRoutes: MetadataRoute.Sitemap = SAMPLE_CATEGORIES.map(cat => ({
-    url: `${base}/samples/${encodeURIComponent(cat)}`,
+    url: `${base}/samples/${cat}`,
     lastModified: now,
     changeFrequency: 'monthly' as const,
     priority: 0.75,
