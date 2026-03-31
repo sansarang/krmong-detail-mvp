@@ -1195,6 +1195,8 @@ export default function OrderResultPage() {
     verdict: string
   } | null>(null)
   const [competitorOpen, setCompetitorOpen] = useState(false)
+  const [rightTab, setRightTab] = useState<'publish'|'copy'|'tools'>('publish')
+  const [mobileToolsOpen, setMobileToolsOpen] = useState(false)
 
   const PLATFORMS = platformsForLang(uiLang)
   const t = ORDER_RESULT_UI[uiLang]
@@ -1702,9 +1704,6 @@ export default function OrderResultPage() {
     industryBucket !== 'general'
       ? t.complianceIndustryBadge(industryBucketLabel(t, industryBucket))
       : null
-
-  const [rightTab, setRightTab] = useState<'publish'|'copy'|'tools'>('publish')
-  const [mobileToolsOpen, setMobileToolsOpen] = useState(false)
 
   return (
     <main className="min-h-screen bg-[#F1F5F9] overflow-x-hidden">
