@@ -243,14 +243,77 @@ ${templateContent}
 - 제품/서비스명 키워드를 최소 3개 섹션 제목에 자연스럽게 포함
 - 마지막 섹션에 행동 유도 키워드 2개 이상 ("지금", "바로", "무료", "상담", "예약", "구매")`
 
-    // ── 크로스보더 플랫폼 마커 파싱 ───────────────────────────
+    // ── 마켓 & 크로스보더 마커 파싱 ──────────────────────────
+    const marketsMatch = (order.description ?? '').match(/\[MARKETS:([^\]]+)\]/)
+    const selectedMarkets = marketsMatch
+      ? marketsMatch[1].split(',').map((s: string) => s.trim()).filter(Boolean)
+      : []
     const crossborderMatch = (order.description ?? '').match(/\[CROSSBORDER:([^\]]+)\]/)
     const crossborderPlatforms = crossborderMatch
       ? crossborderMatch[1].split(',').map((s: string) => s.trim()).filter(Boolean)
       : []
     const cleanDescription = (order.description ?? '')
+      .replace(/\[MARKETS:[^\]]+\]/g, '')
       .replace(/\[CROSSBORDER:[^\]]+\]/g, '')
       .trim()
+
+    // ── 마켓별 특화 섹션 가이드 오버라이드 ───────────────────
+    const MARKET_SECTION_GUIDES: Record<string, string> = {
+      smartstore: `
+[🏪 스마트스토어 — 모바일 세로형 긴 상세페이지]
+1. 후킹 헤드라인: 감성 키워드 + 고객 고민 의문형 (모바일 15자 이내)
+2. 브랜드/제품 스토리: 감성적 배경 + 사용 전/후 대비 (이미지 슬롯 [IMAGE_1])
+3. 핵심 성분/소재/기능: 3~5가지 ✓ 체크형 + 수치 (이미지 슬롯 [IMAGE_2])
+4. 실구매 후기 & 인증: "○○명이 선택" + 수상이력/언론보도 (이미지 슬롯 [IMAGE_3])
+5. 사용법 & 추천 대상: 단계별 사용법 + 이런 분께 추천
+6. 구매 유도 CTA: 한정수량 + 오늘만특가 + 무료배송 + 즉시구매 버튼`,
+      naver_blog: `
+[📝 네이버 블로그 — 글 중간 사진 자연 삽입형]
+1. 흥미로운 도입부: 개인 경험담처럼 시작 (독자 공감 유도) [IMAGE_1 — 제품 전체 컷]
+2. 제품 언박싱 & 첫인상: 실제 받아본 느낌, 패키지 디테일 [IMAGE_2 — 언박싱]
+3. 실제 사용해보니...: 솔직한 장단점, 체감 효과 [IMAGE_3 — 사용 장면]
+4. 성분/스펙 상세 분석: 전문적이지만 쉬운 설명
+5. 비교 & 추천 대상: 다른 제품과 비교, "이런 분께 강추"
+6. 최종 평점 & 구매 링크: 별점 + 총평 + 구매처 안내`,
+      coupang: `
+[🛒 쿠팡 — 스펙 중심 + A/S 강조 상세페이지]
+1. 상품 핵심 요약: 3줄 핵심 특징 (번호 목록, 가격 경쟁력 언급)
+2. 상세 스펙: 크기·무게·소재·인증 수치 중심 스펙 표
+3. 주요 특징 5가지: 숫자 포함 구체적 기능 설명 (✓ 체크리스트)
+4. 사용 방법 & 주의사항: 단계별 안내 + 보관법
+5. A/S & 교환/반품 정책: 로켓배송 여부 + 무료반품 + 고객센터
+6. 왜 쿠팡에서 사야 하나: 최저가 보장 + 빠른 배송 + 후기 수`,
+      amazon: `
+[🛍️ Amazon JP A+ Content — 5-bullet premium format]
+1. HOOK HEADLINE: Bold benefit claim with specific number (e.g. "Reduces X by 40%")
+2. FEATURE BULLET 1 — PRIMARY BENEFIT: [CAPITALIZED KEYWORD]: Detailed explanation with proof
+3. FEATURE BULLET 2 — QUALITY/MATERIALS: [CAPITALIZED KEYWORD]: Specs, certifications, standards
+4. FEATURE BULLET 3 — VERSATILITY/USE CASES: [CAPITALIZED KEYWORD]: Who uses it, when, results
+5. SOCIAL PROOF & TRUST: "★4.8 from 12,000+ reviews" + certifications + guarantee
+6. CTA + URGENCY: "Add to Cart" copy + stock urgency + 30-day return guarantee`,
+      rakuten: `
+[🎏 楽天市場 — 価格・品質・安心を強調する詳細ページ]
+1. キャッチコピー: 品質と価格の両立を訴求 (楽天ランキング入り実績があれば記載)
+2. 商品の特長: 3〜5つの差別化ポイント (✓リスト、数値データ含む)
+3. 品質保証: 素材・製造・検査プロセス詳細 + 職人技・品質へのこだわり
+4. 使い方・シーン提案: 季節別・用途別の具体的な使用場面 (写真スロット[IMAGE_1])
+5. お客様の声: 実際の購入者レビュー引用 + 累計販売数・満足度
+6. 購入特典 & CTA: 送料無料条件 + ポイント還元 + 今すぐ購入ボタン`,
+      tmall: `
+[🏮 天猫A+详情页 — 爆款三角公式]
+1. 主图文案: 5字以内冲击力标题 + 核心卖点一句话 (如"轻奢必备·全网爆款")
+2. 品牌故事与品质: 品牌背书 + 原材料/工艺 + 正品保障声明
+3. 核心卖点×3: 每个卖点配场景图说明 [IMAGE_1][IMAGE_2][IMAGE_3]
+4. 社交证明: "已售XX万件" + 达人种草视频截图 + 买家秀精选
+5. 使用场景: 日常/节日/送礼场景化描述 + 美图展示
+6. 促销CTA: 限时特价 + 满减活动 + 7天无理由退换 + 立即抢购`,
+    }
+
+    // 선택된 마켓이 있으면 sectionGuide를 마켓별로 오버라이드
+    const primaryMarket = selectedMarkets.find((m: string) => MARKET_SECTION_GUIDES[m])
+    if (primaryMarket && !isDocType) {
+      sectionGuide = MARKET_SECTION_GUIDES[primaryMarket]
+    }
 
     // ── 타겟 마켓 문화 로컬라이징 ────────────────────────────
     const CULTURAL_CONTEXT: Record<string, string> = {

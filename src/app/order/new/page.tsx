@@ -499,6 +499,26 @@ const POPULAR_CATS: Record<UiLang, { value: string; emoji: string; label: string
   ],
 }
 
+// ── 마켓 데이터 ────────────────────────────────────────────────────────
+const MARKET_DATA = [
+  { id:'smartstore', name:'스마트스토어', nameEn:'SmartStore', icon:'🏪', flag:'🇰🇷', lang:'ko', cvr:4.2, color:'#03C75A', group:'domestic', desc:'모바일 긴 세로형 · KR SEO' },
+  { id:'naver_blog', name:'네이버 블로그', nameEn:'Naver Blog', icon:'📝', flag:'🇰🇷', lang:'ko', cvr:3.8, color:'#03C75A', group:'domestic', desc:'글 중간 사진 자연 삽입' },
+  { id:'coupang',    name:'쿠팡',         nameEn:'Coupang',     icon:'🛒', flag:'🇰🇷', lang:'ko', cvr:3.5, color:'#E5213D', group:'domestic', desc:'스펙 + A/S 중심 상세페이지' },
+  { id:'amazon',     name:'Amazon JP',    nameEn:'Amazon JP',   icon:'🛍️', flag:'🇯🇵', lang:'en', cvr:5.3, color:'#FF9900', group:'cross',    desc:'A+ Content · 5-bullet format' },
+  { id:'rakuten',    name:'楽天',         nameEn:'Rakuten',     icon:'🎏', flag:'🇯🇵', lang:'ja', cvr:4.7, color:'#BF0000', group:'cross',    desc:'丁寧語 · 혜택·가격 강조' },
+  { id:'tmall',      name:'天猫 Tmall',   nameEn:'Tmall',       icon:'🏮', flag:'🇨🇳', lang:'zh', cvr:6.9, color:'#E53E3E', group:'cross',    desc:'爆款 · 사회적 증거 · 长图' },
+  { id:'shopify',    name:'Shopify',      nameEn:'Shopify',     icon:'💻', flag:'🌐',  lang:'en', cvr:4.5, color:'#5C6BC0', group:'cross',    desc:'Brand story · Meta 최적화' },
+  { id:'qoo10',      name:'Qoo10',        nameEn:'Qoo10',       icon:'🏬', flag:'🇯🇵', lang:'ja', cvr:4.2, color:'#FF6B35', group:'cross',    desc:'간결 + 딜 강조' },
+  { id:'lazada',     name:'Lazada',       nameEn:'Lazada',      icon:'📦', flag:'🇸🇬', lang:'en', cvr:3.9, color:'#0F146D', group:'cross',    desc:'동남아 · 가격 경쟁력' },
+] as const
+
+const LANG_FOR_MARKET: Record<string, string> = {
+  smartstore:'ko', naver_blog:'ko', coupang:'ko',
+  amazon:'en', shopify:'en', lazada:'en',
+  rakuten:'ja', qoo10:'ja',
+  tmall:'zh',
+}
+
 export default function NewOrderPage() {
   const router   = useRouter()
   const supabase = createClient()
@@ -527,6 +547,7 @@ export default function NewOrderPage() {
   const [crossborderPlatforms, setCrossborderPlatforms] = useState<string[]>([])
   const [activeTab, setActiveTab] = useState<'product' | 'template'>('product')
   const [catSearch, setCatSearch] = useState('')
+  const [selectedMarkets, setSelectedMarkets] = useState<string[]>([])
   const docInputRef     = useRef<HTMLInputElement>(null)
   const templateFileRef = useRef<HTMLInputElement>(null)
 
@@ -607,6 +628,7 @@ export default function NewOrderPage() {
     payload: { product_name: string; category: string; description: string },
     imageFiles: File[],
     setThisLoading: (v: boolean) => void,
+    overrideLang?: string,
   ) {
     if (!isAdminUser && monthlyUsed >= FREE_LIMIT) { setShowUpgrade(true); return }
     setThisLoading(true)
@@ -631,7 +653,7 @@ export default function NewOrderPage() {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: order.id, outputLang }),
+        body: JSON.stringify({ orderId: order.id, outputLang: overrideLang ?? outputLang }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -821,6 +843,16 @@ export default function NewOrderPage() {
     )
   }
 
+  function toggleMarket(id: string) {
+    setSelectedMarkets(prev => {
+      const next = prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]
+      const cbIds = next.filter(m => !['smartstore','naver_blog','coupang'].includes(m))
+      setCrossborderPlatforms(cbIds)
+      setCrossborderMode(cbIds.length > 0)
+      return next
+    })
+  }
+
   // 제품 모드 제출
   async function handleProductSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -828,10 +860,22 @@ export default function NewOrderPage() {
     let combinedDesc = docText.trim()
       ? `${form.description}\n\n[첨부 문서 내용]\n${docText.trim()}`
       : form.description
+
+    // 선택된 마켓 정보 주입
+    if (selectedMarkets.length > 0) {
+      combinedDesc += `\n[MARKETS:${selectedMarkets.join(',')}]`
+    }
     if (crossborderMode && crossborderPlatforms.length > 0) {
       combinedDesc += `\n[CROSSBORDER:${crossborderPlatforms.join(',')}]`
     }
-    await submitOrder({ ...form, description: combinedDesc }, images, setProductLoading)
+
+    // 선택 마켓 기반 출력 언어 자동 결정
+    const marketLangs = [...new Set(selectedMarkets.map(m => LANG_FOR_MARKET[m] ?? 'ko'))]
+    const effectiveLang = selectedMarkets.length === 0 ? outputLang
+      : marketLangs.length > 1 ? 'all'
+      : marketLangs[0]
+
+    await submitOrder({ ...form, description: combinedDesc }, images, setProductLoading, effectiveLang as string)
   }
 
   // 양식 모드 제출
@@ -913,89 +957,157 @@ export default function NewOrderPage() {
           </h1>
         </div>
 
-        {/* ══ BENTO TOP ROW: Language + Crossborder ════════════ */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6">
+        {/* ══ UI LANGUAGE (compact) ════════════════════════════ */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
+          <div className="flex items-center gap-4 flex-wrap">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider shrink-0">{L.screenLangLabel}</p>
+            <div className="flex gap-1.5">
+              {LANGUAGES.map(lang => (
+                <button key={`ui-${lang.value}`} type="button"
+                  onClick={() => { const v = lang.value as UiLang; setUiLang(v); persistUiLang(v) }}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${uiLang === lang.value ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-sm' : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400'}`}
+                >{lang.label}</button>
+              ))}
+            </div>
+            <div className="w-px h-4 bg-gray-200" />
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider shrink-0">{L.langLabel}</p>
+            <div className="flex gap-1.5 flex-wrap">
+              {LANGUAGES.map(lang => (
+                <button key={lang.value} type="button" onClick={() => setOutputLang(lang.value)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${outputLang === lang.value && outputLang !== 'all' ? 'bg-[#0F172A] text-white border-[#0F172A]' : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400'}`}
+                >{lang.label}</button>
+              ))}
+              <button type="button" onClick={() => setOutputLang(outputLang === 'all' ? 'ko' : 'all')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-black border-2 transition-all flex items-center gap-1 ${
+                  outputLang === 'all'
+                    ? 'bg-emerald-500 text-white border-emerald-500'
+                    : 'bg-white text-emerald-600 border-dashed border-emerald-300 hover:bg-emerald-50'
+                }`}>
+                🌏 {outputLang === 'all' ? '✓ 4-Lang ON' : '4개 언어'}
+              </button>
+            </div>
+          </div>
+        </div>
 
-          {/* Language selector bento */}
-          <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {/* Screen lang */}
+        {/* ══ STEP 1: 마켓 선택 히어로 ════════════════════════════ */}
+        <div className="bg-white rounded-2xl border-2 border-blue-100 shadow-sm p-5 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-violet-600 rounded-xl flex items-center justify-center text-white text-xs font-black">1</div>
               <div>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2.5">{L.screenLangLabel}</p>
-                <div className="grid grid-cols-4 gap-1.5">
-                  {LANGUAGES.map(lang => (
-                    <button key={`ui-${lang.value}`} type="button"
-                      onClick={() => { const v = lang.value as UiLang; setUiLang(v); persistUiLang(v) }}
-                      className={`py-2 rounded-xl text-xs font-bold border transition-all ${uiLang === lang.value ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-sm' : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400'}`}
-                    >{lang.label}</button>
-                  ))}
-                </div>
+                <h2 className="text-sm font-black text-gray-900">
+                  {uiLang === 'ko' ? '마켓 선택' : uiLang === 'ja' ? 'マーケット選択' : uiLang === 'zh' ? '选择市场' : 'Select Markets'}
+                </h2>
+                <p className="text-[10px] text-gray-400 mt-0.5">
+                  {uiLang === 'ko' ? '판매할 플랫폼을 선택하면 AI가 자동 최적화합니다 (멀티 선택 가능)'
+                  : uiLang === 'ja' ? 'プラットフォームを選ぶとAIが自動最適化（複数選択可）'
+                  : uiLang === 'zh' ? '选择平台后AI自动优化内容（可多选）'
+                  : 'Select platforms and AI auto-optimizes for each (multi-select)'}
+                </p>
               </div>
-              {/* Output lang */}
-              <div>
-                <div className="flex items-center gap-2 mb-2.5">
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">{L.langLabel}</p>
-                  {outputLang === 'all' && <span className="text-[9px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">ACTIVE</span>}
-                </div>
-                <div className="grid grid-cols-4 gap-1.5 mb-2">
-                  {LANGUAGES.map(lang => (
-                    <button key={lang.value} type="button" onClick={() => setOutputLang(lang.value)}
-                      className={`py-2 rounded-xl text-xs font-bold border transition-all ${outputLang === lang.value && outputLang !== 'all' ? 'bg-[#0F172A] text-white border-[#0F172A]' : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400'}`}
-                    >{lang.label}</button>
-                  ))}
-                </div>
-                <button type="button" onClick={() => setOutputLang(outputLang === 'all' ? 'ko' : 'all')}
-                  className={`w-full py-2.5 rounded-xl text-xs font-black border-2 transition-all flex items-center justify-center gap-1.5 ${
-                    outputLang === 'all'
-                      ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm shadow-emerald-200'
-                      : 'bg-white text-gray-600 border-dashed border-emerald-300 hover:bg-emerald-50'
-                  }`}>
-                  🌏 {outputLang === 'all' ? '✓ 4-Lang ON (KR+EN+JP+CN)' : '4개 언어 동시 생성 (KR+EN+JP+CN)'}
+            </div>
+            {selectedMarkets.length > 0 && (
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full">
+                  {selectedMarkets.length}{uiLang === 'ko' ? '개 선택됨' : uiLang === 'ja' ? '個選択' : uiLang === 'zh' ? '个已选' : ' selected'}
+                </span>
+                <button type="button" onClick={() => { setSelectedMarkets([]); setCrossborderPlatforms([]); setCrossborderMode(false) }}
+                  className="text-[10px] text-gray-400 hover:text-red-500 font-bold transition-colors">
+                  {uiLang === 'ko' ? '초기화' : 'Clear'}
                 </button>
               </div>
+            )}
+          </div>
+
+          {/* Domestic markets */}
+          <div className="mb-3">
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">🇰🇷 {uiLang === 'ko' ? '국내 마켓' : 'Domestic (Korea)'}</p>
+            <div className="grid grid-cols-3 gap-2">
+              {MARKET_DATA.filter(m => m.group === 'domestic').map(m => {
+                const sel = selectedMarkets.includes(m.id)
+                return (
+                  <button key={m.id} type="button" onClick={() => toggleMarket(m.id)}
+                    className={`relative rounded-xl p-3 text-left border-2 transition-all group ${
+                      sel ? 'border-blue-500 bg-blue-50 shadow-sm shadow-blue-100' : 'border-gray-100 bg-gray-50 hover:border-blue-300 hover:bg-blue-50/50'
+                    }`}>
+                    {sel && <span className="absolute top-2 right-2 text-[9px] font-black text-blue-600">✓</span>}
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <span className="text-lg">{m.icon}</span>
+                      <span className={`text-xs font-black ${sel ? 'text-blue-700' : 'text-gray-700'}`}>{m.name}</span>
+                    </div>
+                    <p className="text-[9px] text-gray-400 leading-tight mb-1.5">{m.desc}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black" style={{ color: m.color }}>CVR {m.cvr}%</span>
+                      <span className="text-[9px] text-gray-300">{m.flag}</span>
+                    </div>
+                  </button>
+                )
+              })}
             </div>
           </div>
 
-          {/* Crossborder bento */}
-          <button type="button" onClick={() => setCrossborderMode(v => !v)}
-            className={`lg:col-span-2 rounded-2xl p-5 text-left transition-all border-2 ${
-              crossborderMode
-                ? 'bg-gradient-to-br from-emerald-500 to-teal-600 border-emerald-400 shadow-lg shadow-emerald-200 text-white'
-                : 'bg-white border-gray-100 shadow-sm hover:border-emerald-300 hover:shadow-md'
-            }`}>
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xl">🌏</span>
-                  <span className={`text-sm font-black ${crossborderMode ? 'text-white' : 'text-gray-900'}`}>
-                    {uiLang === 'ko' ? '크로스보더 모드' : uiLang === 'ja' ? 'クロスボーダー' : uiLang === 'zh' ? '跨境模式' : 'Cross-Border Mode'}
-                  </span>
-                  {crossborderMode && <span className="text-[9px] bg-white/25 text-white px-2 py-0.5 rounded-full font-black">ON</span>}
+          {/* Global markets */}
+          <div>
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">🌏 {uiLang === 'ko' ? '글로벌 마켓' : 'Global Markets'}</p>
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              {MARKET_DATA.filter(m => m.group === 'cross').map(m => {
+                const sel = selectedMarkets.includes(m.id)
+                return (
+                  <button key={m.id} type="button" onClick={() => toggleMarket(m.id)}
+                    className={`relative rounded-xl p-3 text-left border-2 transition-all ${
+                      sel ? 'border-violet-500 bg-violet-50 shadow-sm shadow-violet-100' : 'border-gray-100 bg-gray-50 hover:border-violet-300 hover:bg-violet-50/50'
+                    }`}>
+                    {sel && <span className="absolute top-2 right-2 text-[9px] font-black text-violet-600">✓</span>}
+                    <div className="flex items-center gap-1 mb-1">
+                      <span className="text-base">{m.icon}</span>
+                      <span className={`text-[10px] font-black truncate ${sel ? 'text-violet-700' : 'text-gray-700'}`}>{m.nameEn}</span>
+                    </div>
+                    <p className="text-[9px] text-gray-400 leading-tight mb-1.5 hidden sm:block">{m.desc}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black" style={{ color: m.color }}>CVR {m.cvr}%</span>
+                      <span className="text-[9px] text-gray-300">{m.flag}</span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* 선택된 마켓 요약 */}
+          {selectedMarkets.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <div className="flex items-start gap-3 bg-gradient-to-r from-blue-50 to-violet-50 rounded-xl p-3 border border-blue-100">
+                <span className="text-base shrink-0">⚡</span>
+                <div className="min-w-0">
+                  <p className="text-xs font-black text-gray-800 mb-1">
+                    {uiLang === 'ko' ? `${selectedMarkets.length}개 마켓 자동 최적화 활성화` : `${selectedMarkets.length} market optimization active`}
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {selectedMarkets.map(id => {
+                      const m = MARKET_DATA.find(x => x.id === id)
+                      if (!m) return null
+                      return (
+                        <span key={id} className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
+                          style={{ background: m.color }}>
+                          {m.icon} {m.nameEn}
+                        </span>
+                      )
+                    })}
+                  </div>
+                  {(() => {
+                    const marketLangs = [...new Set(selectedMarkets.map(id => LANG_FOR_MARKET[id] ?? 'ko'))]
+                    const effectiveLang = marketLangs.length > 1 ? 'all' : marketLangs[0]
+                    if (effectiveLang === 'all') return (
+                      <p className="text-[10px] text-emerald-600 font-bold mt-1.5">
+                        🌏 {uiLang === 'ko' ? '4개 언어 동시 생성 자동 활성화됩니다' : '4-language simultaneous generation auto-activated'}
+                      </p>
+                    )
+                    return null
+                  })()}
                 </div>
-                <p className={`text-xs ${crossborderMode ? 'text-emerald-100' : 'text-gray-400'}`}>
-                  Amazon · Tmall · Rakuten · Shopify
-                </p>
-              </div>
-              <div className={`w-11 h-6 rounded-full relative shrink-0 mt-0.5 transition-all ${crossborderMode ? 'bg-white/30' : 'bg-gray-200'}`}>
-                <div className={`absolute top-0.5 w-5 h-5 rounded-full shadow transition-all ${crossborderMode ? 'left-5 bg-white' : 'left-0.5 bg-gray-400'}`} />
               </div>
             </div>
-            {crossborderMode && (
-              <div className="mt-3 pt-3 border-t border-white/20">
-                <div className="flex flex-wrap gap-1.5">
-                  {[{id:'amazon',label:'Amazon JP'},{id:'tmall',label:'Tmall'},{id:'rakuten',label:'Rakuten'},{id:'shopify',label:'Shopify'},{id:'qoo10',label:'Qoo10'},{id:'lazada',label:'Lazada'}].map(pl => (
-                    <button key={pl.id} type="button"
-                      onClick={e => { e.stopPropagation(); toggleCrossborderPlatform(pl.id) }}
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all ${
-                        crossborderPlatforms.includes(pl.id) ? 'bg-white text-emerald-700 border-white' : 'bg-white/10 text-white border-white/25 hover:bg-white/20'
-                      }`}>
-                      {pl.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </button>
+          )}
         </div>
 
         {/* ══ MOBILE TAB SWITCHER ══════════════════════════════ */}
