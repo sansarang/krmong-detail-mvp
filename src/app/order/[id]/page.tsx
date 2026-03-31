@@ -57,6 +57,12 @@ interface Order {
     en?: { sections: Section[] }
     ja?: { sections: Section[] }
     zh?: { sections: Section[] }
+    platform_cvr?: {
+      market: string
+      estimated_cvr: number
+      seo_tip: string
+      all_markets?: { market: string; cvr: number }[]
+    }
   } | null
 }
 
@@ -2189,6 +2195,37 @@ export default function OrderResultPage() {
                   })}
                 </div>
                 <p className="text-[10px] text-indigo-300/70 font-medium mt-3 text-right">* {LABEL.note}</p>
+              </div>
+            )
+          })()}
+
+          {/* ── SEO TIP BANNER (platform_cvr 데이터 있을 시) ─────── */}
+          {(() => {
+            const pcvr = order.result_json?.platform_cvr as { market: string; estimated_cvr: number; seo_tip: string; all_markets?: { market: string; cvr: number }[] } | undefined
+            if (!pcvr?.seo_tip) return null
+            return (
+              <div className="mb-5 rounded-2xl border border-emerald-200/60 overflow-hidden">
+                <div className="flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100/60">
+                  <span className="text-base">🎯</span>
+                  <span className="text-xs font-black text-emerald-800">
+                    {uiLang==='ko'?`${pcvr.market} 노출 최적화 팁`:uiLang==='ja'?`${pcvr.market} SEO最適化ヒント`:uiLang==='zh'?`${pcvr.market} SEO优化建议`:`${pcvr.market} SEO Tip`}
+                  </span>
+                  <span className="ml-auto text-[10px] font-black text-emerald-600 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-full">
+                    {uiLang==='ko'?`예상 CVR ${pcvr.estimated_cvr}%`:`Est. CVR ${pcvr.estimated_cvr}%`}
+                  </span>
+                </div>
+                <div className="px-4 py-3 bg-white">
+                  <p className="text-xs text-gray-600 leading-relaxed">{pcvr.seo_tip}</p>
+                  {pcvr.all_markets && pcvr.all_markets.length > 1 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2.5">
+                      {pcvr.all_markets.map(m => (
+                        <span key={m.market} className="text-[10px] font-bold bg-gray-50 border border-gray-200 px-2 py-0.5 rounded-full text-gray-600">
+                          {m.market} {m.cvr}%
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )
           })()}

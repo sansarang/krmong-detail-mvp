@@ -326,137 +326,311 @@ RULES:
     // ── 마켓별 특화 섹션 가이드 오버라이드 ───────────────────
     const MARKET_SECTION_GUIDES: Record<string, string> = {
       smartstore: `
-[🏪 스마트스토어 — 모바일 세로형 긴 상세페이지]
+[🏪 스마트스토어 — 네이버 쇼핑 SEO + 모바일 세로형 상세페이지]
 
-⚠️ 스마트스토어 작성 원칙:
-• 모바일 최적화: 문단당 3~4줄 이내, 짧고 임팩트 있게
-• 이미지 삽입 마커 [IMAGE_N]을 본문 중간에 자연스럽게 배치
-• 소제목은 감성+숫자 조합으로, 과하지 않게 (6개 섹션 모두 다른 스타일)
+⚠️ 스마트스토어 필수 원칙:
+• 네이버 쇼핑 검색 노출: 제품명 핵심 키워드를 섹션 1~2에 자연스럽게 2~3회 삽입
+• 모바일 최적화: 문단당 3~4줄 이내, 긴 줄바꿈 대신 짧고 임팩트 있게
+• [IMAGE_N] 마커를 섹션 2, 3, 4에 배치 — 네이버 쇼핑 이미지 슬라이드 구조
+• 소제목은 감성+숫자 조합, 검색 키워드 자연 포함 (6개 모두 다른 스타일)
+• 뻔한 "~하시나요?" "~고민되시나요?" 패턴 절대 금지
 
-1. 후킹 헤드라인: 모바일 15자 내외의 강렬한 감성 질문 또는 선언 (뻔한 "~하시나요?" 패턴 금지)
-2. 브랜드 스토리: 감성적 배경 + 사용 전/후 대비를 스토리로 풀어냄 [IMAGE_1]
-3. 핵심 성분·소재·기능: ✓ 체크형 3~5가지 (각각 구체적 수치 포함) [IMAGE_2]
-4. 실구매 후기 & 인증: "OO명 선택", 수상이력, 미디어 언급 (신뢰 구체화) [IMAGE_3]
-5. 사용법 & 추천 대상: 단계별 + "이런 분께 딱" (공감 언어 사용)
-6. 구매 유도 CTA: 한정수량·오늘만특가·무료배송·즉시구매 — 감정적 긴박감`,
+1. 오프닝 훅: 모바일 첫 화면에서 즉시 스크롤 멈추게 하는 강렬한 선언 또는 숫자 (15자 내외)
+2. 브랜드 스토리 & 차별점: 감성적 배경 + 왜 이 제품인가 스토리로 풀기 [IMAGE_1]
+3. 핵심 성분·소재·기능: ✓ 체크형 4~5가지 (각 항목 구체적 수치 필수, 네이버 키워드 자연 삽입) [IMAGE_2]
+4. 실구매 후기 & 신뢰 신호: "N명 선택", 수상이력, 언론 보도, 미디어 언급 구체화 [IMAGE_3]
+5. 사용법 & 추천 대상: 단계별 + "이런 분께 딱" (공감 언어, SEO 롱테일 키워드 포함)
+6. 구매 유도 CTA: 한정수량·오늘만특가·무료배송·즉시구매 — 감정적 긴박감 + 재고 수량 암시`,
 
       naver_blog: `
-[📝 네이버 블로그 — 자연스러운 리뷰형 롱폼 글쓰기]
+[📝 네이버 블로그 — 검색 최상위 노출 리뷰형 롱폼]
 
-⚠️ 네이버 블로그 핵심 원칙 (반드시 준수):
-• 소제목(H2/H3)을 최소화 — 6개 섹션 중 소제목을 쓴다면 2~3개 이하로 제한
-• 소제목 없이 자연스러운 문단 전환으로 글 흐름 유지
-• 인간이 직접 쓴 리뷰처럼 — "저는~", "솔직히~", "처음엔~" 등 1인칭 경험 서술 권장
-• 글 중간에 [IMAGE_N] 마커로 사진을 자연스럽게 삽입
-• 과도한 줄바꿈·광고성 문구 지양, 독자가 끝까지 읽고 싶은 흐름 유지
+⚠️ 네이버 블로그 핵심 원칙 (절대 준수):
+• 소제목(H2/H3) 최소화 — 전체 6섹션 중 2개 이하로만 소제목 사용
+• 소제목 없이 자연스러운 문단 전환 — 독자가 소제목을 의식하지 못하게
+• 네이버 검색 SEO: 제품 핵심 키워드를 첫 단락에 자연스럽게 1~2회, 글 중간에 2~3회
+• 1인칭 경험 서술 권장: "저는~", "솔직히~", "처음엔~", "써보니~"
+• [IMAGE_N] 마커를 글 흐름상 자연스러운 위치에 삽입 (억지 삽입 금지)
+• 광고성 문구·과도한 줄바꿈 지양 — 독자가 끝까지 읽고 싶은 흐름 최우선
 
-1. 도입부: 개인 경험담 또는 공감되는 상황에서 시작 (소제목 없이 자연스럽게) [IMAGE_1 — 제품 전체]
-2. 첫인상 & 언박싱: 실제 받아본 느낌, 패키지 디테일, 기대감 (소제목 가볍게 또는 없이) [IMAGE_2]
-3. 실제 써보니: 솔직한 사용 경험, 체감 효과, 예상과 달랐던 점 (가장 긴 섹션) [IMAGE_3]
-4. 성분·스펙 분석: 전문적이지만 쉬운 언어로 — 독자 눈높이에 맞게
-5. 비교 & 추천 대상: 다른 선택지와 비교, "이런 분께 강추" (자연스럽게 이어짐)
-6. 마무리 & 구매 안내: 별점·총평 + 구매처 (광고성 느낌 없이 자연스럽게)`,
+1. 도입부: 제품을 처음 접하게 된 개인적 상황 또는 공감되는 일상에서 시작 (소제목 없이) [IMAGE_1]
+2. 첫인상 & 언박싱: 배송, 패키지 디테일, 첫 번째 느낌 — 실감나게 묘사 (소제목 있거나 없거나) [IMAGE_2]
+3. 실제 사용 경험 (가장 긴 섹션): 솔직한 사용기, 체감 효과, 예상과 달랐던 점, 며칠 사용 후 변화 [IMAGE_3]
+4. 성분·스펙·기술 분석: 전문적이지만 독자 눈높이 언어로 — 어려운 용어는 쉽게 풀어서
+5. 비교 & 추천 대상: 다른 제품과 비교, "이런 분들께 강추" — 자연스럽게 이어지는 흐름
+6. 마무리 총평: 솔직한 별점 이유 + 구매처 안내 (광고처럼 느껴지지 않게)`,
 
       coupang: `
-[🛒 쿠팡 — 스펙 중심 + A/S 강조 상세페이지]
+[🛒 쿠팡 — 스펙 직결형 + 로켓배송 신뢰 상세페이지]
 
 ⚠️ 쿠팡 작성 원칙:
-• 스펙·수치 중심 — 모호한 표현 없이 구체적 숫자로
-• 신뢰도 요소 전면 배치 (로켓배송, 반품정책, 후기수)
+• 스펙·수치 중심 — 모호한 표현 절대 없이 구체적 숫자로만
+• 신뢰도 요소 전면 배치 (로켓배송, 무료반품, 실구매 후기 수)
+• 쿠팡 검색 알고리즘: 제품명 키워드 + 카테고리 키워드를 섹션 1~2에 자연 포함
+• bullet points 적극 활용 — 모바일에서 빠르게 스캔되는 구조
 
-1. 핵심 요약: 3줄 핵심 특징 (번호 목록, 가격 경쟁력 명시)
-2. 상세 스펙: 크기·무게·소재·인증번호 수치 중심 (표 형식 권장)
-3. 주요 특징 5가지: ✓ 체크리스트 + 각 항목 구체적 수치
-4. 사용법 & 주의사항: 단계별 안내 + 보관법·주의문
-5. A/S & 교환·반품: 로켓배송 여부 + 무료반품 + 고객센터 정보
-6. 쿠팡에서 사야 하는 이유: 최저가 보장 + 빠른 배송 + 후기 수 강조`,
+1. 핵심 요약 (3줄): 제품의 핵심 가치 3가지를 번호 목록으로 — 가격 경쟁력 포함
+2. 상세 스펙: 크기·무게·소재·성능·인증번호 (수치 중심, 표 형식 권장)
+3. 주요 특징 5가지: ✓ 체크리스트 형식 + 각 항목 구체적 수치 + 경쟁 제품 대비 우위
+4. 사용법 & 주의사항: 단계별 사용법 + 보관법 + 안전 주의문
+5. A/S·교환·반품 정책: 로켓배송 여부 + 무료반품 조건 + AS 보증 기간 + 고객센터
+6. 쿠팡에서 사야 하는 이유: 최저가 보장 + 로켓배송 속도 + 실구매 후기 수 + 쿠팡캐시 혜택`,
+
+      elevenst: `
+[1️⃣ 11번가 — 할인·쿠폰 중심 전환율 최적화 상세페이지]
+
+⚠️ 11번가 작성 원칙:
+• 가격 경쟁력과 쿠폰·할인 혜택을 전면에 배치
+• SK페이, 할인쿠폰, 포인트 적립 등 11번가 전용 혜택 강조
+• 직관적 스펙 + 빠른 구매 결정 유도
+
+1. 가격 경쟁력 훅: "최대 N% 할인" + "쿠폰 적용 시 N원" — 즉시 눈에 띄는 혜택 선언
+2. 제품 핵심 특징: 3~4가지 핵심 기능·혜택 (✓ 체크형, 각 수치 포함)
+3. 상세 스펙: 크기·무게·소재·인증 등 구체적 수치 중심
+4. 11번가 전용 혜택: SK페이 할인 + 쿠폰 + 포인트 적립 + 무료배송 조건
+5. 사용법 & 추천 대상: 누구에게 어떤 상황에서 딱 맞는지 구체적으로
+6. 구매 유도 CTA: 오늘 안에 사야 하는 이유 + 재고 소진 임박 + 빠른 배송 강조`,
 
       amazon: `
-[🛍️ Amazon JP A+ Content — Bullet-first premium format]
+[🛍️ Amazon JP A+ Content — Benefit-first premium SEO format]
 
-⚠️ Amazon A+ 작성 원칙:
-• 소제목보다 BULLET POINTS가 핵심 — 각 bullet은 CAPITALIZED KEYWORD로 시작
-• 모든 주장은 수치로 증명 (%, 숫자, 인증)
-• 영어로 작성 시 passive voice 전면 금지
+⚠️ Amazon A+ 필수 원칙:
+• BULLET POINTS가 핵심 — 각 bullet은 CAPITALIZED KEYWORD로 시작 (Amazon algorithm SEO)
+• 모든 주장은 수치로 증명 (%, 숫자, 인증, 리뷰 수)
+• 일본어 작성 시 敬語 철저, 영어 작성 시 passive voice 전면 금지
+• Amazon JP SEO: 상품 title에 핵심 검색어 포함 (80자 이내), 섹션 1~2에 자연 키워드 포함
+• 신뢰 지수: 리뷰 수, 평점, 인증, 보증 기간을 구체적 수치로
 
-1. HOOK HEADLINE: One bold quantified benefit claim — shocking, specific, and believable
-2. [CAPITALIZED KEYWORD]: Primary benefit deep-dive — mechanism + proof + result
-3. [CAPITALIZED KEYWORD]: Quality/materials/certifications — specs, standards, test results
-4. [CAPITALIZED KEYWORD]: Versatility & use cases — who, when, how, results achieved
-5. SOCIAL PROOF: "★4.8 from 12,000+ verified buyers" + certifications + guarantee
-6. CTA + URGENCY: Add-to-Cart copy + limited stock signal + 30-day return guarantee`,
+1. HOOK HEADLINE: One bold, specific, quantified benefit claim (e.g. "Cuts drying time by 40% — proven by 12,000 buyers")
+2. PRIMARY BENEFIT — [CAPITALIZED KEYWORD]: Deep-dive on main value — mechanism + proof + before/after result
+3. QUALITY ASSURANCE — [CAPITALIZED KEYWORD]: Materials/certifications/manufacturing standards with specific specs
+4. VERSATILITY — [CAPITALIZED KEYWORD]: Who uses it, when, how, with real-world use case examples
+5. SOCIAL PROOF: "★4.8 from 12,000+ verified buyers" + certifications + guarantee + FBA/Prime eligibility
+6. PURCHASE CONFIDENCE + CTA: 30-day money-back + stock urgency + bundle options + secure checkout`,
 
       rakuten: `
-[🎏 楽天市場 — 丁寧・品質・安心の詳細ページ]
+[🎏 楽天市場 — 丁寧語・品質・季節感・ポイント戦略詳細ページ]
 
 ⚠️ 楽天 執筆原則:
-• 丁寧語・敬語を徹底 — 素直で誠実なトーン
-• 品質へのこだわりと職人技を具体的数値で表現
-• 小見出しは簡潔に、礼儀正しい言葉で (全6セクション異なるスタイル)
+• 丁寧語・敬語を徹底 — 誠実で礼儀正しいトーン (タメ口・若者言葉は絶対NG)
+• 楽天SEO: 商品名＋用途＋特徴キーワードを自然に組み合わせ (楽天内検索最適化)
+• 品質・職人技・こだわりを具体的数値で表現 (「0.1mm精密加工」等)
+• 季節感必須: 「乾燥が気になる季節に」「大切な方へのギフトに最適」
+• ポイント還元・送料無料・楽天スーパーセール情報を必ず言及
 
-1. キャッチコピー: 品質と価格の両立 (楽天ランキング実績があれば具体的に記載)
-2. 商品の特長: ✓リスト3〜5項目 (各項目に数値データ必須)
-3. 品質保証: 素材・製造・検査プロセス + 職人のこだわりを人間的に語る
-4. 使い方・シーン提案: 季節別・用途別の具体的な場面描写 [IMAGE_1]
-5. お客様の声: 実際の購入者体験 (具体的エピソード含む) + 累計販売数
-6. 購入特典 & CTA: 送料無料条件 + ポイント還元率 + 今すぐ購入`,
+1. キャッチコピー: 楽天ランキング実績 or 品質と価格の両立 (数値・実績を具体的に)
+2. 商品の特長: ✓リスト4〜5項目 (各項目に数値データ + 丁寧語で)
+3. 品質・素材・製造へのこだわり: 職人技・検査工程・素材の由来を人間的に語る
+4. 使い方・季節別シーン提案: 季節感 + 贈り物シーン + 用途別場面描写 [IMAGE_1]
+5. お客様の声と実績: 購入者の具体的なエピソード + 累計販売数 + 楽天レビュー評価
+6. 楽天購入特典 & CTA: ポイント還元率 + 送料無料条件 + スーパーセール情報 + 今すぐご注文`,
 
       tmall: `
-[🏮 天猫A+详情页 — 爆款三角公式]
+[🏮 天猫A+详情页 — 爆款三角公式 × 社交证明 × 场景化]
 
 ⚠️ 天猫 写作原则:
-• 标题5字以内冲击力 — 不啰嗦，直接打心理
-• 社交证明必须出现具体数据
-• 场景化描述 — 让读者代入生活场景
+• 标题5字以内高冲击力 — 直接打动心理，不啰嗦
+• 社交证明必须有具体数据: "已售XX万件" "XX位达人推荐" "好评率99.8%"
+• 场景化描述: 让读者代入自己的日常生活
+• 天猫SEO: 热搜关键词自然融入标题和卖点描述
+• 正品保障 + 7天无理由必须出现
 
-1. 主图文案: 5字以内高冲击标题 + 核心卖点一句话 (如"轻奢必备·全网爆款")
-2. 品牌故事与品质: 品牌背书 + 原材料/工艺细节 + 正品保障 (用讲故事方式)
-3. 核心卖点×3: 每卖点配场景描述 + 数据证明 [IMAGE_1][IMAGE_2][IMAGE_3]
-4. 社交证明: "已售XX万件" + KOL/达人推荐 + 买家真实反馈精选
-5. 使用场景: 通勤/约会/送礼/自用场景化 — 让读者看到自己的生活
-6. 促销CTA: 限时特价 + 满减活动 + 7天无理由退换 + 立即抢购`,
+1. 主图爆款文案: 5字以内冲击力标题 + 核心卖点一句话 (如"轻奢必备·全网爆款100万+")
+2. 品牌背书与品质故事: 品牌历史·正品背书·原材料/工艺细节 (用讲故事方式，不说教)
+3. 三大核心卖点: 每卖点配场景描述 + 数据证明 + 实拍图说明 [IMAGE_1][IMAGE_2][IMAGE_3]
+4. 社交证明爆炸: "已售XX万件" + KOL/达人种草截图 + 微博/小红书话题 + 买家真实反馈精选
+5. 使用场景化: 通勤·约会·送礼·自用·出差场景 — 让读者看到自己的生活
+6. 促销CTA: 限时秒杀价 + 满减活动规则 + 正品保障 + 7天无理由退换 + 顺丰包邮 + 立即抢购`,
+
+      shopify: `
+[💻 Shopify — Brand Story + Meta SEO + Lifestyle Premium]
+
+⚠️ Shopify 작성 원칙:
+• Brand Storytelling First — why this brand exists, the founder's mission, values
+• Meta SEO: 첫 섹션에 primary keyword 자연 포함, meta description용 핵심 문장 포함
+• 감성 + 전문성 균형 — 라이프스타일 브랜드 느낌
+• CTA는 soft한 초대형으로 — "shop now"보다 "discover yours", "join N,000 customers"
+
+1. BRAND HERO: The brand's origin story — why it was created, what problem it solves uniquely
+2. THE PRODUCT STORY: How this specific item embodies the brand's philosophy (sensory + emotional)
+3. WHAT'S INSIDE / HOW IT WORKS: Materials, craftsmanship, specifications (data-driven but warm)
+4. STYLED FOR YOUR LIFE: Use cases, lifestyle contexts, who it's perfect for + styling suggestions
+5. SOCIAL PROOF + COMMUNITY: Customer testimonials, UGC mentions, press features, review count
+6. INVITE TO PURCHASE: Soft but compelling CTA — free shipping threshold, money-back, loyalty program`,
+
+      qoo10: `
+[🏬 Qoo10 — ディール中心・簡潔・価格訴求詳細ページ]
+
+⚠️ Qoo10 執筆原則:
+• 価格競争力とセール情報を最前面に — 「今だけ」「限定」「特価」
+• 日本語は丁寧だが簡潔に — 長すぎる説明は避ける
+• Qoo10 Mega Week・クーポン情報を積極的に言及
+• 信頼感: セラー評価、配送速度、返品保証を明記
+
+1. 特価アピール: 「本日限定N%OFF」「クーポン適用でX円」 — 価格の魅力を即座に
+2. 商品ハイライト: 3〜4つの主要特徴 (✓リスト + 各数値)
+3. 詳細スペック: サイズ・重量・素材・認証など具体的数値
+4. Qoo10特典: Mega Week対象 + クーポン + ポイント + 送料条件
+5. 使い方・対象者: 誰にどんな場面でぴったりか具体的に
+6. 安心保証 & CTA: 返品保証 + セラー評価 + 在庫わずか + 今すぐ購入`,
+
+      lazada: `
+[📦 Lazada — Southeast Asia Price-Competitive Product Page]
+
+⚠️ Lazada 작성 원칙:
+• Southeast Asia (SG, MY, TH, ID, PH, VN) 다국적 소비자 타겟
+• 가격 경쟁력 + 빠른 배송 + Lazada Guarantee 전면 강조
+• 영어 기본, 간결하고 스캔 가능한 구조
+• Flash Sale, Voucher, Coins Cashback 등 Lazada 플랫폼 혜택 언급
+
+1. PRODUCT HIGHLIGHTS (5 bullets): Core benefits, key specs, and unique selling points — numbered list
+2. WHY CHOOSE THIS: Quality differentiators vs. competitors + verified purchase count
+3. DETAILED SPECIFICATIONS: Full spec table — dimensions, weight, materials, certifications
+4. HOW TO USE: Step-by-step guide + tips for best results
+5. LAZADA GUARANTEE: Free returns, buyer protection, official store verification + delivery speed
+6. DEAL & CTA: Flash sale price + Voucher codes + Coins cashback + limited stock urgency`,
+
+      temu: `
+[🌟 Temu — Global Ultra-Value Fast-Ship Product Description]
+
+⚠️ Temu 작성 원칙:
+• 가격 경쟁력이 최우선 — "unbeatable price", "free shipping", "best deal"
+• 빠른 배송 강조 — warehouse location, estimated delivery
+• 간결하고 직접적 — 긴 설명보다 핵심 benefit 나열
+• 트렌드 키워드 자연 포함 (viral, trending, popular)
+
+1. VALUE HEADLINE: Price + free shipping + trending badge (e.g. "🔥 #1 Trending — 50,000+ Sold, Free Ship")
+2. TOP FEATURES: 4~5 key benefits in bullet format — each with a specific number or fact
+3. PRODUCT SPECS: Dimensions, materials, what's included in the package
+4. WHY TEMU: Free return policy + buyer protection + authentic product guarantee
+5. BEST FOR: Who needs this + use cases + gifting suitability
+6. GRAB YOURS: Limited quantity signal + shipping time estimate + shop with confidence badge`,
+
+      aliexpress: `
+[🧧 AliExpress — Global Bulk & Value Shopping Description]
+
+⚠️ AliExpress 작성 원칙:
+• 글로벌 바이어 타겟 (영어 기본) — 대량 구매, 도매, 리셀러도 고려
+• 상세한 스펙 + 패키지 내용물 + MOQ (minimum order quantity) 정보
+• Buyer Protection, Free Return, AliExpress Standard Shipping 강조
+• 진짜 리뷰와 판매량 수치 포함
+
+1. PRODUCT OVERVIEW: Core product with key specs — weight, size, material, color options
+2. KEY FEATURES (5 bullets): Main benefits with specific data — each bullet one clear advantage
+3. PACKAGE CONTENTS: Exactly what's included, quantities, accessories
+4. QUALITY CERTIFICATIONS: CE/FCC/RoHS certifications, quality control process, factory info
+5. SHIPPING & PROTECTION: AliExpress Standard Shipping ETA + tracking + buyer protection
+6. ORDER NOW + BULK PRICING: Quantity discounts + wholesale price tiers + secure payment`,
+
+      shein: `
+[👗 SHEIN — Fast Fashion Trend-Driven Product Description]
+
+⚠️ SHEIN 작성 원칙:
+• 트렌드와 패션 감각이 핵심 — "on-trend", "style inspo", "OOTD"
+• 젊은 감각의 짧고 임팩트 있는 문장 (Z세대 타겟)
+• 컬러·핏·소재·스타일링 팁 중심
+• Social proof: 리뷰 수, "New Arrival", "Sold Out Fast" 배지
+
+1. STYLE HOOK: Trend badge + aesthetic vibe description (e.g. "Y2K vibes / cottagecore / clean girl aesthetic")
+2. THE FIT & FABRIC: Exact measurements, material feel, size guide advice, stretch/structure
+3. STYLE IT WITH: 3 outfit combinations + occasion suggestions + accessory pairings
+4. DETAILS: Specific product details — closures, pockets, lining, care instructions
+5. CUSTOMER STYLE INSPO: Review highlights + customer photo mentions + star rating
+6. ADD TO CART: Restock urgency + size selling fast + "complete the look" cross-sell hint`,
     }
 
     // 선택된 마켓이 있으면 sectionGuide를 마켓별로 오버라이드
     const primaryMarket = selectedMarkets.find((m: string) => MARKET_SECTION_GUIDES[m])
     if (primaryMarket && !isDocType) {
       sectionGuide = MARKET_SECTION_GUIDES[primaryMarket]
+      // 복수 마켓 선택 시 보조 마켓 힌트 추가
+      const secondaryMarkets = selectedMarkets.filter((m: string) => m !== primaryMarket && MARKET_SECTION_GUIDES[m])
+      if (secondaryMarkets.length > 0) {
+        sectionGuide += `\n\n[추가 최적화 마켓: ${secondaryMarkets.join(', ')} — 해당 플랫폼 규칙도 가능한 한 반영]`
+      }
+    }
+
+    // ── CVR 예측 데이터 (마켓 × 카테고리 기반) ────────────────
+    const CVR_BASE: Record<string, number> = {
+      smartstore: 4.2, naver_blog: 3.8, coupang: 3.5, elevenst: 3.1,
+      amazon: 5.3, rakuten: 4.7, tmall: 6.9, shopify: 4.5,
+      qoo10: 4.2, lazada: 3.9, temu: 4.1, aliexpress: 3.7, shein: 4.6,
+    }
+    const CVR_CAT_BONUS: Record<string, number> = {
+      beauty: 0.8, fashion: 0.6, health: 0.5, food: 0.3,
+      electronics: 0.4, sports: 0.3, living: 0.2,
+    }
+    const computeCvr = (market: string, cat: string) => {
+      const base = CVR_BASE[market] ?? 3.5
+      const bonus = CVR_CAT_BONUS[cat] ?? 0
+      return +(base + bonus).toFixed(1)
+    }
+
+    const SEO_TIPS: Record<string, string> = {
+      smartstore: '네이버 쇼핑 노출을 위해 상품명에 핵심 키워드를 앞쪽에 배치하고, 상품 설명 첫 단락에 2~3회 자연스럽게 반복하세요.',
+      naver_blog: '네이버 검색 노출을 위해 포스트 제목에 핵심 키워드 + 경험/후기 단어를 조합하고, 본문 길이를 1500자 이상 유지하세요.',
+      coupang: '쿠팡 검색 알고리즘은 제품명 완성도와 리뷰 수를 중시합니다. 상품명에 브랜드 + 제품명 + 주요 스펙을 포함하세요.',
+      elevenst: '11번가 검색 최적화: 상품명에 주요 키워드 포함, 할인쿠폰·혜택을 상단에 명확히 표시하세요.',
+      amazon: 'Amazon JP SEO: title에 brand + main keyword + key specs (80자 내), backend keywords 활용, 리뷰 획득 전략이 노출 순위의 핵심입니다.',
+      rakuten: '楽天検索最適化: 商品名にカテゴリー＋ブランド＋用途キーワードを含め、レビュー件数と評価が検索順位に直結します。',
+      tmall: '天猫搜索优化：标题前20字必须含核心搜索词，主图首图直接展示核心卖点，买家好评率和DSR评分影响搜索排名。',
+      shopify: 'Shopify SEO: meta title (60자)에 primary keyword, meta description (160자)에 CTA 포함, URL slug를 영문 키워드로 설정하세요.',
+      qoo10: 'Qoo10 검색 최적화: 상품명에 일본어 검색 키워드 포함, Mega Week 기간에 노출 부스팅이 크게 증가합니다.',
+      lazada: 'Lazada SEO: product title에 brand + category keyword + key feature, primary image에 white background 권장.',
+      temu: 'Temu visibility: 가격 경쟁력이 노출의 핵심입니다. Free shipping threshold를 충족하면 노출이 크게 올라갑니다.',
+      aliexpress: 'AliExpress SEO: title에 exact-match 영어 키워드, 첫 이미지가 클릭율을 결정합니다. 리뷰 수가 노출에 직접 영향.',
+      shein: 'SHEIN 노출: 트렌드 키워드와 시즌 태그를 적극 활용하고, 상품 이미지 퀄리티와 스타일링이 클릭율을 결정합니다.',
     }
 
     // ── 타겟 마켓 문화 로컬라이징 ────────────────────────────
     const CULTURAL_CONTEXT: Record<string, string> = {
-      ko: `[🇰🇷 한국 내수 시장 — 스마트스토어 / 쿠팡 / 무신사 최적화]
-TONE: 감성적 스토리텔링 + 구매 심리 자극 + 신뢰 구축
-- 고객의 핵심 고민에 먼저 공감하고 "이 제품이 정확한 해결책"임을 자연스럽게 연결
-- 신뢰 요소 필수 포함: 누적 판매량, 언론보도/수상내역, 실구매자 후기 (구체적 수치 포함)
-- 구매 촉진 트리거: 한정수량, 오늘만 특가, 무료배송+당일출고, 첫 구매 특별 혜택
-- 스마트스토어 SEO: 제품 핵심 키워드를 제목/첫 문단에 자연스럽게 2~3회 반복
-- CTA: "지금 바로", "오늘 안에", "선착순 마감" 패턴으로 즉각 행동 유도`,
-      en: `[🇺🇸🌎 Global English Market — Amazon A+ / Shopify Premium Optimization]
-TONE: Bold benefit-first, premium lifestyle brand storytelling, direct & punchy
-- OPEN with a specific, quantified benefit claim (e.g. "Cuts drying time by 40% — proven by 12,000 buyers")
-- Amazon A+ Content structure: Hook → Problem Agitation → Solution Reveal → 5 Feature Bullets → Social Proof → CTA
-- Feature bullets MUST start with a CAPITALIZED benefit keyword (e.g. "ULTRA-LIGHTWEIGHT:", "CLINICALLY PROVEN:")
-- Trust signals: "4.8★ from 12,000+ verified reviews", FDA/CE certifications, before/after statistics
-- Urgency & FOMO: "Only 47 left in stock", "Ships within 24 hours", "30-Day money-back guarantee"
-- Zero passive voice — every sentence must be active, direct, and conversion-optimized`,
-      ja: `[🇯🇵 日本市場 — 楽天市場 / Yahoo!ショッピング / Amazon.co.jp プレミアム最適化]
-TONE: 丁寧語・敬語を徹底、礼儀正しく誠実、品質と職人技を強調
-- 品質・精度・職人技・細部へのこだわりを具体的数値で表現（例：「0.1mmの精密加工」）
-- 季節感と使用シーンを必ず明記：「乾燥が気になる季節に」「大切な方へのギフトにも最適」
-- 実績と信頼の証拠：「累計○万本突破」「お客様満足度98.7%」「楽天デイリーランキング1位獲得」
-- 安心保証を強調：「全品検品済み」「品質保証付き」「お問い合わせ24時間対応」「返品・交換無料」
-- 楽天SEO: 商品名＋用途＋特徴を自然に組み合わせ、「レビュー高評価」「人気」等の長尾キーワードを活用`,
-      zh: `[🇨🇳 中国市场 — 天猫 / 淘宝 / 京东 A+详情页爆款公式]
-TONE: 高端品质感 × 社会认同 × 限时紧迫 = 爆款三角公式
-- 开篇必须用5字以内的高冲击力标题（如"轻奢爆款"、"全网热销"、"国货之光"）
-- 社交证明硬数据：「已售XX万件」「好评率99.8%」「XX位达人种草推荐」「微博热搜话题」
-- 场景化痛点描述：在具体日常场景（通勤、约会、送礼、自用犒劳）中展示产品使用价值
-- 品质与正品背书：「正品保障」「官方旗舰店直营」「7天无理由退换」「顺丰快递包邮」
-- 限时促销必须出现：「限时秒杀」「今日特惠」「满减优惠」「新品首发价」
-- 关键词埋点：将天猫/淘宝热搜词自然融入各卖点标题和描述中`,
+      ko: `[🇰🇷 한국 내수 시장 — 스마트스토어 / 쿠팡 / 네이버 최적화]
+TONE: 감성적 스토리텔링 + 구체적 신뢰 구축 + 구매 심리 자극
+SEO 필수: 제품 핵심 키워드를 첫 섹션에 자연스럽게 2~3회, 이후 섹션에도 자연스럽게 분산
+- 고객의 핵심 고민에 먼저 공감 → "이 제품이 정확한 해결책"임을 스토리로 연결
+- 신뢰 요소 필수: 누적 판매량 수치, 언론보도/수상내역, 실구매자 후기 (구체적 숫자)
+- 구매 촉진: 한정수량·오늘만특가·무료배송+당일출고·첫구매특별혜택
+- CTA: "지금 바로", "오늘 안에", "선착순 마감" — 즉각 행동 유도
+- 인간적 문체: AI 특유의 "이 제품은 여러분의 삶을 바꿔드릴..." 같은 과장 금지`,
+      en: `[🇺🇸🌎 Global English Market — Amazon JP A+ / Shopify Premium]
+TONE: Bold benefit-first, premium lifestyle, direct & conversion-optimized
+SEO: Primary keyword natural in first 150 chars + in 3+ section titles/bodies
+- OPEN with specific quantified benefit (e.g. "Cuts drying time by 40% — proven by 12,000 buyers")
+- Amazon A+ structure: Hook → Feature Bullets (CAPITALIZED KEYWORD start) → Social Proof → CTA
+- Trust signals: "★4.8 from 12,000+ verified reviews", certifications, money-back guarantee
+- Urgency: "Only 47 left", "Ships within 24 hours", "30-day money-back guarantee"
+- Zero passive voice — active, direct, conversion-optimized throughout
+- NO generic phrases: "high quality", "premium product", "great value" — replace with specific facts`,
+      ja: `[🇯🇵 日本市場 — 楽天市場 / Amazon.co.jp / Yahoo!ショッピング最適化]
+TONE: 丁寧語・敬語を徹底、誠実で礼儀正しい、品質と安心を前面に
+SEO: 商品名＋用途＋カテゴリーキーワードを最初のセクションに自然に含める
+- 品質・精度・職人技を具体的数値で：「0.1mmの精密加工」「20工程の品質検査」
+- 季節感と贈り物シーンを必ず言及：「乾燥が気になる季節に」「大切な方へのギフトにも」
+- 実績と信頼数値：「累計○万本突破」「満足度98.7%」「楽天ランキング1位獲得」
+- 安心保証：「全品検品済み」「30日間返品保証」「24時間サポート」
+- 人間的な文体: 過度にフォーマルすぎず、誠実なお店の人が語りかけるように`,
+      zh: `[🇨🇳 中国市场 — 天猫旗舰店 / 淘宝 / 京东A+详情页]
+TONE: 高端品质感 × 社交证明 × 场景化 × 限时紧迫 = 爆款公式
+SEO: 天猫热搜关键词自然融入标题前20字和各卖点描述中
+- 开篇必须: 5字以内冲击力标题 (如"轻奢爆款"·"全网热销"·"国货之光")
+- 社交证明硬数据必须出现: "已售XX万件" "好评率99.8%" "XX位达人种草"
+- 场景化: 通勤·约会·送礼·自用·出差 — 让读者在场景中看到自己
+- 正品背书: "正品保障" "官方旗舰店直营" "7天无理由退换" "顺丰包邮"
+- 限时促销: "限时秒杀" "今日特惠" "满减活动" — 必须出现
+- 禁止: 过于生硬的翻译腔，太正式的书面语`,
     }
     const culturalContext = !isDocType ? (CULTURAL_CONTEXT[outputLang] ?? '') : ''
+
+    // ── 플랫폼 CVR 예측 계산 ─────────────────────────────────
+    const platformCvrData = primaryMarket ? {
+      market: primaryMarket,
+      estimated_cvr: computeCvr(primaryMarket, order.category),
+      seo_tip: SEO_TIPS[primaryMarket] ?? '',
+      all_markets: selectedMarkets.map((m: string) => ({
+        market: m,
+        cvr: computeCvr(m, order.category),
+      })),
+    } : null
 
     // ── 크로스보더 플랫폼별 추가 섹션 가이드 ────────────────
     const PLATFORM_GUIDE: Record<string, string> = {
@@ -603,7 +777,11 @@ Output JSON only (no other text, no markdown):
         })
       )
 
-      const multiResult: Record<string, unknown> = { multi_lang: true, output_lang: 'all' }
+      const multiResult: Record<string, unknown> = {
+        multi_lang: true,
+        output_lang: 'all',
+        ...(platformCvrData ? { platform_cvr: platformCvrData } : {}),
+      }
       for (const { lang, sections } of langResults) {
         multiResult[lang] = { sections }
       }
@@ -681,6 +859,7 @@ JSON만 출력 (마크다운 없이, 앞뒤 텍스트 없이):
     const result = {
       sections: parsed.sections,
       output_lang: outputLang,
+      ...(platformCvrData ? { platform_cvr: platformCvrData } : {}),
     }
 
     await supabase
