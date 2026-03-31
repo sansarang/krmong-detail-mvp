@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 import { BLOG_POSTS } from '@/lib/blog'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = 'https://krmong-detail-mvp.vercel.app'
+  const base = 'https://pagebeer.beer'
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: base, lastModified: new Date(), changeFrequency: 'weekly', priority: 1 },
