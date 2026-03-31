@@ -526,6 +526,7 @@ export default function NewOrderPage() {
   const [crossborderMode, setCrossborderMode] = useState(false)
   const [crossborderPlatforms, setCrossborderPlatforms] = useState<string[]>([])
   const [activeTab, setActiveTab] = useState<'product' | 'template'>('product')
+  const [catSearch, setCatSearch] = useState('')
   const docInputRef     = useRef<HTMLInputElement>(null)
   const templateFileRef = useRef<HTMLInputElement>(null)
 
@@ -593,6 +594,10 @@ export default function NewOrderPage() {
 
   const L = UI[uiLang]
   const CATEGORIES = CAT_GROUPS[uiLang]
+  const allCatItems = CATEGORIES.flatMap(g => g.items)
+  const filteredCats = catSearch
+    ? allCatItems.filter(c => c.label.toLowerCase().includes(catSearch.toLowerCase()))
+    : null
   const isDocCat = DOC_CATS.includes(form.category)
   const remaining = Math.max(FREE_LIMIT - monthlyUsed, 0)
   const usagePct  = Math.min((monthlyUsed / FREE_LIMIT) * 100, 100)
@@ -839,12 +844,6 @@ export default function NewOrderPage() {
   }
 
   const POPULAR = POPULAR_CATS[uiLang]
-
-  const [catSearch, setCatSearch] = useState('')
-  const allCatItems = CATEGORIES.flatMap(g => g.items)
-  const filteredCats = catSearch
-    ? allCatItems.filter(c => c.label.toLowerCase().includes(catSearch.toLowerCase()))
-    : null
 
   return (
     <main className="min-h-screen bg-[#F8FAFC]">
