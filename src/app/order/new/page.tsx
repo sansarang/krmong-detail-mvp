@@ -517,6 +517,12 @@ export default function NewOrderPage() {
   const [tmplRefInfo, setTmplRefInfo]       = useState('')
   const [urlInput, setUrlInput]             = useState('')
   const [urlLoading, setUrlLoading]         = useState(false)
+  const [urlLoadingStep, setUrlLoadingStep] = useState('')
+  const [scrapedExtra, setScrapedExtra]     = useState<{
+    brand?: string; price?: string; original_price?: string
+    features?: string[]; keywords?: string[]; image_urls?: string[]
+    colors?: string[]; sizes?: string[]; material?: string; target_customer?: string
+  } | null>(null)
   const [crossborderMode, setCrossborderMode] = useState(false)
   const [crossborderPlatforms, setCrossborderPlatforms] = useState<string[]>([])
   const [activeTab, setActiveTab] = useState<'product' | 'template'>('product')
@@ -699,6 +705,20 @@ export default function NewOrderPage() {
   async function handleUrlScrape() {
     if (!urlInput.trim()) return
     setUrlLoading(true)
+    setScrapedExtra(null)
+
+    const steps = [
+      uiLang === 'ko' ? '페이지 분석 중...' : uiLang === 'ja' ? 'ページ分析中...' : uiLang === 'zh' ? '页面分析中...' : 'Analyzing page...',
+      uiLang === 'ko' ? '제품 정보 추출 중...' : uiLang === 'ja' ? '製品情報を抽出中...' : uiLang === 'zh' ? '提取产品信息...' : 'Extracting product info...',
+      uiLang === 'ko' ? 'AI가 최적화 중...' : uiLang === 'ja' ? 'AIが最適化中...' : uiLang === 'zh' ? 'AI优化中...' : 'AI optimizing...',
+    ]
+    let stepIdx = 0
+    setUrlLoadingStep(steps[0])
+    const stepTimer = setInterval(() => {
+      stepIdx = (stepIdx + 1) % steps.length
+      setUrlLoadingStep(steps[stepIdx])
+    }, 1800)
+
     try {
       const res = await fetch('/api/scrape-url', {
         method: 'POST',
@@ -707,40 +727,86 @@ export default function NewOrderPage() {
       })
       const data = await res.json()
 
-      // 완전 차단 (422 restricted)
+      // 완전 차단
       if (res.status === 422 && data.restricted) {
-        toast.error('이 사이트는 자동 수집이 제한되어 있어요. 제품명과 설명을 직접 입력해 주세요.', { duration: 5000 })
+        toast.error(
+          uiLang === 'ko' ? '이 사이트는 자동 수집이 제한되어 있어요. 제품명과 설명을 직접 입력해 주세요.'
+          : uiLang === 'ja' ? 'このサイトは自動取得が制限されています。直接入力してください。'
+          : uiLang === 'zh' ? '该网站限制自动采集，请直接输入产品信息。'
+          : 'This site restricts auto-scraping. Please enter product info manually.',
+          { duration: 5000 }
+        )
         return
       }
 
       if (!res.ok) throw new Error(data.error)
 
-      // 정보 채우기
       const hasData = data.product_name || data.category || data.description
-      if (!hasData) throw new Error('제품 정보를 찾을 수 없습니다.')
+      if (!hasData) throw new Error(
+        uiLang === 'ko' ? '제품 정보를 찾을 수 없습니다.' : 'Could not extract product info.'
+      )
 
+      // 기본 폼 채우기
       setForm(prev => ({
         product_name: data.product_name || prev.product_name,
         category: data.category || prev.category,
-        description: data.description || prev.description,
+        description: (() => {
+          // description에 brand + features 추가 보강
+          let desc = data.description || prev.description
+          if (data.brand && !desc.includes(data.brand)) {
+            desc = `브랜드: ${data.brand}\n` + desc
+          }
+          if (Array.isArray(data.features) && data.features.length > 0 && desc.length < 400) {
+            desc += '\n\n주요 특징:\n' + data.features.map((f: string) => `• ${f}`).join('\n')
+          }
+          return desc.trim()
+        })(),
       }))
 
+      // 추가 정보 저장 (브랜드, 가격, 키워드, 이미지 등)
+      setScrapedExtra({
+        brand: data.brand,
+        price: data.price,
+        original_price: data.original_price,
+        features: data.features,
+        keywords: data.keywords,
+        image_urls: data.image_urls,
+        colors: data.colors,
+        sizes: data.sizes,
+        material: data.material,
+        target_customer: data.target_customer,
+      })
+
       if (data.partial) {
-        toast.success('일부 정보만 가져왔습니다. 내용을 확인하고 보완해 주세요.', { duration: 5000 })
+        toast.success(
+          uiLang === 'ko' ? '일부 정보를 가져왔습니다. 내용을 확인하고 보완해 주세요. ✏️'
+          : uiLang === 'ja' ? '一部の情報を取得しました。内容を確認・補足してください。'
+          : uiLang === 'zh' ? '已获取部分信息，请确认并补充。'
+          : 'Partial info fetched. Please review and complete.',
+          { duration: 6000 }
+        )
       } else {
-        toast.success('제품 정보를 자동으로 가져왔습니다!')
+        toast.success(
+          uiLang === 'ko' ? '✅ 제품 정보를 자동으로 가져왔습니다! 수정이 필요하면 아래에서 편집하세요.'
+          : uiLang === 'ja' ? '✅ 製品情報を自動取得しました！必要に応じて編集してください。'
+          : uiLang === 'zh' ? '✅ 产品信息已自动填写！如需修改请在下方编辑。'
+          : '✅ Product info auto-filled! Edit below if needed.',
+          { duration: 5000 }
+        )
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'URL 분석 실패'
-      const isBlocked = msg.includes('제한') || msg.includes('429') || msg.includes('403')
+      const isBlocked = msg.includes('제한') || msg.includes('429') || msg.includes('403') || msg.includes('restrict')
       toast.error(
         isBlocked
-          ? '이 사이트는 자동 수집이 제한되어 있어요. 제품명과 설명을 직접 입력해 주세요.'
+          ? (uiLang === 'ko' ? '이 사이트는 자동 수집이 제한되어 있어요. 제품명과 설명을 직접 입력해 주세요.' : 'Auto-scraping restricted. Please enter info manually.')
           : msg,
         { duration: 5000 }
       )
     } finally {
+      clearInterval(stepTimer)
       setUrlLoading(false)
+      setUrlLoadingStep('')
     }
   }
 
@@ -1020,21 +1086,24 @@ export default function NewOrderPage() {
               <p className="text-xs text-gray-400">{L.colProdDesc}</p>
             </div>
 
-            {/* URL 자동 입력 — 크고 눈에 띄게 */}
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-2">
+            {/* URL 자동 입력 */}
+            <div className={`rounded-2xl p-4 border-2 transition-all ${urlLoading ? 'bg-blue-50 border-blue-300' : 'bg-blue-50 border-blue-200'}`}>
+              <div className="flex items-center gap-2 mb-2.5">
                 <span className="text-lg">🔗</span>
                 <label className="text-sm font-black text-blue-800">
                   {uiLang === 'ko' ? 'URL 자동 입력' : uiLang === 'ja' ? 'URL自動入力' : uiLang === 'zh' ? 'URL自动填写' : 'Auto-fill from URL'}
                 </label>
                 <span className="text-[10px] font-bold bg-blue-200 text-blue-700 px-2 py-0.5 rounded-full">AI</span>
+                <span className="text-[10px] text-blue-500 ml-auto hidden sm:block">
+                  {uiLang === 'ko' ? 'Nike · 스마트스토어 · Shopify · Tmall' : 'Nike · Smartstore · Shopify · Tmall'}
+                </span>
               </div>
               <div className="flex gap-2">
                 <input
                   type="url"
-                  placeholder={uiLang === 'ko' ? '스마트스토어·Amazon·Tmall URL 붙여넣기...' : uiLang === 'ja' ? '楽天·Amazon·Yahoo!ショッピングURL...' : uiLang === 'zh' ? '天猫·淘宝·Amazon URL粘贴...' : 'Amazon · Shopify · Tmall URL...'}
+                  placeholder={uiLang === 'ko' ? '스마트스토어·Nike·Shopify·Tmall URL 붙여넣기...' : uiLang === 'ja' ? '楽天·Amazon·Shopify URL...' : uiLang === 'zh' ? '天猫·Shopify·Nike URL粘贴...' : 'Amazon · Nike · Shopify · Tmall URL...'}
                   value={urlInput}
-                  onChange={e => setUrlInput(e.target.value)}
+                  onChange={e => { setUrlInput(e.target.value); setScrapedExtra(null) }}
                   onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleUrlScrape())}
                   className="flex-1 border border-blue-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white min-h-[48px]"
                 />
@@ -1042,13 +1111,137 @@ export default function NewOrderPage() {
                   type="button"
                   onClick={handleUrlScrape}
                   disabled={urlLoading || !urlInput.trim()}
-                  className="bg-blue-600 text-white px-5 py-3 rounded-xl text-sm font-black hover:bg-blue-700 disabled:opacity-40 transition-all whitespace-nowrap flex items-center gap-2 min-h-[48px]"
+                  className="bg-blue-600 text-white px-5 py-3 rounded-xl text-sm font-black hover:bg-blue-700 disabled:opacity-40 transition-all whitespace-nowrap flex items-center gap-2 min-h-[48px] shadow-sm"
                 >
                   {urlLoading
-                    ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />{L.urlLoading}</>
+                    ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /><span className="hidden sm:inline">{urlLoadingStep || L.urlLoading}</span></>
                     : <><span>⚡</span>{uiLang === 'ko' ? '자동 입력' : uiLang === 'ja' ? '自動入力' : uiLang === 'zh' ? '自动填写' : 'Auto-fill'}</>}
                 </button>
               </div>
+
+              {/* 로딩 진행 바 */}
+              {urlLoading && (
+                <div className="mt-3">
+                  <div className="h-1 bg-blue-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-500 rounded-full animate-[loading_2s_ease-in-out_infinite]" style={{ width: '60%' }} />
+                  </div>
+                  <p className="text-xs text-blue-600 font-medium mt-1.5 text-center">{urlLoadingStep}</p>
+                </div>
+              )}
+
+              {/* 스크래핑 결과 미니카드 */}
+              {scrapedExtra && !urlLoading && (
+                <div className="mt-3 bg-white border border-blue-100 rounded-xl p-3 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-blue-700">
+                      ✅ {uiLang === 'ko' ? '추출된 정보' : uiLang === 'ja' ? '取得した情報' : uiLang === 'zh' ? '提取的信息' : 'Extracted Info'}
+                    </span>
+                    <button type="button" onClick={() => setScrapedExtra(null)} className="text-gray-400 hover:text-gray-600 text-xs">✕</button>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {scrapedExtra.brand && (
+                      <span className="text-[11px] bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full font-bold">
+                        🏷 {scrapedExtra.brand}
+                      </span>
+                    )}
+                    {scrapedExtra.price && (
+                      <span className="text-[11px] bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-bold">
+                        💰 {scrapedExtra.price}
+                        {scrapedExtra.original_price && scrapedExtra.original_price !== scrapedExtra.price && (
+                          <s className="ml-1 text-gray-400">{scrapedExtra.original_price}</s>
+                        )}
+                      </span>
+                    )}
+                    {scrapedExtra.material && (
+                      <span className="text-[11px] bg-orange-50 text-orange-600 px-2.5 py-1 rounded-full font-bold">
+                        🧵 {scrapedExtra.material}
+                      </span>
+                    )}
+                    {scrapedExtra.target_customer && (
+                      <span className="text-[11px] bg-violet-50 text-violet-600 px-2.5 py-1 rounded-full font-bold">
+                        👤 {scrapedExtra.target_customer}
+                      </span>
+                    )}
+                  </div>
+
+                  {scrapedExtra.features && scrapedExtra.features.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">
+                        {uiLang === 'ko' ? '주요 특징' : uiLang === 'ja' ? '主な特徴' : uiLang === 'zh' ? '主要特点' : 'Features'}
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {scrapedExtra.features.slice(0, 5).map((f, i) => (
+                          <span key={i} className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-lg">• {f}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {scrapedExtra.keywords && scrapedExtra.keywords.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">
+                        {uiLang === 'ko' ? 'SEO 키워드' : 'Keywords'}
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {scrapedExtra.keywords.slice(0, 8).map((k, i) => (
+                          <span key={i} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-lg">#{k}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {(scrapedExtra.colors?.length || scrapedExtra.sizes?.length) ? (
+                    <div className="flex gap-4">
+                      {scrapedExtra.colors && scrapedExtra.colors.length > 0 && (
+                        <div>
+                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">
+                            {uiLang === 'ko' ? '색상' : 'Colors'}
+                          </p>
+                          <div className="flex flex-wrap gap-1">
+                            {scrapedExtra.colors.map((c, i) => (
+                              <span key={i} className="text-[10px] bg-pink-50 text-pink-600 px-2 py-0.5 rounded-lg">{c}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {scrapedExtra.sizes && scrapedExtra.sizes.length > 0 && (
+                        <div>
+                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">
+                            {uiLang === 'ko' ? '사이즈' : 'Sizes'}
+                          </p>
+                          <div className="flex flex-wrap gap-1">
+                            {scrapedExtra.sizes.map((s, i) => (
+                              <span key={i} className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-lg">{s}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
+
+                  {scrapedExtra.image_urls && scrapedExtra.image_urls.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">
+                        {uiLang === 'ko' ? '제품 이미지 URL (복사해서 사용)' : 'Image URLs'}
+                      </p>
+                      <div className="space-y-1 max-h-20 overflow-y-auto">
+                        {scrapedExtra.image_urls.map((url, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={url} alt="" className="w-8 h-8 object-cover rounded-lg border border-gray-200 shrink-0" />
+                            <button type="button"
+                              onClick={() => navigator.clipboard.writeText(url).then(() => toast.success('이미지 URL 복사됨'))}
+                              className="flex-1 text-left text-[9px] text-gray-500 truncate hover:text-blue-600 transition-colors">
+                              {url}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* 제품명 */}
