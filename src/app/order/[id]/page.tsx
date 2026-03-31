@@ -1948,8 +1948,8 @@ export default function OrderResultPage() {
                       <span className="text-[10px] text-emerald-400 font-bold">LIVE</span>
                     </div>
                     {order.result_json?.template_mode && (
-                      <span className="text-[10px] font-black bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2.5 py-1 rounded-full">
-                        📋 {uiLang==='ko'?'양식 자동완성':'Form Auto-fill'}
+                      <span className="text-[10px] font-black bg-indigo-500/25 text-indigo-200 border border-indigo-400/40 px-3 py-1 rounded-full">
+                        📋 {uiLang==='ko'?'양식 자동완성 · AI 문서':uiLang==='ja'?'書類自動完成':uiLang==='zh'?'表格自动填写':'Form Auto-Fill · AI Document'}
                       </span>
                     )}
                     {order.result_json?.multi_lang && (
@@ -2193,15 +2193,124 @@ export default function OrderResultPage() {
             )
           })()}
 
-          {/* PDF target — section cards (2026 premium redesign) */}
-          <div ref={previewRef} className="space-y-5">
+          {/* ── TEMPLATE MODE: Document-style section cards ──────── */}
+          {order.result_json?.template_mode && (
+            <div className="mb-5 print:hidden">
+              <div className="relative overflow-hidden rounded-2xl border border-indigo-200/60 px-5 py-4 flex items-center gap-4"
+                style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%)' }}>
+                <div className="w-10 h-10 rounded-2xl bg-indigo-500/15 border border-indigo-500/20 flex items-center justify-center text-xl shrink-0">📋</div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-black text-indigo-700 uppercase tracking-wider mb-0.5">
+                    {uiLang==='ko'?'양식 자동 완성 결과':uiLang==='ja'?'書類自動完成結果':uiLang==='zh'?'表格自动填写结果':'Form Auto-Fill Result'}
+                  </p>
+                  <p className="text-xs text-indigo-500 leading-relaxed">
+                    {uiLang==='ko'?'AI가 업로드한 양식의 구조를 분석하고 각 항목을 전문가 수준으로 작성했습니다. 항목을 클릭하면 직접 수정할 수 있습니다.':
+                     uiLang==='ja'?'AIがアップロードされた書類の構造を分析し、各項目をプロレベルで作成しました。':
+                     uiLang==='zh'?'AI已分析上传表格结构，并以专家水准填写了每个字段。点击字段可直接编辑。':
+                     'AI analyzed your uploaded form structure and filled every field at expert level. Click any field to edit.'}
+                  </p>
+                </div>
+                <div className="shrink-0 flex flex-col gap-1 items-end">
+                  <span className="text-[10px] font-black bg-emerald-500 text-white px-2.5 py-1 rounded-full">
+                    {sections.length} {uiLang==='ko'?'항목':'fields'}
+                  </span>
+                  <span className="text-[10px] font-black bg-indigo-100 text-indigo-600 px-2.5 py-1 rounded-full border border-indigo-200">
+                    {uiLang==='ko'?'클릭해서 수정':'Click to edit'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* PDF target — section cards */}
+          <div ref={previewRef} className={order.result_json?.template_mode ? 'space-y-3' : 'space-y-5'}>
             {sections.map((section, i) => {
               const accent = ACCENT_COLORS[i % ACCENT_COLORS.length]
               const accentNext = ACCENT_COLORS[(i + 1) % ACCENT_COLORS.length]
               const isEditing = editingId === section.id
               const isFirst = i === 0
               const isLast = i === sections.length - 1
+              const isTemplate = order.result_json?.template_mode
 
+              // ── TEMPLATE MODE: Document field card ───────────────
+              if (isTemplate) {
+                return (
+                  <div key={section.id} id={`section-${i}`}
+                    className={`group relative bg-white overflow-hidden transition-all duration-200 cursor-pointer
+                      ${isEditing
+                        ? 'rounded-2xl border-2 border-indigo-400 shadow-lg shadow-indigo-500/10 ring-2 ring-indigo-400/10'
+                        : 'rounded-2xl border border-indigo-100 hover:border-indigo-200 hover:shadow-md'
+                      }`}
+                    onClick={() => setEditingId(isEditing ? null : section.id)}
+                  >
+                    {/* Field label bar — looks like a form field */}
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-indigo-50"
+                      style={{ background: 'linear-gradient(135deg, #f5f3ff, #eef2ff)' }}>
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black text-white shrink-0"
+                          style={{ background: `linear-gradient(135deg, ${accent}, ${accentNext})` }}>
+                          {i + 1}
+                        </div>
+                        <span className="text-xs font-black text-indigo-700 uppercase tracking-wider">{section.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {isEditing ? (
+                          <span className="text-[10px] text-indigo-600 font-black bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full animate-pulse">
+                            {p.editing}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity font-bold">
+                            ✎ {uiLang==='ko'?'수정':'edit'}
+                          </span>
+                        )}
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
+                          AI ✓
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Field title (= form item title) */}
+                    <div className="px-5 pt-4 pb-2">
+                      {isEditing ? (
+                        <input value={section.title}
+                          onChange={e => updateSection(section.id, 'title', e.target.value)}
+                          onClick={e => e.stopPropagation()}
+                          className="w-full text-base font-bold text-gray-800 bg-indigo-50 border border-indigo-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400 mb-3 transition-all"
+                        />
+                      ) : (
+                        <p className="text-[11px] font-black text-gray-400 mb-2 uppercase tracking-wider">{section.title}</p>
+                      )}
+
+                      {/* AI-filled content area */}
+                      {isEditing ? (
+                        <textarea value={section.body}
+                          onChange={e => updateSection(section.id, 'body', e.target.value)}
+                          onClick={e => e.stopPropagation()}
+                          rows={5}
+                          className="w-full text-sm text-gray-700 bg-indigo-50/60 border border-indigo-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none leading-relaxed transition-all"
+                        />
+                      ) : (
+                        <div className="bg-indigo-50/40 border border-indigo-100/60 rounded-xl px-4 py-3">
+                          <p className="text-sm text-gray-700 leading-[1.75] whitespace-pre-line">{section.body}</p>
+                        </div>
+                      )}
+
+                      {isEditing && (
+                        <div className="flex items-center justify-between mt-2 pb-2">
+                          <span className="text-[10px] text-gray-400">{section.body.length.toLocaleString()} {uiLang==='ko'?'자':'chars'}</span>
+                          <button type="button" onClick={e => { e.stopPropagation(); setEditingId(null) }}
+                            className="text-[10px] font-black text-indigo-600 hover:text-indigo-800 transition-colors">
+                            ✓ {uiLang==='ko'?'완료':'Done'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    {!isEditing && <div className="h-3" />}
+                  </div>
+                )
+              }
+
+              // ── PRODUCT PAGE MODE: Premium section card ───────────
               return (
                 <div key={section.id} id={`section-${i}`}
                   style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}
@@ -2220,13 +2329,11 @@ export default function OrderResultPage() {
                     {/* Section meta row */}
                     <div className="flex items-center justify-between mb-5">
                       <div className="flex items-center gap-3">
-                        {/* Number badge */}
                         <div className="w-8 h-8 rounded-xl flex items-center justify-center text-[11px] font-black text-white shrink-0"
                           style={{ background: `linear-gradient(135deg, ${accent}, ${accentNext})` }}>
                           {String(i + 1).padStart(2, '0')}
                         </div>
-                        <span className="text-[11px] font-black uppercase tracking-[0.14em]"
-                          style={{ color: accent }}>
+                        <span className="text-[11px] font-black uppercase tracking-[0.14em]" style={{ color: accent }}>
                           {section.name}
                         </span>
                       </div>
@@ -2263,11 +2370,9 @@ export default function OrderResultPage() {
                       </h2>
                     )}
 
-                    {/* Divider */}
                     <div className="w-12 h-[2px] rounded-full mb-5 opacity-60"
                       style={{ background: `linear-gradient(90deg, ${accent}, transparent)` }} />
 
-                    {/* Body */}
                     {isEditing ? (
                       <textarea value={section.body}
                         onChange={e => updateSection(section.id, 'body', e.target.value)}
@@ -2276,12 +2381,9 @@ export default function OrderResultPage() {
                         className="w-full text-[15px] text-gray-600 bg-blue-50/50 border border-blue-200 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none leading-[1.8] transition-all"
                       />
                     ) : (
-                      <p className="text-[15px] text-gray-600 leading-[1.85] whitespace-pre-line">
-                        {section.body}
-                      </p>
+                      <p className="text-[15px] text-gray-600 leading-[1.85] whitespace-pre-line">{section.body}</p>
                     )}
 
-                    {/* Bottom: char count when editing */}
                     {isEditing && (
                       <div className="flex items-center justify-between mt-3 pt-3 border-t border-blue-100">
                         <span className="text-[10px] text-gray-400">{section.body.length.toLocaleString()}{uiLang==='ko'?'자':'chars'}</span>
@@ -2293,7 +2395,6 @@ export default function OrderResultPage() {
                     )}
                   </div>
 
-                  {/* Hover: left accent line */}
                   <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-3xl opacity-0 group-hover:opacity-100 transition-all duration-300"
                     style={{ background: `linear-gradient(180deg, ${accent}, ${accentNext})` }} />
                 </div>

@@ -1163,8 +1163,23 @@ export default function NewOrderPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
 
           {/* ── LEFT: 양식 자동 작성 (완전 리뉴얼) ──────────── */}
+          <div className={`relative ${activeTab !== 'template' ? 'hidden md:block' : ''}`}>
+          {/* 비활성 오버레이 — 데스크탑에서 product 탭 활성 시 */}
+          {activeTab === 'product' && (
+            <div className="absolute inset-0 z-10 rounded-2xl bg-gray-900/75 backdrop-blur-[2px] flex flex-col items-center justify-center gap-3 border border-gray-700/50">
+              <span className="text-3xl">📋</span>
+              <p className="text-white font-black text-sm">{uiLang==='ko'?'양식 자동 작성':'Form Auto-Fill'}</p>
+              <p className="text-gray-400 text-xs text-center max-w-[180px]">
+                {uiLang==='ko'?'제품 AI 작성과 동시에 사용할 수 없습니다. 탭을 전환하세요.':uiLang==='ja'?'同時使用不可。タブを切り替えてください。':uiLang==='zh'?'不能同时使用。请切换标签。':'Cannot use both at once. Switch tab to activate.'}
+              </p>
+              <button type="button" onClick={() => setActiveTab('template')}
+                className="mt-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black px-4 py-2 rounded-xl transition-all">
+                {uiLang==='ko'?'양식 작성으로 전환':'Switch to Form Fill'}
+              </button>
+            </div>
+          )}
           <form onSubmit={handleTemplateSubmit}
-            className={`rounded-2xl overflow-hidden border border-indigo-100 shadow-lg ${activeTab !== 'template' ? 'hidden md:block' : ''}`}
+            className="rounded-2xl overflow-hidden border border-indigo-100 shadow-lg"
             style={{ background: 'linear-gradient(160deg, #f8f7ff 0%, #ffffff 60%)' }}>
 
             {/* Header gradient banner */}
@@ -1342,9 +1357,26 @@ export default function NewOrderPage() {
             </div>
           </form>
 
+          </div>{/* end template wrapper */}
+
           {/* ── RIGHT: 제품 AI 작성 ──────────────────────────── */}
+          <div className={`relative ${activeTab !== 'product' ? 'hidden md:block' : ''}`}>
+          {/* 비활성 오버레이 — 데스크탑에서 template 탭 활성 시 */}
+          {activeTab === 'template' && (
+            <div className="absolute inset-0 z-10 rounded-2xl bg-gray-900/75 backdrop-blur-[2px] flex flex-col items-center justify-center gap-3 border border-gray-700/50">
+              <span className="text-3xl">📦</span>
+              <p className="text-white font-black text-sm">{uiLang==='ko'?'제품 AI 작성':'Product AI'}</p>
+              <p className="text-gray-400 text-xs text-center max-w-[180px]">
+                {uiLang==='ko'?'양식 자동 작성과 동시에 사용할 수 없습니다. 탭을 전환하세요.':uiLang==='ja'?'同時使用不可。タブを切り替えてください。':uiLang==='zh'?'不能同时使用。请切换标签。':'Cannot use both at once. Switch tab to activate.'}
+              </p>
+              <button type="button" onClick={() => setActiveTab('product')}
+                className="mt-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black px-4 py-2 rounded-xl transition-all">
+                {uiLang==='ko'?'제품 작성으로 전환':'Switch to Product AI'}
+              </button>
+            </div>
+          )}
           <form onSubmit={handleProductSubmit}
-            className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5 ${activeTab !== 'product' ? 'hidden md:block' : ''}`}>
+            className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5">
 
             <div>
               <span className="inline-flex items-center gap-1.5 text-[10px] font-black text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full mb-3">
@@ -1665,6 +1697,7 @@ export default function NewOrderPage() {
               )}
             </div>
           </form>
+          </div>{/* end product wrapper */}
 
         </div>
       </div>
