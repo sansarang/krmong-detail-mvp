@@ -1197,6 +1197,10 @@ export default function OrderResultPage() {
   const [competitorOpen, setCompetitorOpen] = useState(false)
   const [rightTab, setRightTab] = useState<'publish'|'copy'|'tools'>('publish')
   const [mobileToolsOpen, setMobileToolsOpen] = useState(false)
+  const [photoOptOpen, setPhotoOptOpen] = useState(true)
+  const [photoPresets, setPhotoPresets] = useState<Record<string, string>>({})
+  const [photoProcessing, setPhotoProcessing] = useState<string | null>(null)
+  const [deployOpen, setDeployOpen] = useState(false)
 
   const PLATFORMS = platformsForLang(uiLang)
   const t = ORDER_RESULT_UI[uiLang]
@@ -1432,6 +1436,76 @@ export default function OrderResultPage() {
     a.click()
     URL.revokeObjectURL(url)
     toast.success(p.toastTxtOk)
+  }
+
+  // ── Canvas-based image resize ─────────────────────────────────────────
+  async function resizeImageToDataUrl(src: string, w: number, h: number): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        canvas.width = w; canvas.height = h
+        const ctx = canvas.getContext('2d')
+        if (!ctx) { reject(new Error('no ctx')); return }
+        // letterbox with white bg
+        ctx.fillStyle = '#ffffff'
+        ctx.fillRect(0, 0, w, h)
+        const ratio = Math.min(w / img.width, h / img.height)
+        const rw = img.width * ratio
+        const rh = img.height * ratio
+        ctx.drawImage(img, (w - rw) / 2, (h - rh) / 2, rw, rh)
+        resolve(canvas.toDataURL('image/jpeg', 0.92))
+      }
+      img.onerror = reject
+      img.src = src
+    })
+  }
+
+  const PHOTO_MARKET_PRESETS = [
+    { id: 'smartstore', label: '스마트스토어', icon: '🟢', w: 1000, h: 1000, desc: '1000×1000 정사각형' },
+    { id: 'coupang',    label: '쿠팡',         icon: '🟡', w: 1200, h: 1200, desc: '1200×1200 정사각형' },
+    { id: 'amazon',     label: 'Amazon JP',    icon: '🟠', w: 2000, h: 2000, desc: '2000×2000 흰배경 필수' },
+    { id: 'tmall',      label: 'Tmall',        icon: '🔴', w: 800,  h: 800,  desc: '800×800 고화질' },
+    { id: 'rakuten',    label: '楽天',          icon: '🔴', w: 1080, h: 1080, desc: '1080×1080' },
+    { id: 'shopify',    label: 'Shopify',      icon: '🟢', w: 2048, h: 2048, desc: '2048×2048 권장' },
+    { id: 'qoo10',      label: 'Qoo10',        icon: '🔵', w: 600,  h: 600,  desc: '600×600 최소' },
+  ]
+
+  async function handlePhotoResize(preset: typeof PHOTO_MARKET_PRESETS[0]) {
+    const imgs = order?.image_urls ?? []
+    if (!imgs.length) { toast.error('업로드된 사진이 없습니다'); return }
+    setPhotoProcessing(preset.id)
+    try {
+      const JSZip = (await import('jszip')).default
+      const zip = new JSZip()
+      const folder = zip.folder(preset.id)!
+      for (let i = 0; i < imgs.length; i++) {
+        const dataUrl = await resizeImageToDataUrl(imgs[i], preset.w, preset.h)
+        const base64 = dataUrl.split(',')[1]
+        folder.file(`photo_${i + 1}_${preset.w}x${preset.h}.jpg`, base64, { base64: true })
+      }
+      const readme = [
+        `${preset.label} 최적화 사진 — ${order?.product_name ?? ''}`,
+        `크기: ${preset.w}×${preset.h}px`,
+        `파일 수: ${imgs.length}장`,
+        ``,
+        `Powered by PageAI (pagebeer.beer)`,
+      ].join('\n')
+      zip.file('README.txt', readme)
+      const blob = await zip.generateAsync({ type: 'blob' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `photos_${preset.id}_${preset.w}x${preset.h}.zip`
+      a.click()
+      URL.revokeObjectURL(url)
+      toast.success(`📸 ${preset.label} 최적화 완료! ${imgs.length}장 다운로드`)
+    } catch {
+      toast.error('이미지 처리 중 오류가 발생했습니다')
+    } finally {
+      setPhotoProcessing(null)
+    }
   }
 
   async function handleDownloadZip() {
@@ -2159,6 +2233,165 @@ export default function OrderResultPage() {
               {/* PUBLISH TAB */}
               {rightTab === 'publish' && (
                 <>
+                  {/* ── 📸 사진 자동 편집·배치 패널 ─────────────────── */}
+                  <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                    <button type="button" onClick={() => setPhotoOptOpen(o => !o)}
+                      className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-xl">📸</span>
+                        <div className="text-left">
+                          <p className="text-sm font-black text-gray-900">
+                            {uiLang==='ko'?'사진 자동 편집·배치':'Photo Auto-Optimize'}
+                          </p>
+                          <p className="text-[10px] text-gray-400 mt-0.5">
+                            {uiLang==='ko'?'마켓별 1클릭 리사이즈 · ZIP 다운로드':'1-click resize per market · ZIP download'}
+                          </p>
+                        </div>
+                        {(order?.image_urls?.length ?? 0) > 0 && (
+                          <span className="text-[10px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full">
+                            {order?.image_urls?.length}장
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-gray-300 text-xs">{photoOptOpen ? '▲' : '▼'}</span>
+                    </button>
+                    {photoOptOpen && (
+                      <div className="border-t border-gray-100 p-4">
+                        {(order?.image_urls?.length ?? 0) === 0 ? (
+                          <div className="text-center py-6">
+                            <p className="text-4xl mb-2">🖼️</p>
+                            <p className="text-sm font-bold text-gray-500 mb-1">
+                              {uiLang==='ko'?'업로드된 사진이 없습니다':'No photos uploaded'}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {uiLang==='ko'?'제품 작성 시 사진을 업로드하면 여기서 마켓별로 자동 최적화됩니다':'Upload photos when creating a product to auto-optimize them per market'}
+                            </p>
+                          </div>
+                        ) : (
+                          <>
+                            {/* 이미지 미리보기 */}
+                            <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
+                              {(order?.image_urls ?? []).map((url, i) => (
+                                <div key={i} className="shrink-0 w-16 h-16 rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={url} alt={`photo ${i+1}`} className="w-full h-full object-cover" />
+                                </div>
+                              ))}
+                              <div className="shrink-0 flex items-center px-2">
+                                <span className="text-xs text-gray-400 font-bold">{order?.image_urls?.length}장</span>
+                              </div>
+                            </div>
+                            {/* 마켓별 프리셋 버튼 */}
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">
+                              {uiLang==='ko'?'마켓별 1클릭 최적화':'1-click per market'}
+                            </p>
+                            <div className="space-y-2">
+                              {PHOTO_MARKET_PRESETS.map(preset => (
+                                <button key={preset.id} type="button"
+                                  onClick={() => handlePhotoResize(preset)}
+                                  disabled={photoProcessing === preset.id}
+                                  className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-all group disabled:opacity-50">
+                                  <div className="flex items-center gap-2.5">
+                                    <span className="text-base">{preset.icon}</span>
+                                    <div className="text-left">
+                                      <p className="text-xs font-black text-gray-800 group-hover:text-indigo-700 transition-colors">{preset.label}</p>
+                                      <p className="text-[10px] text-gray-400">{preset.desc}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    {photoProcessing === preset.id ? (
+                                      <span className="w-4 h-4 border-2 border-indigo-400/30 border-t-indigo-500 rounded-full animate-spin" />
+                                    ) : (
+                                      <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 group-hover:bg-indigo-100 border border-indigo-200 px-2.5 py-1 rounded-lg transition-colors">
+                                        {uiLang==='ko'?'1클릭 변환':'1-click'}
+                                      </span>
+                                    )}
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                            <p className="text-[10px] text-gray-400 mt-3 text-center">
+                              {uiLang==='ko'?'선택한 마켓에 맞는 크기로 자동 변환 후 ZIP 다운로드':'Auto-resize to platform spec → ZIP download'}
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ── 🚀 자동 배포 패널 ────────────────────────────── */}
+                  <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                    <button type="button" onClick={() => setDeployOpen(o => !o)}
+                      className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-xl">🚀</span>
+                        <div className="text-left">
+                          <p className="text-sm font-black text-gray-900">
+                            {uiLang==='ko'?'자동 배포 · 1클릭 발행':'Auto Deploy · 1-click Publish'}
+                          </p>
+                          <p className="text-[10px] text-gray-400 mt-0.5">
+                            {uiLang==='ko'?'플랫폼별 최적화 HTML+사진 패키지':'Platform-optimized HTML+photo package'}
+                          </p>
+                        </div>
+                        <span className="text-[10px] font-black bg-blue-500 text-white px-2 py-0.5 rounded-full shrink-0">NEW</span>
+                      </div>
+                      <span className="text-gray-300 text-xs">{deployOpen ? '▲' : '▼'}</span>
+                    </button>
+                    {deployOpen && (
+                      <div className="border-t border-gray-100 p-4 space-y-2.5">
+                        {/* ZIP 다운로드 */}
+                        <div className="bg-gradient-to-r from-indigo-50 to-violet-50 rounded-xl p-3 border border-indigo-100">
+                          <p className="text-xs font-black text-indigo-700 mb-2">
+                            📦 {uiLang==='ko'?'전체 패키지 다운로드':'Full Package Download'}
+                          </p>
+                          <p className="text-[10px] text-indigo-500 mb-3">
+                            {uiLang==='ko'?'4개국어 콘텐츠 + 최적화 HTML + 발행 가이드':'4-lang content + optimized HTML + publishing guide'}
+                          </p>
+                          <button type="button" onClick={handleDownloadZip}
+                            className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black transition-all flex items-center justify-center gap-1.5">
+                            ⬇️ {uiLang==='ko'?'ZIP 전체 다운로드':'Download ZIP'}
+                          </button>
+                        </div>
+
+                        {/* 플랫폼별 배포 */}
+                        {[
+                          { id: 'naver_blog', label: uiLang==='ko'?'네이버 블로그':'Naver Blog', icon: '🟢', status: 'api', hint: uiLang==='ko'?'API 연동 예정 — 지금은 HTML 복사':'API coming — copy HTML now' },
+                          { id: 'shopify',    label: 'Shopify',            icon: '🛍️', status: 'api', hint: uiLang==='ko'?'Shopify API 연동 예정':'Shopify API coming' },
+                          { id: 'smartstore', label: uiLang==='ko'?'스마트스토어':'Smartstore', icon: '🏪', status: 'guide', hint: uiLang==='ko'?'발행 가이드 + HTML 복사':'Publishing guide + HTML copy' },
+                          { id: 'amazon',     label: 'Amazon JP A+',       icon: '🟠', status: 'guide', hint: uiLang==='ko'?'A+ Content 가이드 포함':'Includes A+ Content guide' },
+                          { id: 'tmall',      label: 'Tmall 详情页',        icon: '🔴', status: 'guide', hint: uiLang==='ko'?'天猫 상세페이지 가이드':'Tmall detail page guide' },
+                        ].map(pl => (
+                          <button key={pl.id} type="button"
+                            onClick={() => {
+                              if (pl.status === 'api') {
+                                toast.success(uiLang==='ko'?`${pl.label} 배포는 준비 중입니다. HTML을 복사해서 직접 발행하세요.`:`${pl.label} auto-deploy coming soon. Copy HTML to publish.`)
+                              } else {
+                                handleDownloadZip()
+                              }
+                            }}
+                            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group">
+                            <div className="flex items-center gap-2.5">
+                              <span>{pl.icon}</span>
+                              <div className="text-left">
+                                <p className="text-xs font-black text-gray-800">{pl.label}</p>
+                                <p className="text-[10px] text-gray-400">{pl.hint}</p>
+                              </div>
+                            </div>
+                            <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg ${
+                              pl.status === 'api'
+                                ? 'bg-blue-50 text-blue-600 border border-blue-200'
+                                : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                            }`}>
+                              {pl.status === 'api'
+                                ? (uiLang==='ko'?'준비 중':'Coming')
+                                : (uiLang==='ko'?'ZIP 다운':'ZIP')}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                   <ComplianceScanPanel findings={complianceFindings} disclosurePack={complianceDisclosurePack}
                     open={complianceOpen} onToggle={() => setComplianceOpen(o => !o)} ui={t} industryBadge={complianceIndustryBadge} />
                   {channelKitContent && (
@@ -2299,6 +2532,52 @@ export default function OrderResultPage() {
             <div className="overflow-y-auto flex-1 p-4 space-y-3">
               {rightTab === 'publish' && (
                 <>
+                  {/* 사진 최적화 (모바일) */}
+                  <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+                    <button type="button" onClick={() => setPhotoOptOpen(o => !o)}
+                      className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-2.5">
+                        <span>📸</span>
+                        <p className="text-sm font-black text-gray-900">
+                          {uiLang==='ko'?'사진 자동 편집·배치':'Photo Auto-Optimize'}
+                        </p>
+                        {(order?.image_urls?.length ?? 0) > 0 && (
+                          <span className="text-[10px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full">{order?.image_urls?.length}장</span>
+                        )}
+                      </div>
+                      <span className="text-gray-300 text-xs">{photoOptOpen ? '▲' : '▼'}</span>
+                    </button>
+                    {photoOptOpen && (order?.image_urls?.length ?? 0) > 0 && (
+                      <div className="border-t border-gray-100 p-3 space-y-2">
+                        {PHOTO_MARKET_PRESETS.map(preset => (
+                          <button key={preset.id} type="button" onClick={() => handlePhotoResize(preset)}
+                            disabled={photoProcessing === preset.id}
+                            className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-all disabled:opacity-50">
+                            <div className="flex items-center gap-2">
+                              <span>{preset.icon}</span>
+                              <div className="text-left">
+                                <p className="text-xs font-black text-gray-800">{preset.label}</p>
+                                <p className="text-[10px] text-gray-400">{preset.desc}</p>
+                              </div>
+                            </div>
+                            {photoProcessing === preset.id
+                              ? <span className="w-4 h-4 border-2 border-indigo-400/30 border-t-indigo-500 rounded-full animate-spin" />
+                              : <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 border border-indigo-200 px-2 py-1 rounded-lg">{uiLang==='ko'?'변환':'Go'}</span>
+                            }
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {/* 자동 배포 (모바일) */}
+                  <div className="bg-gradient-to-r from-indigo-50 to-violet-50 border border-indigo-100 rounded-2xl p-4">
+                    <p className="text-xs font-black text-indigo-700 mb-1">🚀 {uiLang==='ko'?'패키지 다운로드':'Package Download'}</p>
+                    <p className="text-[10px] text-indigo-500 mb-3">{uiLang==='ko'?'4개국어 콘텐츠 + HTML + 발행 가이드':'4-lang content + HTML + guide'}</p>
+                    <button type="button" onClick={handleDownloadZip}
+                      className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black transition-all">
+                      ⬇️ ZIP {uiLang==='ko'?'전체 다운로드':'Download'}
+                    </button>
+                  </div>
                   <ComplianceScanPanel findings={complianceFindings} disclosurePack={complianceDisclosurePack} open={complianceOpen} onToggle={() => setComplianceOpen(o=>!o)} ui={t} industryBadge={complianceIndustryBadge} />
                   {channelKitContent && <ChannelPublishKitPanel platforms={PLATFORMS} platform={platform} setPlatform={setPlatform} kit={channelKitContent} ui={t} open={channelKitOpen} onToggle={() => setChannelKitOpen(o=>!o)} onCopyHook={line => navigator.clipboard.writeText(line).then(() => toast.success(t.channelKitToastHook)).catch(() => toast.error(t.toastCopyFail))} pasteBundle={listingPasteBundle} onCopyPasteBundle={() => { if(!listingPasteBundle.trim()) return; navigator.clipboard.writeText(listingPasteBundle).then(() => toast.success(t.channelKitToastPasteBundle)).catch(() => toast.error(t.toastCopyFail)) }} />}
                   {metaExportBlocks && <MetaOgExportPanel htmlBlock={metaExportBlocks.html} jsonBlock={metaExportBlocks.json} ui={t} open={metaOgOpen} onToggle={() => setMetaOgOpen(o=>!o)} onCopyHtml={() => navigator.clipboard.writeText(metaExportBlocks.html).then(() => toast.success(t.metaOgToastHtml)).catch(() => toast.error(t.toastCopyFail))} onCopyJson={() => navigator.clipboard.writeText(metaExportBlocks.json).then(() => toast.success(t.metaOgToastJson)).catch(() => toast.error(t.toastCopyFail))} />}
