@@ -91,8 +91,14 @@ export async function POST(req: NextRequest) {
     const templateMatch = (order.description ?? '').match(/\[TEMPLATE_FORM\]([\s\S]*?)\[\/TEMPLATE_FORM\]/)
     if (templateMatch) {
       const templateContent = templateMatch[1].trim()
+
+      // 참고 파일 내용 추출 ([REFERENCE_CONTENT]...[/REFERENCE_CONTENT])
+      const refContentMatch = (order.description ?? '').match(/\[REFERENCE_CONTENT[^\]]*\]([\s\S]*?)\[\/REFERENCE_CONTENT\]/)
+      const referenceContent = refContentMatch ? refContentMatch[1].trim() : ''
+
       const userInfo = (order.description ?? '')
         .replace(/\[TEMPLATE_FORM\][\s\S]*?\[\/TEMPLATE_FORM\]/, '')
+        .replace(/\[REFERENCE_CONTENT[^\]]*\][\s\S]*?\[\/REFERENCE_CONTENT\]/, '')
         .replace(/\[MARKETS:[^\]]*\]/g, '')
         .replace(/\[CROSSBORDER:[^\]]*\]/g, '')
         .trim()
@@ -263,7 +269,8 @@ CRITICAL RULES:
 4. Transform ALL structured/tabular data into readable professional prose, bullet points, or summaries
 5. Every section must read like it was written by a domain expert, not a data entry tool
 6. COMPLETENESS: Fill EVERY blank, field, and section — never skip
-7. OUTPUT FORMAT: Plain text with [Section Name] headers followed by natural prose — NOT JSON`
+7. OUTPUT FORMAT: Plain text with [Section Name] headers followed by natural prose — NOT JSON
+8. REFERENCE FILE PRIORITY: If a [REFERENCE FILE CONTENT] block is provided, extract relevant facts, data, names, numbers, and descriptions from it and use them to fill the form fields accurately. The reference file is the PRIMARY source of truth — never fabricate data that contradicts it.`
 
       // Excel 등 raw data에서 FILE_TYPE 힌트 제거 + 토큰 안전 압축 (buildTemplatePrompt 밖에 정의)
       const cleanTemplate = smartTruncateContent(
@@ -293,7 +300,8 @@ Output Language: ${LANG_NAMES_T[lang] ?? lang}${langInst}
 
 ${typeInstructions}
 
-${userInfo ? `=== REFERENCE INFORMATION (USE THIS AS PRIMARY SOURCE — DO NOT CONTRADICT) ===\n${userInfo}\n=== END REFERENCE ===\n` : ''}
+${referenceContent ? `=== REFERENCE FILE CONTENT (PRIMARY SOURCE — Extract facts, data, names, values from here and apply to form fields accurately) ===\n${referenceContent.slice(0, 12000)}\n=== END REFERENCE FILE ===\n` : ''}
+${userInfo ? `=== USER NOTES / ADDITIONAL INSTRUCTIONS ===\n${userInfo}\n=== END NOTES ===\n` : ''}
 
 === ORIGINAL FORM / DATA TO PROCESS ===
 ${cleanTemplate}

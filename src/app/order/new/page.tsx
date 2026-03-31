@@ -712,6 +712,9 @@ export default function NewOrderPage() {
   const [tmplTranslate, setTmplTranslate] = useState(false)
   const [tmplFileName, setTmplFileName] = useState('')
   const [tmplPreviewOpen, setTmplPreviewOpen] = useState(false)
+  const [tmplRefFileName, setTmplRefFileName] = useState('')
+  const [tmplRefFileContent, setTmplRefFileContent] = useState('')
+  const [tmplRefFileLoading, setTmplRefFileLoading] = useState(false)
 
   // ── 생성 진행 타이머 ────────────────────────────────────────────────────
   const [genElapsed, setGenElapsed]     = useState(0)
@@ -738,6 +741,7 @@ export default function NewOrderPage() {
 
   const docInputRef     = useRef<HTMLInputElement>(null)
   const templateFileRef = useRef<HTMLInputElement>(null)
+  const tmplRefFileRef  = useRef<HTMLInputElement>(null)
 
   // 저장된 UI 언어(랜딩에서 선택) 우선, 없으면 브라우저 언어
   useEffect(() => {
@@ -967,6 +971,54 @@ export default function NewOrderPage() {
       setTmplFileName('')
     }
     if (templateFileRef.current) templateFileRef.current.value = ''
+  }
+
+  // ── 참고 파일 업로드 핸들러 ────────────────────────────────────────────
+  async function handleTmplRefFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const name = file.name.toLowerCase()
+    setTmplRefFileName(file.name)
+    setTmplRefFileContent('')
+
+    const isText = file.type.startsWith('text/') || name.endsWith('.txt') || name.endsWith('.md') || name.endsWith('.csv')
+    const isServerParsed = name.endsWith('.pdf') || name.endsWith('.docx') ||
+      name.endsWith('.xlsx') || name.endsWith('.xls') || name.endsWith('.pptx')
+
+    if (isText) {
+      const reader = new FileReader()
+      reader.onload = ev => {
+        setTmplRefFileContent(ev.target?.result as string)
+        toast.success(uiLang === 'ko' ? `📎 참고 파일 로드 완료: ${file.name}` : `📎 Reference file loaded: ${file.name}`)
+      }
+      reader.readAsText(file)
+    } else if (isServerParsed) {
+      setTmplRefFileLoading(true)
+      const ext = name.split('.').pop()?.toUpperCase() ?? '파일'
+      const tid = toast.loading(
+        uiLang === 'ko' ? `📎 참고 파일 분석 중... (${ext})` : `📎 Parsing reference file... (${ext})`
+      )
+      try {
+        const fd = new FormData()
+        fd.append('file', file)
+        const res = await fetch('/api/parse-file', { method: 'POST', body: fd })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error)
+        setTmplRefFileContent(data.text ?? '')
+        toast.dismiss(tid)
+        toast.success(uiLang === 'ko' ? `✅ 참고 파일 분석 완료 — AI가 내용을 참고합니다` : `✅ Reference file analyzed — AI will use this content`)
+      } catch {
+        toast.dismiss(tid)
+        toast.error(uiLang === 'ko' ? '참고 파일 분석 실패. 내용을 직접 붙여넣기 해주세요.' : 'Failed to parse reference file. Paste content manually.')
+        setTmplRefFileName('')
+      } finally {
+        setTmplRefFileLoading(false)
+      }
+    } else {
+      toast.info(uiLang === 'ko' ? '지원하지 않는 파일 형식입니다. PDF, DOCX, XLSX, TXT를 사용해주세요.' : 'Unsupported file. Use PDF, DOCX, XLSX, or TXT.')
+      setTmplRefFileName('')
+    }
+    if (tmplRefFileRef.current) tmplRefFileRef.current.value = ''
   }
 
   // URL 자동 입력
@@ -1203,7 +1255,12 @@ export default function NewOrderPage() {
     const translationHint = tmplTranslate
       ? `[TRANSLATION_MODE: ON — Detect the original language of the template, then translate AND complete the document in the requested output language(s). Preserve form structure while naturalizing expressions for the target language and culture.]\n`
       : ''
-    const description = `${translationHint}${docTypeHint}${tmplRefInfo.trim() ? tmplRefInfo.trim() + '\n\n' : ''}[TEMPLATE_FORM]\n${templateContent.trim()}\n[/TEMPLATE_FORM]`
+    // 참고 파일 내용이 있으면 별도 블록으로 주입
+    const refFileBlock = tmplRefFileContent.trim()
+      ? `[REFERENCE_CONTENT — Use this to fill in the form. Extract relevant facts, data, descriptions, names, and values from this source material and apply them accurately to the form fields.]\n${tmplRefFileContent.trim()}\n[/REFERENCE_CONTENT]\n\n`
+      : ''
+    const refTextBlock = tmplRefInfo.trim() ? `[USER_NOTES: ${tmplRefInfo.trim()}]\n\n` : ''
+    const description = `${translationHint}${docTypeHint}${refFileBlock}${refTextBlock}[TEMPLATE_FORM]\n${templateContent.trim()}\n[/TEMPLATE_FORM]`
 
     // 다중 언어 선택 시 'all', 단일 언어 시 해당 언어 코드
     const effectiveLang = tmplOutputLangs.length > 1 ? 'all' : (tmplOutputLangs[0] ?? 'ko')
@@ -1754,18 +1811,53 @@ export default function NewOrderPage() {
               </div>
 
               {/* ── Reference info ──────────────────────────────── */}
-              <div>
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">{L.templateInfoLabel}</label>
-                  <span className="text-[9px] bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded-md font-bold">
-                    {uiLang === 'ko' ? '선택' : uiLang === 'ja' ? '任意' : uiLang === 'zh' ? '选填' : 'optional'}
-                  </span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">{L.templateInfoLabel}</label>
+                    <span className="text-[9px] bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded-md font-bold">
+                      {uiLang === 'ko' ? '선택' : uiLang === 'ja' ? '任意' : uiLang === 'zh' ? '选填' : 'optional'}
+                    </span>
+                  </div>
+                  {/* 참고 파일 첨부 버튼 */}
+                  <button type="button"
+                    onClick={() => tmplRefFileRef.current?.click()}
+                    disabled={tmplRefFileLoading}
+                    className={`flex items-center gap-1.5 text-[11px] font-black px-3 py-1.5 rounded-xl border transition-all ${
+                      tmplRefFileName
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                        : 'bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100'
+                    } disabled:opacity-50`}>
+                    {tmplRefFileLoading
+                      ? <><span className="w-3 h-3 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin" />{uiLang === 'ko' ? '분석 중...' : 'Parsing...'}</>
+                      : tmplRefFileName
+                        ? <><span>✅</span><span className="max-w-[120px] truncate">{tmplRefFileName}</span><button type="button" onClick={e => { e.stopPropagation(); setTmplRefFileName(''); setTmplRefFileContent('') }} className="ml-1 text-gray-400 hover:text-red-500">✕</button></>
+                        : <><span>📎</span>{uiLang === 'ko' ? '참고 파일 첨부' : uiLang === 'ja' ? '参考ファイル添付' : uiLang === 'zh' ? '附加参考文件' : 'Attach Reference File'}</>
+                    }
+                  </button>
+                  <input ref={tmplRefFileRef} type="file"
+                    accept=".pdf,.docx,.xlsx,.xls,.pptx,.txt,.md,.csv"
+                    className="hidden" onChange={handleTmplRefFile} />
                 </div>
+
+                {/* 참고 파일 첨부된 경우 안내 배너 */}
+                {tmplRefFileName && tmplRefFileContent && (
+                  <div className="flex items-start gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2.5">
+                    <span className="text-emerald-500 mt-0.5 shrink-0">📄</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] font-black text-emerald-800">
+                        {uiLang === 'ko' ? 'AI가 이 파일의 내용을 분석해 양식을 채웁니다' : 'AI will read this file and fill the form with its content'}
+                      </p>
+                      <p className="text-[10px] text-emerald-600 mt-0.5 truncate">{tmplRefFileName} · {(tmplRefFileContent.length / 4).toFixed(0)} tokens</p>
+                    </div>
+                  </div>
+                )}
+
                 <textarea placeholder={
-                  uiLang === 'ko' ? '어떤 내용으로 채울지 알려주세요.\n예: 회사명은 "테크스타트", 2024년 매출 5억, 주요 서비스는 AI 기반 문서 자동화...' :
-                  uiLang === 'ja' ? '記入内容に関する情報を入力してください。\n例: 会社名「テックスタート」、2024年売上5億ウォン...' :
-                  uiLang === 'zh' ? '请输入填写参考内容。\n例：公司名"TechStart"，2024年营收5亿韩元，主要业务是AI文档自动化...' :
-                  'Provide context for the AI to fill in the form.\nE.g. Company: TechStart, 2024 revenue $500K, core service: AI document automation...'
+                  uiLang === 'ko' ? '추가로 알려줄 내용이 있으면 입력하세요.\n예: 회사명은 "테크스타트", 보고서 형식으로 작성, 긍정적인 톤으로...' :
+                  uiLang === 'ja' ? '追加情報があれば入力してください。\n例: 会社名「テックスタート」、レポート形式で...' :
+                  uiLang === 'zh' ? '如有补充信息请填写。\n例：公司名"TechStart"，以报告格式填写...' :
+                  'Add any extra instructions here.\nE.g. Company: TechStart, write as a formal report, use positive tone...'
                 } rows={3} value={tmplRefInfo} onChange={e => setTmplRefInfo(e.target.value)}
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm resize-none bg-white" />
               </div>
