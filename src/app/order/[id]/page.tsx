@@ -4120,9 +4120,9 @@ export default function OrderResultPage() {
               </div>
             </div>
 
-          </div>{/* end modal card */}
-        </div>{/* end overlay */}
-      )}{/* end showBlogPreview */}
+          </div>
+        </div>
+      )}
     </main>
   )
 }

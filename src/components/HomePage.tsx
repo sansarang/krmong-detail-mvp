@@ -697,6 +697,37 @@ export default function HomePage({ lang }: { lang: HomeLang }) {
         </div>
       </section>
 
+      {/* ══ 무료 도구 섹션 ════════════════════════════════ */}
+      <section className="bg-[#0F172A] px-5 md:px-6 py-20 border-t border-white/5">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <span className="text-xs font-black bg-blue-500/15 text-blue-400 border border-blue-500/20 px-3 py-1 rounded-full mb-4 inline-block">무료 도구</span>
+            <h2 className="text-2xl md:text-3xl font-black text-white mb-3">로그인 없이 바로 쓰는<br />무료 SEO 도구</h2>
+            <p className="text-gray-500 text-sm max-w-md mx-auto">상세페이지 작성에 도움이 되는 무료 도구를 제공합니다.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
+            <Link href="/samples" className="group bg-white/5 hover:bg-white/8 border border-white/8 hover:border-blue-500/30 rounded-2xl p-6 transition-all hover:-translate-y-0.5">
+              <div className="text-2xl mb-3">📋</div>
+              <h3 className="font-black text-white mb-2">상세페이지 샘플 모음</h3>
+              <p className="text-xs text-gray-500 leading-relaxed mb-4">뷰티·식품·패션 등 카테고리별 실제 수준의 샘플 상세페이지를 무료로 확인하세요.</p>
+              <p className="text-xs text-blue-400 font-bold group-hover:text-blue-300">샘플 보기 →</p>
+            </Link>
+            <Link href="/tools/keyword-checker" className="group bg-white/5 hover:bg-white/8 border border-white/8 hover:border-red-500/30 rounded-2xl p-6 transition-all hover:-translate-y-0.5">
+              <div className="text-2xl mb-3">🚫</div>
+              <h3 className="font-black text-white mb-2">금칙어 검사기</h3>
+              <p className="text-xs text-gray-500 leading-relaxed mb-4">스마트스토어·쿠팡 금칙어를 실시간으로 감지하고 대체 단어를 추천해드립니다.</p>
+              <p className="text-xs text-red-400 font-bold group-hover:text-red-300">금칙어 검사 →</p>
+            </Link>
+            <Link href="/tools/seo-checker" className="group bg-white/5 hover:bg-white/8 border border-white/8 hover:border-violet-500/30 rounded-2xl p-6 transition-all hover:-translate-y-0.5">
+              <div className="text-2xl mb-3">📊</div>
+              <h3 className="font-black text-white mb-2">SEO 점수 체커</h3>
+              <p className="text-xs text-gray-500 leading-relaxed mb-4">상세페이지 SEO 점수를 5가지 항목으로 즉시 분석하고 개선 방법을 알려드립니다.</p>
+              <p className="text-xs text-violet-400 font-bold group-hover:text-violet-300">SEO 점수 분석 →</p>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* ══ FOOTER ════════════════════════════════════════ */}
       <footer className="bg-[#0F172A] border-t border-white/5 px-5 md:px-6 py-12 pb-28 md:pb-14">
         <div className="max-w-5xl mx-auto">
