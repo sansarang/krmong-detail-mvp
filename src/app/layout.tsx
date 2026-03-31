@@ -61,6 +61,9 @@ export const metadata: Metadata = {
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+    other: {
+      'naver-site-verification': 'fa19d9f9a60dca13c152015425244cf01813653a',
+    },
   },
   category: 'technology',
 }
