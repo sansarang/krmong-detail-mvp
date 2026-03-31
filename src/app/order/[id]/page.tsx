@@ -2469,7 +2469,7 @@ export default function OrderResultPage() {
                     )}
                   </div>
 
-                  {/* ── 🚀 자동 배포 패널 ────────────────────────────── */}
+                  {/* ── 🚀 발행 패널 (완전 재설계: 모두 즉시 사용 가능) ─── */}
                   <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
                     <button type="button" onClick={() => setDeployOpen(o => !o)}
                       className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition-colors">
@@ -2477,67 +2477,170 @@ export default function OrderResultPage() {
                         <span className="text-xl">🚀</span>
                         <div className="text-left">
                           <p className="text-sm font-black text-gray-900">
-                            {uiLang==='ko'?'자동 배포 · 1클릭 발행':'Auto Deploy · 1-click Publish'}
+                            {uiLang==='ko'?'발행 · 배포 패키지':'Publish & Deploy'}
                           </p>
                           <p className="text-[10px] text-gray-400 mt-0.5">
-                            {uiLang==='ko'?'플랫폼별 최적화 HTML+사진 패키지':'Platform-optimized HTML+photo package'}
+                            {uiLang==='ko'?'플랫폼별 최적화 패키지 즉시 다운로드':'Instant download — optimized per platform'}
                           </p>
                         </div>
-                        <span className="text-[10px] font-black bg-blue-500 text-white px-2 py-0.5 rounded-full shrink-0">NEW</span>
+                        <span className="text-[10px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full shrink-0">
+                          {uiLang==='ko'?'즉시':'Ready'}
+                        </span>
                       </div>
                       <span className="text-gray-300 text-xs">{deployOpen ? '▲' : '▼'}</span>
                     </button>
                     {deployOpen && (
-                      <div className="border-t border-gray-100 p-4 space-y-2.5">
-                        {/* ZIP 다운로드 */}
-                        <div className="bg-gradient-to-r from-indigo-50 to-violet-50 rounded-xl p-3 border border-indigo-100">
-                          <p className="text-xs font-black text-indigo-700 mb-2">
-                            📦 {uiLang==='ko'?'전체 패키지 다운로드':'Full Package Download'}
-                          </p>
-                          <p className="text-[10px] text-indigo-500 mb-3">
-                            {uiLang==='ko'?'4개국어 콘텐츠 + 최적화 HTML + 발행 가이드':'4-lang content + optimized HTML + publishing guide'}
-                          </p>
-                          <button type="button" onClick={handleDownloadZip}
-                            className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black transition-all flex items-center justify-center gap-1.5">
-                            ⬇️ {uiLang==='ko'?'ZIP 전체 다운로드':'Download ZIP'}
-                          </button>
+                      <div className="border-t border-gray-100 p-4 space-y-3">
+
+                        {/* ① ZIP 전체 패키지 — Hero 버튼 */}
+                        <button type="button" onClick={handleDownloadZip}
+                          className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white rounded-2xl p-4 text-left transition-all hover:shadow-lg hover:shadow-indigo-500/20 group">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-black mb-1">
+                                📦 {uiLang==='ko'?'전체 패키지 ZIP 다운로드':'Full Package ZIP'}
+                              </p>
+                              <p className="text-[11px] text-indigo-200 leading-relaxed">
+                                {uiLang==='ko'
+                                  ? '4개국어 콘텐츠 + 최적화 HTML + 이미지 + 발행 가이드'
+                                  : '4-lang content + HTML + images + guide'}
+                              </p>
+                            </div>
+                            <span className="text-xl group-hover:translate-y-0.5 transition-transform">⬇️</span>
+                          </div>
+                        </button>
+
+                        {/* ② 플랫폼별 즉시 사용 카드들 */}
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider px-1">
+                          {uiLang==='ko'?'플랫폼별 즉시 발행':'Per-platform · All Ready'}
+                        </p>
+
+                        {/* 네이버 블로그 — HTML 복사 */}
+                        <div className="rounded-2xl border border-green-100 bg-green-50/50 overflow-hidden">
+                          <div className="px-3.5 py-3 flex items-start gap-2.5">
+                            <span className="text-lg mt-0.5">🟢</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-black text-gray-800">
+                                {uiLang==='ko'?'네이버 블로그':'Naver Blog'}
+                              </p>
+                              <p className="text-[10px] text-gray-500 mt-0.5">
+                                {uiLang==='ko'?'HTML 복사 → 블로그 편집기에 바로 붙여넣기':'Copy HTML → paste into blog editor'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="px-3.5 pb-3 flex gap-2">
+                            <button type="button"
+                              onClick={() => { setPlatform('naver'); setShowBlogPreview(true) }}
+                              className="flex-1 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white text-[11px] font-black transition-all">
+                              {uiLang==='ko'?'미리보기 + HTML 복사':'Preview + Copy HTML'}
+                            </button>
+                            <button type="button" onClick={handleNaverCopy}
+                              className="flex-1 py-2 rounded-xl border border-green-200 bg-white text-green-700 text-[11px] font-black hover:bg-green-50 transition-all">
+                              {uiLang==='ko'?'텍스트 바로 복사':'Copy Text'}
+                            </button>
+                          </div>
                         </div>
 
-                        {/* 플랫폼별 배포 */}
-                        {[
-                          { id: 'naver_blog', label: uiLang==='ko'?'네이버 블로그':'Naver Blog', icon: '🟢', status: 'api', hint: uiLang==='ko'?'API 연동 예정 — 지금은 HTML 복사':'API coming — copy HTML now' },
-                          { id: 'shopify',    label: 'Shopify',            icon: '🛍️', status: 'api', hint: uiLang==='ko'?'Shopify API 연동 예정':'Shopify API coming' },
-                          { id: 'smartstore', label: uiLang==='ko'?'스마트스토어':'Smartstore', icon: '🏪', status: 'guide', hint: uiLang==='ko'?'발행 가이드 + HTML 복사':'Publishing guide + HTML copy' },
-                          { id: 'amazon',     label: 'Amazon JP A+',       icon: '🟠', status: 'guide', hint: uiLang==='ko'?'A+ Content 가이드 포함':'Includes A+ Content guide' },
-                          { id: 'tmall',      label: 'Tmall 详情页',        icon: '🔴', status: 'guide', hint: uiLang==='ko'?'天猫 상세페이지 가이드':'Tmall detail page guide' },
-                        ].map(pl => (
-                          <button key={pl.id} type="button"
-                            onClick={() => {
-                              if (pl.status === 'api') {
-                                toast.success(uiLang==='ko'?`${pl.label} 배포는 준비 중입니다. HTML을 복사해서 직접 발행하세요.`:`${pl.label} auto-deploy coming soon. Copy HTML to publish.`)
-                              } else {
-                                handleDownloadZip()
-                              }
-                            }}
-                            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group">
-                            <div className="flex items-center gap-2.5">
-                              <span>{pl.icon}</span>
-                              <div className="text-left">
-                                <p className="text-xs font-black text-gray-800">{pl.label}</p>
-                                <p className="text-[10px] text-gray-400">{pl.hint}</p>
-                              </div>
+                        {/* 스마트스토어 — ZIP */}
+                        <div className="rounded-2xl border border-orange-100 bg-orange-50/40 overflow-hidden">
+                          <div className="px-3.5 py-3 flex items-start gap-2.5">
+                            <span className="text-lg mt-0.5">🏪</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-black text-gray-800">{uiLang==='ko'?'스마트스토어':'Smartstore'}</p>
+                              <p className="text-[10px] text-gray-500 mt-0.5">
+                                {uiLang==='ko'?'HTML + 이미지 + 발행 가이드 ZIP':'HTML + images + guide ZIP'}
+                              </p>
                             </div>
-                            <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg ${
-                              pl.status === 'api'
-                                ? 'bg-blue-50 text-blue-600 border border-blue-200'
-                                : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-                            }`}>
-                              {pl.status === 'api'
-                                ? (uiLang==='ko'?'준비 중':'Coming')
-                                : (uiLang==='ko'?'ZIP 다운':'ZIP')}
+                            <span className="text-[9px] font-black bg-emerald-500 text-white px-1.5 py-0.5 rounded-full shrink-0">
+                              {uiLang==='ko'?'즉시':'Ready'}
                             </span>
-                          </button>
-                        ))}
+                          </div>
+                          <div className="px-3.5 pb-3 flex gap-2">
+                            <button type="button" onClick={handleDownloadZip}
+                              className="flex-1 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-[11px] font-black transition-all">
+                              ⬇️ {uiLang==='ko'?'ZIP 다운로드':'ZIP Download'}
+                            </button>
+                            <button type="button" onClick={handleNaverCopy}
+                              className="flex-1 py-2 rounded-xl border border-orange-200 bg-white text-orange-700 text-[11px] font-black hover:bg-orange-50 transition-all">
+                              {uiLang==='ko'?'HTML 복사':'Copy HTML'}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Shopify — Liquid 템플릿 ZIP */}
+                        <div className="rounded-2xl border border-teal-100 bg-teal-50/40 overflow-hidden">
+                          <div className="px-3.5 py-3 flex items-start gap-2.5">
+                            <span className="text-lg mt-0.5">🛍️</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-black text-gray-800">Shopify</p>
+                              <p className="text-[10px] text-gray-500 mt-0.5">
+                                {uiLang==='ko'?'HTML 템플릿 + 발행 가이드 ZIP':'HTML template + guide ZIP'}
+                              </p>
+                            </div>
+                            <span className="text-[9px] font-black bg-emerald-500 text-white px-1.5 py-0.5 rounded-full shrink-0">
+                              {uiLang==='ko'?'즉시':'Ready'}
+                            </span>
+                          </div>
+                          <div className="px-3.5 pb-3">
+                            <button type="button" onClick={handleDownloadZip}
+                              className="w-full py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-[11px] font-black transition-all">
+                              ⬇️ {uiLang==='ko'?'Shopify 패키지 다운로드':'Download Shopify Package'}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Amazon JP A+ */}
+                        <div className="rounded-2xl border border-yellow-100 bg-yellow-50/40 overflow-hidden">
+                          <div className="px-3.5 py-3 flex items-start gap-2.5">
+                            <span className="text-lg mt-0.5">🟠</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-black text-gray-800">Amazon JP A+</p>
+                              <p className="text-[10px] text-gray-500 mt-0.5">
+                                {uiLang==='ko'?'A+ Content HTML + 이미지 ZIP':'A+ Content HTML + image ZIP'}
+                              </p>
+                            </div>
+                            <span className="text-[9px] font-black bg-emerald-500 text-white px-1.5 py-0.5 rounded-full shrink-0">
+                              {uiLang==='ko'?'즉시':'Ready'}
+                            </span>
+                          </div>
+                          <div className="px-3.5 pb-3">
+                            <button type="button" onClick={handleDownloadZip}
+                              className="w-full py-2 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-white text-[11px] font-black transition-all">
+                              ⬇️ {uiLang==='ko'?'Amazon A+ 패키지':'Amazon A+ Package'}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Tmall */}
+                        <div className="rounded-2xl border border-red-100 bg-red-50/40 overflow-hidden">
+                          <div className="px-3.5 py-3 flex items-start gap-2.5">
+                            <span className="text-lg mt-0.5">🔴</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-black text-gray-800">Tmall 详情页</p>
+                              <p className="text-[10px] text-gray-500 mt-0.5">
+                                {uiLang==='ko'?'天猫 상세페이지 HTML + 발행 가이드':'Tmall detail page HTML + guide'}
+                              </p>
+                            </div>
+                            <span className="text-[9px] font-black bg-emerald-500 text-white px-1.5 py-0.5 rounded-full shrink-0">
+                              {uiLang==='ko'?'즉시':'Ready'}
+                            </span>
+                          </div>
+                          <div className="px-3.5 pb-3">
+                            <button type="button" onClick={handleDownloadZip}
+                              className="w-full py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white text-[11px] font-black transition-all">
+                              ⬇️ {uiLang==='ko'?'Tmall 패키지':'Tmall Package'}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* 안내 */}
+                        <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                          <p className="text-[10px] text-gray-500 leading-relaxed">
+                            💡 {uiLang==='ko'
+                              ? 'ZIP 파일에는 각 플랫폼용 최적화 HTML, 이미지, 발행 가이드가 포함됩니다.'
+                              : 'ZIP includes platform-optimized HTML, images & publishing guide.'}
+                          </p>
+                        </div>
                       </div>
                     )}
                   </div>
