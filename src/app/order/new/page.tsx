@@ -499,22 +499,93 @@ const POPULAR_CATS: Record<UiLang, { value: string; emoji: string; label: string
   ],
 }
 
-// ── 마켓 데이터 ────────────────────────────────────────────────────────
-const MARKET_DATA = [
-  { id:'smartstore', name:'스마트스토어', nameEn:'SmartStore', icon:'🏪', flag:'🇰🇷', lang:'ko', cvr:4.2, color:'#03C75A', group:'domestic', desc:'모바일 긴 세로형 · KR SEO' },
-  { id:'naver_blog', name:'네이버 블로그', nameEn:'Naver Blog', icon:'📝', flag:'🇰🇷', lang:'ko', cvr:3.8, color:'#03C75A', group:'domestic', desc:'글 중간 사진 자연 삽입' },
-  { id:'coupang',    name:'쿠팡',         nameEn:'Coupang',     icon:'🛒', flag:'🇰🇷', lang:'ko', cvr:3.5, color:'#E5213D', group:'domestic', desc:'스펙 + A/S 중심 상세페이지' },
-  { id:'amazon',     name:'Amazon JP',    nameEn:'Amazon JP',   icon:'🛍️', flag:'🇯🇵', lang:'en', cvr:5.3, color:'#FF9900', group:'cross',    desc:'A+ Content · 5-bullet format' },
-  { id:'rakuten',    name:'楽天',         nameEn:'Rakuten',     icon:'🎏', flag:'🇯🇵', lang:'ja', cvr:4.7, color:'#BF0000', group:'cross',    desc:'丁寧語 · 혜택·가격 강조' },
-  { id:'tmall',      name:'天猫 Tmall',   nameEn:'Tmall',       icon:'🏮', flag:'🇨🇳', lang:'zh', cvr:6.9, color:'#E53E3E', group:'cross',    desc:'爆款 · 사회적 증거 · 长图' },
-  { id:'shopify',    name:'Shopify',      nameEn:'Shopify',     icon:'💻', flag:'🌐',  lang:'en', cvr:4.5, color:'#5C6BC0', group:'cross',    desc:'Brand story · Meta 최적화' },
-  { id:'qoo10',      name:'Qoo10',        nameEn:'Qoo10',       icon:'🏬', flag:'🇯🇵', lang:'ja', cvr:4.2, color:'#FF6B35', group:'cross',    desc:'간결 + 딜 강조' },
-  { id:'lazada',     name:'Lazada',       nameEn:'Lazada',      icon:'📦', flag:'🇸🇬', lang:'en', cvr:3.9, color:'#0F146D', group:'cross',    desc:'동남아 · 가격 경쟁력' },
-] as const
+// ── 마켓 데이터 (다국어 확장 구조) ─────────────────────────────────────
+// 새 마켓 추가 시 이 배열에만 항목 추가하면 UI 자동 반영
+type MarketEntry = {
+  id: string
+  icon: string
+  flag: string
+  lang: string
+  cvr: number
+  color: string
+  group: 'domestic' | 'cross'
+  label: Record<string, string>    // 언어별 표시 이름
+  desc: Record<string, string>     // 언어별 설명
+}
+
+const MARKET_DATA: MarketEntry[] = [
+  // ── 국내 ──────────────────────────────────────────────
+  {
+    id: 'smartstore', icon: '🏪', flag: '🇰🇷', lang: 'ko', cvr: 4.2, color: '#03C75A', group: 'domestic',
+    label: { ko: '스마트스토어', en: 'Smartstore', ja: 'スマートストア', zh: '韩国智能商店' },
+    desc:  { ko: '모바일 세로형 · KR SEO', en: 'Mobile-first · KR SEO', ja: 'モバイル縦型・KR SEO', zh: '移动竖版·韩国SEO' },
+  },
+  {
+    id: 'naver_blog', icon: '📝', flag: '🇰🇷', lang: 'ko', cvr: 3.8, color: '#03C75A', group: 'domestic',
+    label: { ko: '네이버 블로그', en: 'Naver Blog', ja: 'ネイバーブログ', zh: 'Naver博客' },
+    desc:  { ko: '리뷰형 · 사진 자연 삽입', en: 'Review style · photo flow', ja: 'レビュー型・写真挿入', zh: '评测型·图片自然插入' },
+  },
+  {
+    id: 'coupang', icon: '🛒', flag: '🇰🇷', lang: 'ko', cvr: 3.5, color: '#E5213D', group: 'domestic',
+    label: { ko: '쿠팡', en: 'Coupang', ja: 'クーパン', zh: '酷澎' },
+    desc:  { ko: '스펙 + A/S 중심', en: 'Spec-focused + A/S', ja: 'スペック・アフター重視', zh: '规格+售后为主' },
+  },
+  {
+    id: 'elevenst', icon: '1️⃣', flag: '🇰🇷', lang: 'ko', cvr: 3.1, color: '#FF0000', group: 'domestic',
+    label: { ko: '11번가', en: '11Street', ja: '11街', zh: '11街' },
+    desc:  { ko: '할인·쿠폰 중심 구성', en: 'Coupon & deal-focused', ja: 'クーポン・割引重視', zh: '折扣券重点' },
+  },
+  // ── 글로벌 ─────────────────────────────────────────────
+  {
+    id: 'amazon', icon: '🛍️', flag: '🇯🇵', lang: 'en', cvr: 5.3, color: '#FF9900', group: 'cross',
+    label: { ko: 'Amazon JP', en: 'Amazon JP', ja: 'Amazon JP', zh: 'Amazon JP' },
+    desc:  { ko: 'A+ Content · 5불릿 형식', en: 'A+ Content · 5-bullet', ja: 'A+コンテンツ・5箇条', zh: 'A+内容·5条格式' },
+  },
+  {
+    id: 'rakuten', icon: '🎏', flag: '🇯🇵', lang: 'ja', cvr: 4.7, color: '#BF0000', group: 'cross',
+    label: { ko: '楽天 Rakuten', en: 'Rakuten', ja: '楽天市場', zh: '乐天' },
+    desc:  { ko: '경어체 · 품질·혜택 강조', en: 'Keigo · quality & deals', ja: '敬語・品質・特典重視', zh: '敬语·质量·优惠重点' },
+  },
+  {
+    id: 'tmall', icon: '🏮', flag: '🇨🇳', lang: 'zh', cvr: 6.9, color: '#E53E3E', group: 'cross',
+    label: { ko: '天猫 Tmall', en: 'Tmall', ja: '天猫', zh: '天猫旗舰店' },
+    desc:  { ko: '爆款 · 사회적 증거 · 长图', en: '爆款 · social proof · long image', ja: '爆款・社会的証明', zh: '爆款·社交证明·长图' },
+  },
+  {
+    id: 'shopify', icon: '🛒', flag: '🌐', lang: 'en', cvr: 4.5, color: '#5C6BC0', group: 'cross',
+    label: { ko: 'Shopify', en: 'Shopify', ja: 'Shopify', zh: 'Shopify' },
+    desc:  { ko: '브랜드 스토리 · Meta 최적화', en: 'Brand story · Meta SEO', ja: 'ブランドストーリー・Meta', zh: '品牌故事·Meta优化' },
+  },
+  {
+    id: 'qoo10', icon: '🏬', flag: '🇯🇵', lang: 'ja', cvr: 4.2, color: '#FF6B35', group: 'cross',
+    label: { ko: 'Qoo10', en: 'Qoo10', ja: 'Qoo10', zh: 'Qoo10' },
+    desc:  { ko: '간결 + 딜 강조', en: 'Clean + deal-first', ja: 'シンプル・ディール重視', zh: '简洁·突出折扣' },
+  },
+  {
+    id: 'lazada', icon: '📦', flag: '🇸🇬', lang: 'en', cvr: 3.9, color: '#0F146D', group: 'cross',
+    label: { ko: 'Lazada', en: 'Lazada', ja: 'Lazada', zh: 'Lazada' },
+    desc:  { ko: '동남아 · 가격 경쟁력', en: 'SEA · price-competitive', ja: '東南アジア・価格競争力', zh: '东南亚·价格竞争力' },
+  },
+  {
+    id: 'temu', icon: '🌟', flag: '🌐', lang: 'en', cvr: 4.1, color: '#FF6900', group: 'cross',
+    label: { ko: 'Temu', en: 'Temu', ja: 'Temu', zh: 'Temu' },
+    desc:  { ko: '글로벌 초저가 · 빠른 배송', en: 'Global ultra-low price · fast ship', ja: 'グローバル超低価格・速達', zh: '全球超低价·快速配送' },
+  },
+  {
+    id: 'aliexpress', icon: '🧧', flag: '🌐', lang: 'en', cvr: 3.7, color: '#E62E2E', group: 'cross',
+    label: { ko: 'AliExpress', en: 'AliExpress', ja: 'アリエクスプレス', zh: '速卖通' },
+    desc:  { ko: '글로벌 · 대량 구매 타깃', en: 'Global · bulk buyer focus', ja: 'グローバル・まとめ買い', zh: '全球·批量购买' },
+  },
+  {
+    id: 'shein', icon: '👗', flag: '🌐', lang: 'en', cvr: 4.6, color: '#F5A0C8', group: 'cross',
+    label: { ko: 'SHEIN', en: 'SHEIN', ja: 'SHEIN', zh: 'SHEIN' },
+    desc:  { ko: '패션 특화 · 트렌드 중심', en: 'Fashion-only · trend-driven', ja: 'ファッション特化・トレンド', zh: '时尚专属·潮流导向' },
+  },
+]
 
 const LANG_FOR_MARKET: Record<string, string> = {
-  smartstore:'ko', naver_blog:'ko', coupang:'ko',
-  amazon:'en', shopify:'en', lazada:'en',
+  smartstore:'ko', naver_blog:'ko', coupang:'ko', elevenst:'ko',
+  amazon:'en', shopify:'en', lazada:'en', temu:'en', aliexpress:'en', shein:'en',
   rakuten:'ja', qoo10:'ja',
   tmall:'zh',
 }
@@ -1027,55 +1098,68 @@ export default function NewOrderPage() {
         </div>
 
         {/* ══ STEP 1: 마켓 선택 히어로 ════════════════════════════ */}
-        <div className="bg-white rounded-2xl border-2 border-blue-100 shadow-sm p-5 mb-6">
-          <div className="flex items-center justify-between mb-4">
+        {/* ══ SELECT MARKETS (완전 리뉴얼 — 동적 다국어 지원) ══════ */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-3">
-              <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-violet-600 rounded-xl flex items-center justify-center text-white text-xs font-black">1</div>
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-violet-600 rounded-xl flex items-center justify-center text-white text-sm font-black shrink-0">1</div>
               <div>
                 <h2 className="text-sm font-black text-gray-900">
-                  {uiLang === 'ko' ? '마켓 선택' : uiLang === 'ja' ? 'マーケット選択' : uiLang === 'zh' ? '选择市场' : 'Select Markets'}
+                  {uiLang==='ko'?'마켓 선택':uiLang==='ja'?'マーケット選択':uiLang==='zh'?'选择市场':'Select Markets'}
                 </h2>
                 <p className="text-[10px] text-gray-400 mt-0.5">
-                  {uiLang === 'ko' ? '판매할 플랫폼을 선택하면 AI가 자동 최적화합니다 (멀티 선택 가능)'
-                  : uiLang === 'ja' ? 'プラットフォームを選ぶとAIが自動最適化（複数選択可）'
-                  : uiLang === 'zh' ? '选择平台后AI自动优化内容（可多选）'
-                  : 'Select platforms and AI auto-optimizes for each (multi-select)'}
+                  {uiLang==='ko'?'플랫폼 선택 → AI가 해당 스타일에 맞게 자동 최적화 (멀티 선택 가능)':
+                   uiLang==='ja'?'プラットフォーム選択 → AIが自動最適化（複数選択可）':
+                   uiLang==='zh'?'选择平台 → AI自动按平台风格优化（可多选）':
+                   'Pick platforms → AI auto-formats for each style (multi-select)'}
                 </p>
               </div>
             </div>
             {selectedMarkets.length > 0 && (
               <div className="flex items-center gap-2 shrink-0">
-                <span className="text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full">
-                  {selectedMarkets.length}{uiLang === 'ko' ? '개 선택됨' : uiLang === 'ja' ? '個選択' : uiLang === 'zh' ? '个已选' : ' selected'}
+                <span className="text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1.5 rounded-full">
+                  {selectedMarkets.length} {uiLang==='ko'?'선택':uiLang==='ja'?'選択':uiLang==='zh'?'已选':'selected'}
                 </span>
                 <button type="button" onClick={() => { setSelectedMarkets([]); setCrossborderPlatforms([]); setCrossborderMode(false) }}
-                  className="text-[10px] text-gray-400 hover:text-red-500 font-bold transition-colors">
-                  {uiLang === 'ko' ? '초기화' : 'Clear'}
+                  className="text-[10px] text-gray-400 hover:text-red-500 font-bold transition-colors px-1">
+                  {uiLang==='ko'?'초기화':uiLang==='ja'?'クリア':uiLang==='zh'?'清空':'Clear'}
                 </button>
               </div>
             )}
           </div>
 
-          {/* Domestic markets */}
-          <div className="mb-3">
-            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">🇰🇷 {uiLang === 'ko' ? '국내 마켓' : 'Domestic (Korea)'}</p>
-            <div className="grid grid-cols-3 gap-2">
+          {/* ── 국내 마켓 ──────────────────────────────────────── */}
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-2.5">
+              <span className="text-sm">🇰🇷</span>
+              <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.12em]">
+                {uiLang==='ko'?'국내 마켓':uiLang==='ja'?'国内マーケット':uiLang==='zh'?'国内市场':'Domestic (Korea)'}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {MARKET_DATA.filter(m => m.group === 'domestic').map(m => {
                 const sel = selectedMarkets.includes(m.id)
+                const label = m.label[uiLang] ?? m.label.en
+                const desc = m.desc[uiLang] ?? m.desc.en
                 return (
                   <button key={m.id} type="button" onClick={() => toggleMarket(m.id)}
-                    className={`relative rounded-xl p-3 text-left border-2 transition-all group ${
-                      sel ? 'border-blue-500 bg-blue-50 shadow-sm shadow-blue-100' : 'border-gray-100 bg-gray-50 hover:border-blue-300 hover:bg-blue-50/50'
+                    className={`relative rounded-2xl p-3 text-left border-2 transition-all duration-200 group ${
+                      sel
+                        ? 'border-blue-500 bg-blue-50 shadow-md shadow-blue-100'
+                        : 'border-gray-100 bg-gray-50/80 hover:border-blue-200 hover:bg-blue-50/40 hover:shadow-sm'
                     }`}>
-                    {sel && <span className="absolute top-2 right-2 text-[9px] font-black text-blue-600">✓</span>}
-                    <div className="flex items-center gap-1.5 mb-1.5">
-                      <span className="text-lg">{m.icon}</span>
-                      <span className={`text-xs font-black ${sel ? 'text-blue-700' : 'text-gray-700'}`}>{m.name}</span>
+                    {sel && (
+                      <span className="absolute top-2.5 right-2.5 w-4 h-4 bg-blue-500 text-white rounded-full flex items-center justify-center text-[9px] font-black">✓</span>
+                    )}
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xl leading-none">{m.icon}</span>
+                      <span className={`text-xs font-black leading-tight ${sel ? 'text-blue-700' : 'text-gray-800'}`}>{label}</span>
                     </div>
-                    <p className="text-[9px] text-gray-400 leading-tight mb-1.5">{m.desc}</p>
+                    <p className="text-[9px] text-gray-400 leading-tight mb-2">{desc}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-black" style={{ color: m.color }}>CVR {m.cvr}%</span>
-                      <span className="text-[9px] text-gray-300">{m.flag}</span>
+                      <span className="text-xs opacity-50">{m.flag}</span>
                     </div>
                   </button>
                 )
@@ -1083,26 +1167,40 @@ export default function NewOrderPage() {
             </div>
           </div>
 
-          {/* Global markets */}
+          {/* ── 글로벌 마켓 ────────────────────────────────────── */}
           <div>
-            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">🌏 {uiLang === 'ko' ? '글로벌 마켓' : 'Global Markets'}</p>
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+            <div className="flex items-center gap-2 mb-2.5">
+              <span className="text-sm">🌏</span>
+              <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.12em]">
+                {uiLang==='ko'?'글로벌 마켓':uiLang==='ja'?'グローバルマーケット':uiLang==='zh'?'全球市场':'Global Markets'}
+              </p>
+              <span className="text-[9px] font-black bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 rounded-full">
+                {uiLang==='ko'?'다국어 자동 최적화':uiLang==='ja'?'多言語自動対応':uiLang==='zh'?'多语言自动优化':'Auto multi-lang'}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {MARKET_DATA.filter(m => m.group === 'cross').map(m => {
                 const sel = selectedMarkets.includes(m.id)
+                const label = m.label[uiLang] ?? m.label.en
+                const desc = m.desc[uiLang] ?? m.desc.en
                 return (
                   <button key={m.id} type="button" onClick={() => toggleMarket(m.id)}
-                    className={`relative rounded-xl p-3 text-left border-2 transition-all ${
-                      sel ? 'border-violet-500 bg-violet-50 shadow-sm shadow-violet-100' : 'border-gray-100 bg-gray-50 hover:border-violet-300 hover:bg-violet-50/50'
+                    className={`relative rounded-2xl p-3 text-left border-2 transition-all duration-200 group ${
+                      sel
+                        ? 'border-violet-500 bg-violet-50 shadow-md shadow-violet-100'
+                        : 'border-gray-100 bg-gray-50/80 hover:border-violet-200 hover:bg-violet-50/40 hover:shadow-sm'
                     }`}>
-                    {sel && <span className="absolute top-2 right-2 text-[9px] font-black text-violet-600">✓</span>}
-                    <div className="flex items-center gap-1 mb-1">
-                      <span className="text-base">{m.icon}</span>
-                      <span className={`text-[10px] font-black truncate ${sel ? 'text-violet-700' : 'text-gray-700'}`}>{m.nameEn}</span>
+                    {sel && (
+                      <span className="absolute top-2.5 right-2.5 w-4 h-4 bg-violet-500 text-white rounded-full flex items-center justify-center text-[9px] font-black">✓</span>
+                    )}
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <span className="text-lg leading-none">{m.icon}</span>
+                      <span className={`text-[10px] font-black truncate leading-tight ${sel ? 'text-violet-700' : 'text-gray-800'}`}>{label}</span>
                     </div>
-                    <p className="text-[9px] text-gray-400 leading-tight mb-1.5 hidden sm:block">{m.desc}</p>
+                    <p className="text-[9px] text-gray-400 leading-tight mb-2 line-clamp-2">{desc}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-black" style={{ color: m.color }}>CVR {m.cvr}%</span>
-                      <span className="text-[9px] text-gray-300">{m.flag}</span>
+                      <span className="text-xs opacity-50">{m.flag}</span>
                     </div>
                   </button>
                 )
@@ -1110,23 +1208,28 @@ export default function NewOrderPage() {
             </div>
           </div>
 
-          {/* 선택된 마켓 요약 */}
+          {/* ── 선택된 마켓 요약 ──────────────────────────────── */}
           {selectedMarkets.length > 0 && (
             <div className="mt-4 pt-4 border-t border-gray-100">
-              <div className="flex items-start gap-3 bg-gradient-to-r from-blue-50 to-violet-50 rounded-xl p-3 border border-blue-100">
-                <span className="text-base shrink-0">⚡</span>
-                <div className="min-w-0">
-                  <p className="text-xs font-black text-gray-800 mb-1">
-                    {uiLang === 'ko' ? `${selectedMarkets.length}개 마켓 자동 최적화 활성화` : `${selectedMarkets.length} market optimization active`}
+              <div className="flex items-start gap-3 rounded-2xl p-3.5 border"
+                style={{ background: 'linear-gradient(135deg, #eff6ff, #f5f3ff)', borderColor: '#c7d2fe' }}>
+                <span className="text-lg shrink-0">⚡</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-black text-gray-800 mb-2">
+                    {uiLang==='ko'?`${selectedMarkets.length}개 마켓 AI 최적화 활성화`:
+                     uiLang==='ja'?`${selectedMarkets.length}マーケット最適化有効`:
+                     uiLang==='zh'?`${selectedMarkets.length}个市场优化已激活`:
+                     `${selectedMarkets.length} market optimization active`}
                   </p>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1.5">
                     {selectedMarkets.map(id => {
                       const m = MARKET_DATA.find(x => x.id === id)
                       if (!m) return null
+                      const label = m.label[uiLang] ?? m.label.en
                       return (
-                        <span key={id} className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
+                        <span key={id} className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full text-white"
                           style={{ background: m.color }}>
-                          {m.icon} {m.nameEn}
+                          {m.icon} {label}
                         </span>
                       )
                     })}
@@ -1135,8 +1238,12 @@ export default function NewOrderPage() {
                     const marketLangs = [...new Set(selectedMarkets.map(id => LANG_FOR_MARKET[id] ?? 'ko'))]
                     const effectiveLang = marketLangs.length > 1 ? 'all' : marketLangs[0]
                     if (effectiveLang === 'all') return (
-                      <p className="text-[10px] text-emerald-600 font-bold mt-1.5">
-                        🌏 {uiLang === 'ko' ? '4개 언어 동시 생성 자동 활성화됩니다' : '4-language simultaneous generation auto-activated'}
+                      <p className="text-[10px] text-emerald-600 font-bold mt-2 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shrink-0" />
+                        {uiLang==='ko'?'4개 언어 동시 생성 자동 활성화':
+                         uiLang==='ja'?'4言語同時生成が自動で有効化':
+                         uiLang==='zh'?'4语言同时生成自动激活':
+                         '4-language simultaneous generation auto-activated'}
                       </p>
                     )
                     return null
