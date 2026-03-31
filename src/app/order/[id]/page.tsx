@@ -1207,6 +1207,7 @@ export default function OrderResultPage() {
   const [photoPresets, setPhotoPresets] = useState<Record<string, string>>({})
   const [photoProcessing, setPhotoProcessing] = useState<string | null>(null)
   const [deployOpen, setDeployOpen] = useState(false)
+  const [showOriginalForm, setShowOriginalForm] = useState(false)
 
   const PLATFORMS = platformsForLang(uiLang)
   const t = ORDER_RESULT_UI[uiLang]
@@ -2285,33 +2286,84 @@ export default function OrderResultPage() {
           })()}
 
           {/* ── TEMPLATE MODE: Document-style section cards ──────── */}
-          {order.result_json?.template_mode && (
-            <div className="mb-5 print:hidden">
-              <div className="relative overflow-hidden rounded-2xl border border-indigo-200/60 px-5 py-4 flex items-center gap-4"
-                style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%)' }}>
-                <div className="w-10 h-10 rounded-2xl bg-indigo-500/15 border border-indigo-500/20 flex items-center justify-center text-xl shrink-0">📋</div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-black text-indigo-700 uppercase tracking-wider mb-0.5">
-                    {uiLang==='ko'?'양식 자동 완성 결과':uiLang==='ja'?'書類自動完成結果':uiLang==='zh'?'表格自动填写结果':'Form Auto-Fill Result'}
-                  </p>
-                  <p className="text-xs text-indigo-500 leading-relaxed">
-                    {uiLang==='ko'?'AI가 업로드한 양식의 구조를 분석하고 각 항목을 전문가 수준으로 작성했습니다. 항목을 클릭하면 직접 수정할 수 있습니다.':
-                     uiLang==='ja'?'AIがアップロードされた書類の構造を分析し、各項目をプロレベルで作成しました。':
-                     uiLang==='zh'?'AI已分析上传表格结构，并以专家水准填写了每个字段。点击字段可直接编辑。':
-                     'AI analyzed your uploaded form structure and filled every field at expert level. Click any field to edit.'}
-                  </p>
+          {order.result_json?.template_mode && (() => {
+            // Extract original form from order.description
+            const origMatch = (order.description ?? '').match(/\[TEMPLATE_FORM\]([\s\S]*?)\[\/TEMPLATE_FORM\]/)
+            const originalForm = origMatch ? origMatch[1].trim() : null
+
+            return (
+              <div className="mb-5 print:hidden">
+                {/* Info banner */}
+                <div className="relative overflow-hidden rounded-2xl border border-indigo-200/60 px-5 py-4 flex items-center gap-4 mb-3"
+                  style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%)' }}>
+                  <div className="w-10 h-10 rounded-2xl bg-indigo-500/15 border border-indigo-500/20 flex items-center justify-center text-xl shrink-0">📋</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-black text-indigo-700 uppercase tracking-wider mb-0.5">
+                      {uiLang==='ko'?'양식 자동 완성 결과':uiLang==='ja'?'書類自動完成結果':uiLang==='zh'?'表格自动填写结果':'Form Auto-Fill Result'}
+                    </p>
+                    <p className="text-xs text-indigo-500 leading-relaxed">
+                      {uiLang==='ko'?'AI가 업로드한 양식의 구조를 분석하고 각 항목을 전문가 수준으로 작성했습니다. 항목을 클릭하면 직접 수정할 수 있습니다.':
+                       uiLang==='ja'?'AIがアップロードされた書類の構造を分析し、各項目をプロレベルで作成しました。':
+                       uiLang==='zh'?'AI已分析上传表格结构，并以专家水准填写了每个字段。点击字段可直接编辑。':
+                       'AI analyzed your uploaded form structure and filled every field at expert level. Click any field to edit.'}
+                    </p>
+                  </div>
+                  <div className="shrink-0 flex flex-col gap-1 items-end">
+                    <span className="text-[10px] font-black bg-emerald-500 text-white px-2.5 py-1 rounded-full">
+                      {sections.length} {uiLang==='ko'?'항목':'fields'}
+                    </span>
+                    {originalForm && (
+                      <button
+                        onClick={() => setShowOriginalForm(v => !v)}
+                        className={`text-[10px] font-black px-2.5 py-1 rounded-full border transition-all ${
+                          showOriginalForm
+                            ? 'bg-indigo-600 text-white border-indigo-600'
+                            : 'bg-indigo-100 text-indigo-600 border-indigo-200 hover:bg-indigo-200'
+                        }`}
+                      >
+                        {showOriginalForm
+                          ? (uiLang==='ko'?'AI 결과 보기':'Show AI Result')
+                          : (uiLang==='ko'?'원본 양식 비교':'Compare Original')}
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="shrink-0 flex flex-col gap-1 items-end">
-                  <span className="text-[10px] font-black bg-emerald-500 text-white px-2.5 py-1 rounded-full">
-                    {sections.length} {uiLang==='ko'?'항목':'fields'}
-                  </span>
-                  <span className="text-[10px] font-black bg-indigo-100 text-indigo-600 px-2.5 py-1 rounded-full border border-indigo-200">
-                    {uiLang==='ko'?'클릭해서 수정':'Click to edit'}
-                  </span>
-                </div>
+
+                {/* Original form comparison panel */}
+                {showOriginalForm && originalForm && (
+                  <div className="rounded-2xl border-2 border-amber-200 overflow-hidden mb-3 animate-in fade-in duration-200">
+                    <div className="px-4 py-3 flex items-center gap-2" style={{ background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)' }}>
+                      <span className="text-lg">📄</span>
+                      <div>
+                        <p className="text-xs font-black text-amber-800 uppercase tracking-wider">
+                          {uiLang==='ko'?'원본 양식 (업로드된 내용)':uiLang==='ja'?'元のフォーム（アップロード内容）':uiLang==='zh'?'原始表格（上传内容）':'Original Form (Uploaded Content)'}
+                        </p>
+                        <p className="text-[10px] text-amber-600">
+                          {uiLang==='ko'?'AI가 이 원본 양식을 기반으로 완성된 문서를 작성했습니다.':'AI completed the document based on this original form.'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-white">
+                      <pre className="text-xs text-gray-600 whitespace-pre-wrap font-mono leading-relaxed max-h-80 overflow-y-auto">
+                        {originalForm}
+                      </pre>
+                    </div>
+                    <div className="px-4 py-2.5 bg-amber-50 border-t border-amber-200 flex justify-between items-center">
+                      <span className="text-[10px] text-amber-600 font-medium">
+                        {uiLang==='ko'?'↓ AI가 채운 완성 문서는 아래에서 확인하세요':'↓ See AI-filled completed document below'}
+                      </span>
+                      <button
+                        onClick={() => setShowOriginalForm(false)}
+                        className="text-[10px] font-black text-amber-700 hover:text-amber-900 underline"
+                      >
+                        {uiLang==='ko'?'닫기':'Close'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          )}
+            )
+          })()}
 
           {/* PDF target — section cards */}
           <div ref={previewRef} className={order.result_json?.template_mode ? 'space-y-3' : 'space-y-5'}>
