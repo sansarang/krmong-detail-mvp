@@ -1780,7 +1780,7 @@ export default function OrderResultPage() {
       : null
 
   return (
-    <main className="min-h-screen bg-[#F1F5F9] overflow-x-hidden">
+    <main className="min-h-screen bg-[#EEF2F7] overflow-x-hidden" style={{ fontFamily: "'Pretendard', 'Inter', -apple-system, sans-serif" }}>
       {/* ══ HEADER ══════════════════════════════════════════════════ */}
       <header className="bg-[#0F172A] sticky top-0 z-30 print:hidden shadow-xl shadow-black/20">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between gap-3">
@@ -1858,18 +1858,21 @@ export default function OrderResultPage() {
       <div className="max-w-7xl mx-auto flex min-h-[calc(100vh-56px)]">
 
         {/* ── LEFT SIDEBAR: TOC + SEO + Publish ─────────────────── */}
-        <aside className="hidden lg:flex flex-col w-56 xl:w-60 shrink-0 border-r border-[#E2E8F0] bg-white print:hidden">
+        <aside className="hidden lg:flex flex-col w-52 xl:w-56 shrink-0 border-r border-[#E2E8F0]/60 bg-white/80 backdrop-blur-sm print:hidden">
           <div className="sticky top-14 overflow-y-auto max-h-[calc(100vh-56px)] p-4 space-y-5">
 
             {/* TOC */}
             <div className={showBlogPreview ? 'hidden' : ''}>
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.12em] mb-3">{p.toc}</p>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.14em] mb-3 px-1">{p.toc}</p>
               <div className="space-y-0.5">
                 {sections.map((s, i) => (
                   <a key={s.id} href={`#section-${i}`}
-                    className="flex items-center gap-2.5 py-2 px-2.5 rounded-xl text-sm text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all group">
-                    <div className="w-2 h-2 rounded-full shrink-0 group-hover:scale-125 transition-transform" style={{ backgroundColor: ACCENT_COLORS[i % ACCENT_COLORS.length] }} />
-                    <span className="truncate text-xs font-medium">{s.name}</span>
+                    className="flex items-center gap-2.5 py-2 px-2.5 rounded-2xl text-sm text-gray-500 hover:text-gray-900 hover:bg-gray-50/80 transition-all group">
+                    <div className="w-5 h-5 rounded-lg shrink-0 flex items-center justify-center text-[9px] font-black text-white group-hover:scale-110 transition-transform"
+                      style={{ background: ACCENT_COLORS[i % ACCENT_COLORS.length] }}>
+                      {i + 1}
+                    </div>
+                    <span className="truncate text-xs font-medium leading-tight">{s.name}</span>
                   </a>
                 ))}
               </div>
@@ -1921,77 +1924,108 @@ export default function OrderResultPage() {
         {/* ── MAIN CONTENT ──────────────────────────────────────── */}
         <div className="flex-1 min-w-0 px-4 md:px-6 xl:px-8 py-6 md:py-8">
 
-          {/* ── 제품 정보 헤더 카드 ──────────────────────────────── */}
-          <div className="bg-gradient-to-r from-[#0F172A] to-[#1E293B] rounded-2xl px-5 py-4 mb-5 border border-white/5 shadow-lg print:hidden">
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                    {uiLang==='ko'?'생성된 콘텐츠':uiLang==='ja'?'生成済みコンテンツ':uiLang==='zh'?'已生成内容':'Generated Content'}
-                  </span>
-                  {order.result_json?.template_mode && (
-                    <span className="text-[10px] font-black bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full">
-                      📋 {uiLang==='ko'?'양식 자동완성':'Form Auto-fill'}
+          {/* ── 제품 정보 헤더 카드 (2026 premium) ──────────────────── */}
+          <div className="relative overflow-hidden rounded-3xl mb-6 border border-white/5 shadow-2xl shadow-black/20 print:hidden"
+            style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #162032 100%)' }}>
+            {/* Background glow */}
+            <div className="absolute inset-0 opacity-30"
+              style={{ background: 'radial-gradient(ellipse 80% 60% at 20% 50%, #3B82F620, transparent), radial-gradient(ellipse 60% 80% at 80% 30%, #8B5CF615, transparent)' }} />
+            {/* Accent top line */}
+            <div className="absolute top-0 left-0 right-0 h-[2px]"
+              style={{ background: 'linear-gradient(90deg, #3B82F6, #8B5CF6, #06B6D4)' }} />
+
+            <div className="relative px-6 py-5 md:px-8 md:py-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  {/* Status chips */}
+                  <div className="flex items-center gap-2 mb-3 flex-wrap">
+                    <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.16em]">
+                      {uiLang==='ko'?'AI 생성 완료':uiLang==='ja'?'AI生成完了':uiLang==='zh'?'AI生成完成':'AI Generated'}
                     </span>
-                  )}
-                  {order.result_json?.multi_lang && (
-                    <span className="text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">
-                      🌏 {uiLang==='ko'?'4개국어 동시 생성':'4-Language Generated'}
-                    </span>
-                  )}
+                    <span className="text-white/20 text-[10px]">·</span>
+                    <div className="flex items-center gap-1">
+                      <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                      <span className="text-[10px] text-emerald-400 font-bold">LIVE</span>
+                    </div>
+                    {order.result_json?.template_mode && (
+                      <span className="text-[10px] font-black bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2.5 py-1 rounded-full">
+                        📋 {uiLang==='ko'?'양식 자동완성':'Form Auto-fill'}
+                      </span>
+                    )}
+                    {order.result_json?.multi_lang && (
+                      <span className="text-[10px] font-black bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 px-2.5 py-1 rounded-full">
+                        🌏 {uiLang==='ko'?'4개국어':'4-Lang'}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Product name — BIG */}
+                  <h1 className="text-white font-black text-xl md:text-2xl lg:text-3xl leading-tight tracking-tight mb-3"
+                    style={{ fontFamily: "'Pretendard', 'Inter', sans-serif", letterSpacing: '-0.03em' }}>
+                    {order.product_name}
+                  </h1>
+
+                  {/* Meta pills */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {order.category && (
+                      <span className="text-xs font-bold text-white/50 bg-white/8 px-3 py-1 rounded-full border border-white/8 capitalize">
+                        {order.category}
+                      </span>
+                    )}
+                    {seoReport && (
+                      <span className={`text-xs font-black px-3 py-1 rounded-full border ${
+                        seoReport.score >= 80 ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25'
+                          : seoReport.score >= 60 ? 'bg-yellow-500/15 text-yellow-300 border-yellow-500/25'
+                          : 'bg-red-500/15 text-red-300 border-red-500/25'
+                      }`}>
+                        SEO {seoReport.score} / 100
+                      </span>
+                    )}
+                    {sections.length > 0 && (
+                      <span className="text-xs font-bold text-white/40 bg-white/5 px-3 py-1 rounded-full border border-white/8">
+                        {sections.length} {uiLang==='ko'?'섹션':uiLang==='ja'?'セクション':uiLang==='zh'?'章节':'sections'}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <h1 className="text-white font-black text-lg md:text-xl tracking-tight truncate leading-tight">
-                  {order.product_name}
-                </h1>
-                <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                  <span className="text-xs text-gray-500 font-medium capitalize">{order.category}</span>
-                  {seoReport && (
-                    <span className={`text-xs font-black px-2 py-0.5 rounded-full border ${scoreBg} ${scoreColor}`}>
-                      SEO {seoReport.score}점
-                    </span>
-                  )}
-                  {sections.length > 0 && (
-                    <span className="text-xs text-gray-600 font-medium">
-                      {sections.length}{uiLang==='ko'?'개 섹션':uiLang==='ja'?'セクション':uiLang==='zh'?'个章节':' sections'}
-                    </span>
-                  )}
+
+                {/* Right action buttons */}
+                <div className="flex flex-col items-end gap-2 shrink-0">
+                  <button type="button" onClick={handleNaverCopy}
+                    className={`${primStyle.bg} ${primStyle.hover} text-white px-4 py-2.5 rounded-2xl text-sm font-black transition-all flex items-center gap-2 shadow-lg`}>
+                    <span>{primaryRow?.icon}</span>
+                    {copyDone ? '✓ Done' : (uiLang==='ko'?'복사·발행':uiLang==='ja'?'コピー':'Publish')}
+                  </button>
+                  <button type="button" onClick={handleDownloadZip}
+                    className="flex items-center gap-1.5 bg-white/6 hover:bg-white/12 border border-white/10 text-gray-400 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all">
+                    ⬇️ ZIP
+                  </button>
                 </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <button type="button" onClick={handleDownloadZip}
-                  className="flex items-center gap-1.5 bg-white/8 hover:bg-white/14 border border-white/10 text-gray-300 px-3 py-2 rounded-xl text-xs font-bold transition-all">
-                  ⬇️ ZIP
-                </button>
-                <button type="button" onClick={handleNaverCopy}
-                  className={`${primStyle.bg} ${primStyle.hover} text-white px-3 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5`}>
-                  <span className="text-sm">{primaryRow?.icon}</span>
-                  {copyDone ? '✓' : (uiLang==='ko'?'복사':'Copy')}
-                </button>
               </div>
             </div>
           </div>
 
           {/* Top bar */}
-          <div className="flex items-center justify-between mb-5 print:hidden">
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-              <span className="text-xs text-gray-500 font-medium">{p.liveEdit}</span>
+          <div className="flex items-center justify-between mb-6 print:hidden">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full">
+                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                <span className="text-[11px] text-emerald-700 font-bold">{p.liveEdit}</span>
+              </div>
               {seoReport && (
                 <button onClick={() => setShowSeo(true)}
-                  className={`lg:hidden flex items-center gap-1 border px-2.5 py-1 rounded-lg text-xs font-black transition-all ${scoreBg} ${scoreColor}`}>
+                  className={`lg:hidden flex items-center gap-1 border px-2.5 py-1.5 rounded-xl text-xs font-black transition-all shadow-sm ${scoreBg} ${scoreColor}`}>
                   SEO {seoReport.score}
                 </button>
               )}
             </div>
             <div className="flex items-center gap-2">
-              {/* Mobile Tools button */}
               <button type="button" onClick={() => setMobileToolsOpen(true)}
-                className="xl:hidden bg-[#0F172A] text-white px-3 py-2 rounded-xl text-xs font-black flex items-center gap-1.5">
+                className="xl:hidden bg-[#0F172A] text-white px-3 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-md">
                 🛠 {uiLang === 'ko' ? 'AI 도구' : uiLang === 'ja' ? 'AIツール' : uiLang === 'zh' ? 'AI工具' : 'AI Tools'}
               </button>
-              {/* Primary mobile publish */}
               <button type="button" onClick={handleNaverCopy}
-                className={`lg:hidden ${primStyle.bg} ${primStyle.hover} text-white px-3 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5`}>
+                className={`lg:hidden ${primStyle.bg} ${primStyle.hover} text-white px-3 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-md`}>
                 <span>{primaryRow?.icon}</span>
                 {copyDone ? t.mobileCopyDone : copyFormatIsListing ? t.mobileListingCopy : t.mobileBlogCopy}
               </button>
@@ -2159,106 +2193,172 @@ export default function OrderResultPage() {
             )
           })()}
 
-          {/* PDF target — section cards */}
-          <div ref={previewRef} className="space-y-3">
-            {sections.map((section, i) => (
-              <div key={section.id} id={`section-${i}`}
-                className={`bg-white rounded-2xl border overflow-hidden shadow-sm transition-all duration-200 cursor-pointer group ${
-                  editingId === section.id
-                    ? 'border-blue-400 shadow-lg shadow-blue-500/10 ring-2 ring-blue-400/20'
-                    : 'border-gray-100 hover:border-gray-300 hover:shadow-md'
-                }`}
-                onClick={() => setEditingId(editingId === section.id ? null : section.id)}
-              >
-                {/* Section accent bar */}
-                <div className="h-1 w-full" style={{ background: `linear-gradient(90deg, ${ACCENT_COLORS[i % ACCENT_COLORS.length]}, ${ACCENT_COLORS[(i+1) % ACCENT_COLORS.length]}40)` }} />
+          {/* PDF target — section cards (2026 premium redesign) */}
+          <div ref={previewRef} className="space-y-5">
+            {sections.map((section, i) => {
+              const accent = ACCENT_COLORS[i % ACCENT_COLORS.length]
+              const accentNext = ACCENT_COLORS[(i + 1) % ACCENT_COLORS.length]
+              const isEditing = editingId === section.id
+              const isFirst = i === 0
+              const isLast = i === sections.length - 1
 
-                <div className="px-6 py-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ACCENT_COLORS[i % ACCENT_COLORS.length] }} />
-                      <span className="text-[11px] font-black uppercase tracking-[0.12em]" style={{ color: ACCENT_COLORS[i % ACCENT_COLORS.length] }}>
-                        {section.name}
-                      </span>
+              return (
+                <div key={section.id} id={`section-${i}`}
+                  style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}
+                  className={`group relative bg-white overflow-hidden transition-all duration-300 cursor-pointer
+                    ${isEditing
+                      ? 'rounded-3xl border-2 border-blue-400 shadow-2xl shadow-blue-500/12 ring-4 ring-blue-400/10 scale-[1.005]'
+                      : 'rounded-3xl border border-gray-100/80 shadow-sm hover:shadow-xl hover:shadow-black/6 hover:border-gray-200 hover:-translate-y-0.5'
+                    }`}
+                  onClick={() => setEditingId(isEditing ? null : section.id)}
+                >
+                  {/* Top gradient bar */}
+                  <div className="h-[3px] w-full"
+                    style={{ background: `linear-gradient(90deg, ${accent}, ${accentNext}60)` }} />
+
+                  <div className="px-7 py-7 md:px-9 md:py-8">
+                    {/* Section meta row */}
+                    <div className="flex items-center justify-between mb-5">
+                      <div className="flex items-center gap-3">
+                        {/* Number badge */}
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center text-[11px] font-black text-white shrink-0"
+                          style={{ background: `linear-gradient(135deg, ${accent}, ${accentNext})` }}>
+                          {String(i + 1).padStart(2, '0')}
+                        </div>
+                        <span className="text-[11px] font-black uppercase tracking-[0.14em]"
+                          style={{ color: accent }}>
+                          {section.name}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {isFirst && (
+                          <span className="text-[10px] font-black bg-gradient-to-r from-blue-50 to-violet-50 text-blue-600 border border-blue-100 px-2.5 py-1 rounded-full">
+                            HOOK ✦
+                          </span>
+                        )}
+                        {isLast && (
+                          <span className="text-[10px] font-black bg-emerald-50 text-emerald-600 border border-emerald-100 px-2.5 py-1 rounded-full">
+                            CTA ↗
+                          </span>
+                        )}
+                        {isEditing
+                          ? <span className="text-[10px] text-blue-600 font-black bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full animate-pulse">{p.editing}</span>
+                          : <span className="text-[10px] text-gray-300 opacity-0 group-hover:opacity-100 transition-all duration-200 pr-1">✎ edit</span>
+                        }
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {editingId === section.id
-                        ? <span className="text-[10px] text-blue-600 font-black bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full">{p.editing}</span>
-                        : <span className="text-[10px] text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">✎ Click to edit</span>
-                      }
-                    </div>
+
+                    {/* Title */}
+                    {isEditing ? (
+                      <input value={section.title}
+                        onChange={e => updateSection(section.id, 'title', e.target.value)}
+                        onClick={e => e.stopPropagation()}
+                        className="w-full text-2xl md:text-3xl font-black text-gray-900 mb-5 bg-blue-50/50 border border-blue-200 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 leading-tight tracking-tight transition-all"
+                        style={{ fontFamily: "'Pretendard', 'Inter', sans-serif" }}
+                      />
+                    ) : (
+                      <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-5 leading-tight tracking-tight"
+                        style={{ fontFamily: "'Pretendard', 'Inter', sans-serif", letterSpacing: '-0.025em' }}>
+                        {section.title}
+                      </h2>
+                    )}
+
+                    {/* Divider */}
+                    <div className="w-12 h-[2px] rounded-full mb-5 opacity-60"
+                      style={{ background: `linear-gradient(90deg, ${accent}, transparent)` }} />
+
+                    {/* Body */}
+                    {isEditing ? (
+                      <textarea value={section.body}
+                        onChange={e => updateSection(section.id, 'body', e.target.value)}
+                        onClick={e => e.stopPropagation()}
+                        rows={7}
+                        className="w-full text-[15px] text-gray-600 bg-blue-50/50 border border-blue-200 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none leading-[1.8] transition-all"
+                      />
+                    ) : (
+                      <p className="text-[15px] text-gray-600 leading-[1.85] whitespace-pre-line">
+                        {section.body}
+                      </p>
+                    )}
+
+                    {/* Bottom: char count when editing */}
+                    {isEditing && (
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-blue-100">
+                        <span className="text-[10px] text-gray-400">{section.body.length.toLocaleString()}{uiLang==='ko'?'자':'chars'}</span>
+                        <button type="button" onClick={e => { e.stopPropagation(); setEditingId(null) }}
+                          className="text-[10px] font-black text-blue-600 hover:text-blue-800 transition-colors">
+                          ✓ {uiLang==='ko'?'완료':'Done'}
+                        </button>
+                      </div>
+                    )}
                   </div>
 
-                  {editingId === section.id ? (
-                    <input value={section.title}
-                      onChange={e => updateSection(section.id, 'title', e.target.value)}
-                      onClick={e => e.stopPropagation()}
-                      className="w-full text-xl md:text-2xl font-black text-gray-900 mb-4 bg-gray-50 border border-blue-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 leading-tight tracking-tight transition-all"
-                    />
-                  ) : (
-                    <h2 className="text-xl md:text-2xl font-black text-gray-900 mb-4 leading-tight tracking-tight">{section.title}</h2>
-                  )}
-
-                  {editingId === section.id ? (
-                    <textarea value={section.body}
-                      onChange={e => updateSection(section.id, 'body', e.target.value)}
-                      onClick={e => e.stopPropagation()}
-                      rows={6}
-                      className="w-full text-sm text-gray-600 bg-gray-50 border border-blue-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none leading-relaxed transition-all"
-                    />
-                  ) : (
-                    <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{section.body}</p>
-                  )}
+                  {/* Hover: left accent line */}
+                  <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-3xl opacity-0 group-hover:opacity-100 transition-all duration-300"
+                    style={{ background: `linear-gradient(180deg, ${accent}, ${accentNext})` }} />
                 </div>
-              </div>
-            ))}
+              )
+            })}
 
-            <div className="bg-white rounded-2xl border border-gray-100 px-6 py-5 text-center shadow-sm">
-              <p className="text-gray-400 text-xs font-medium">{p.footerAi}</p>
+            {/* Footer card */}
+            <div className="bg-gradient-to-r from-[#0F172A] to-[#1E293B] rounded-3xl px-7 py-6 text-center border border-white/5 shadow-lg">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                <span className="text-[11px] text-gray-400 font-medium">Powered by PageAI</span>
+              </div>
+              <p className="text-gray-500 text-xs">{p.footerAi}</p>
             </div>
           </div>
 
-          {/* Bottom action bar */}
-          <div className="mt-8 pb-24 md:pb-8 print:hidden">
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-wrap gap-3 items-center justify-between">
-              <div className="flex gap-2 flex-wrap">
-                <button type="button" onClick={() => router.push('/order/new')}
-                  className="border border-gray-200 text-gray-500 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-all">
-                  {p.newOrder}
-                </button>
-                <button type="button" onClick={handleRegenerate} disabled={regenLoading}
-                  className="border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all disabled:opacity-40 flex items-center gap-1.5">
-                  {regenLoading ? <span className="w-3 h-3 border-2 border-gray-300 border-t-gray-700 rounded-full animate-spin" /> : '↺'}
-                  {p.regenBottom}
-                </button>
-                {sections.length > 0 && (
-                  <button type="button" onClick={handleCopyShareLink}
-                    className="border border-amber-200 bg-amber-50 text-amber-800 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-amber-100 transition-all">
-                    🔗 {p.shareLinkBtn}
+          {/* Bottom action bar — 2026 premium */}
+          <div className="mt-10 pb-28 md:pb-10 print:hidden">
+            <div className="relative overflow-hidden rounded-3xl border border-white/5 shadow-2xl shadow-black/15 p-5 md:p-6"
+              style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 60%, #0F172A 100%)' }}>
+              {/* Subtle glow */}
+              <div className="absolute inset-0 opacity-20" style={{ background: 'radial-gradient(ellipse 50% 60% at 50% 100%, #3B82F630, transparent)' }} />
+              <div className="relative flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                {/* Left: secondary actions */}
+                <div className="flex gap-2 flex-wrap">
+                  <button type="button" onClick={() => router.push('/order/new')}
+                    className="border border-white/10 text-gray-400 hover:text-white hover:border-white/20 px-4 py-2.5 rounded-2xl text-sm font-medium transition-all hover:bg-white/5">
+                    {p.newOrder}
                   </button>
-                )}
-              </div>
-              <div className="flex gap-2 flex-wrap">
-                {sections.length > 0 && (
-                  <button type="button" onClick={handleDownloadTxt}
-                    className="border border-gray-200 text-gray-600 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">
-                    {p.txtDownload}
+                  <button type="button" onClick={handleRegenerate} disabled={regenLoading}
+                    className="border border-white/10 text-gray-400 hover:text-white hover:border-white/20 px-4 py-2.5 rounded-2xl text-sm font-semibold transition-all hover:bg-white/5 disabled:opacity-30 flex items-center gap-1.5">
+                    {regenLoading ? <span className="w-3 h-3 border-2 border-gray-600 border-t-white rounded-full animate-spin" /> : '↺'}
+                    {p.regenBottom}
                   </button>
-                )}
-                <button type="button" onClick={handleDownloadPDF} disabled={pdfLoading}
-                  className="bg-[#0F172A] hover:bg-gray-800 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-40 flex items-center gap-1.5">
-                  {pdfLoading ? <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
-                  {pdfLoading ? p.pdfGen : p.pdfBottom}
-                </button>
-                <button type="button"
-                  onClick={() => { setPlatform(primaryPlatform); setShowBlogPreview(true) }}
-                  className={`${primStyle.bg} ${primStyle.hover} text-white px-6 py-2.5 rounded-xl text-sm font-black transition-all hover:shadow-lg flex items-center gap-2`}>
-                  <span>{primaryRow?.icon}</span>
-                  {copyDone ? t.mobileCopyDone : t.bottomCopyLabel}
-                </button>
+                  {sections.length > 0 && (
+                    <button type="button" onClick={handleCopyShareLink}
+                      className="border border-amber-500/20 bg-amber-500/8 text-amber-400 hover:bg-amber-500/14 px-4 py-2.5 rounded-2xl text-sm font-bold transition-all">
+                      🔗 {p.shareLinkBtn}
+                    </button>
+                  )}
+                </div>
+
+                {/* Right: primary actions */}
+                <div className="flex gap-2.5 flex-wrap">
+                  {sections.length > 0 && (
+                    <button type="button" onClick={handleDownloadTxt}
+                      className="border border-white/10 text-gray-400 hover:text-white px-4 py-2.5 rounded-2xl text-sm font-semibold hover:bg-white/5 transition-all">
+                      {p.txtDownload}
+                    </button>
+                  )}
+                  <button type="button" onClick={handleDownloadPDF} disabled={pdfLoading}
+                    className="bg-white/10 hover:bg-white/16 border border-white/15 text-white px-5 py-2.5 rounded-2xl text-sm font-bold transition-all disabled:opacity-30 flex items-center gap-1.5">
+                    {pdfLoading ? <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
+                    {pdfLoading ? p.pdfGen : p.pdfBottom}
+                  </button>
+                  <button type="button"
+                    onClick={() => { setPlatform(primaryPlatform); setShowBlogPreview(true) }}
+                    className={`${primStyle.bg} ${primStyle.hover} text-white px-6 py-2.5 rounded-2xl text-sm font-black transition-all hover:shadow-lg hover:shadow-black/20 flex items-center gap-2`}>
+                    <span>{primaryRow?.icon}</span>
+                    {copyDone ? t.mobileCopyDone : t.bottomCopyLabel}
+                  </button>
+                </div>
               </div>
             </div>
-            <p className="text-center text-xs text-gray-400 mt-3">{p.bottomHint}</p>
+            <p className="text-center text-xs text-gray-500 mt-3">{p.bottomHint}</p>
           </div>
 
         </div>{/* end main */}

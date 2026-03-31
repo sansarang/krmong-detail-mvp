@@ -276,15 +276,25 @@ RULES:
 5. 팀 및 실적: 창업팀 강점, 지금까지의 성과 (MAU, 매출, 파트너십 등)
 6. 투자 요청/다음 단계: 필요 금액, 사용 계획, 마일스톤`
     } else {
-      roleDesc = '대한민국 최고의 마케팅 카피라이터이자 SEO 전문가'
+      roleDesc = '세계 최고 수준의 e-commerce 카피라이터이자 브랜드 스토리텔러'
       sectionGuide = `
-[제품 상세페이지 — 6개 섹션 구성]
-1. 후킹 헤드라인: 의문형으로 고객 문제 제기
-2. 문제 공감: 구매 전 고민·불편함 공감
-3. 제품 소개: 핵심 가치와 차별점 (수치 포함)
-4. 핵심 특징: 3~5가지 특징 (✓ 기호, 숫자 포함)
-5. 사용 방법/추천 대상: 단계별 안내 또는 이런 분께 추천
-6. 구매 유도 CTA: 지금 바로 구매·시작 유도`
+[제품 상세페이지 — 6개 섹션 구성 (인간적·유기적 흐름 필수)]
+
+⚠️ CRITICAL: 아래 구성은 큰 흐름 가이드일 뿐이다. 각 섹션 제목·내용·문체는 제품 개성에 맞게 자유롭고 창의적으로 써야 한다. 판에 박힌 "후킹 헤드라인 → 문제 공감 → 제품 소개" 패턴을 기계적으로 반복하지 말 것.
+
+흐름 원칙:
+• 섹션 1 (오프닝): 독자를 즉시 사로잡는 강렬한 첫 문장. 질문형, 선언형, 이야기형 중 제품에 가장 어울리는 것으로. 절대 "여러분은 이런 불편함이 있으신가요?"처럼 뻔하게 시작하지 말 것.
+• 섹션 2 (맥락 구축): 이 제품이 존재하는 이유. 세상의 문제, 또는 더 좋은 삶의 가능성을 그려라.
+• 섹션 3 (솔루션 공개): 제품 자체를 소개. 핵심 가치 1~2개에 집중하고 나머지는 과감히 버려라.
+• 섹션 4 (증거와 디테일): 숫자, 소재, 기술, 인증. 구체적인 수치가 신뢰를 만든다. ✓ 기호 활용.
+• 섹션 5 (사용 경험): 이 제품을 사용하는 삶을 묘사. 감각적이고 생동감 있게.
+• 섹션 6 (클로징): 구매로 이어지는 마무리. 긴박감, 독점성, 또는 감성적 연결 중 하나를 선택.
+
+문체 다양성 규칙:
+- 섹션마다 다른 톤과 리듬을 사용할 것 (짧고 강한 문장 vs 긴 서사 혼합)
+- 최소 2개 섹션에서 의외성 있는 앵글 (의외의 통계, 반전, 스토리) 사용
+- 본문에서 제품명을 직접 언급하되 지나치게 반복하지 말 것
+- 수치는 최소 3개 섹션에서 자연스럽게 녹여 넣을 것`
     }
 
     const docRules = isDocType ? `
@@ -293,11 +303,11 @@ RULES:
 - 주요 수치·통계·날짜는 반드시 포함 (입력 정보 기반)
 - 목적·대상·기대효과를 각 섹션에서 구체적으로 명시
 - 전문 용어 적절히 활용 (과제명, 기관명 등)` : `
-추가 카피라이팅 규칙:
-- 섹션 제목 3개 이상에 구체적 숫자 포함
-- 최소 1개 섹션 제목은 의문형
-- 제품/서비스명 키워드를 최소 3개 섹션 제목에 자연스럽게 포함
-- 마지막 섹션에 행동 유도 키워드 2개 이상 ("지금", "바로", "무료", "상담", "예약", "구매")`
+카피라이팅 품질 규칙:
+- 섹션 제목은 각각 완전히 다른 스타일로 (의문형, 선언형, 수사학적 역설, 숫자 강조 등 혼합)
+- 본문 길이도 섹션마다 다르게 (짧은 펀치 문단과 긴 설득 문단을 교차)
+- "고품질", "최고의", "뛰어난" 같은 진부한 형용사 금지 — 구체적 사실로 대체
+- 마지막 섹션은 읽은 후 즉시 행동하고 싶게 만드는 감정적 트리거 포함`
 
     // ── 마켓 & 크로스보더 마커 파싱 ──────────────────────────
     const marketsMatch = (order.description ?? '').match(/\[MARKETS:([^\]]+)\]/)
@@ -511,10 +521,12 @@ ${sectionGuide}
 MANDATORY QUALITY STANDARDS:
 1. SPECIFICITY: Every body section must contain at least 1 quantified claim (number, %, stat, or metric)
 2. CULTURAL VOICE: Write as a native speaker of the target market — not a translation
-3. MINIMUM LENGTH: Each section body minimum 200 characters
-4. ZERO FILLER: Never write "high quality," "great product," or any generic phrase
+3. MINIMUM LENGTH: Each section body minimum 220 characters, mix short punchy paras with longer ones
+4. ZERO FILLER: Never write "high quality," "great product," or any generic phrase — use concrete facts instead
 5. SOCIAL PROOF: Include trust signals (reviews, certifications, sales numbers) in at least 2 sections
-6. STORY ARC: Sections must flow as a narrative — problem → solution → proof → CTA
+6. HUMAN FLOW: Each section must have a DIFFERENT tone, rhythm, and angle. Vary sentence length. Use storytelling, unexpected angles, sensory language. Never repeat the same structural pattern twice.
+7. DIVERSE TITLES: Section titles must each use a completely different style — interrogative, declarative, paradoxical, numerical, evocative — never two titles with the same structure
+8. ORGANIC TRANSITIONS: Content must flow naturally between sections like a human writer, not a template
 ${docRules}
 
 Output JSON only (no other text, no markdown):
@@ -581,19 +593,20 @@ ${culturalContext ? `\n=== CULTURAL MARKET CONTEXT ===\n${culturalContext}\n=== 
 ${sectionGuide}
 
 반드시 지켜야 할 품질 기준:
-1. 각 섹션 본문 200자 이상 (구체적 수치, 사회적 증거, 설득력 있는 표현)
-2. 제목에 구체적 숫자 또는 키워드 포함 (최소 3개 섹션)
-3. 카테고리 업종에 맞는 전문 용어 사용
-4. 첫 번째 섹션: 강력한 후킹 (의문형 또는 수치 포함 헤드라인)
-5. 마지막 섹션: 명확한 CTA + 구매 촉진 트리거
-6. 전체 섹션 본문 합계 1200자 이상
+1. 각 섹션 본문 220자 이상 — 짧고 강한 문단과 긴 문단을 교차해서 리듬감 형성
+2. 각 섹션 제목은 서로 완전히 다른 스타일 (의문형, 선언형, 수사적 역설, 숫자 강조, 감성 호소 혼합)
+3. 카테고리·제품에 맞는 전문 용어 + 감각적 언어 사용
+4. 첫 번째 섹션: 예상치 못한 앵글로 시작 — "여러분은 ~불편함이 있으신가요?" 같은 뻔한 시작 절대 금지
+5. 마지막 섹션: 감정적 트리거 + 명확한 행동 유도 (긴박감, 독점성, 감성 연결 중 택일)
+6. 전체 섹션 본문 합계 1500자 이상
+7. 인간 작가처럼 자연스럽고 유기적인 흐름 — 섹션 간 패턴 반복 금지
 ${docRules}
 
-⚠️ SEO 최적화 필수:
-- 제품명 핵심 키워드를 3개 이상 섹션 제목에 자연스럽게 포함
-- 숫자/수치를 최소 3개 섹션 제목에 활용 (%, 개, mg, ml, 배, 원, 일, 명 등)
-- 최소 1개 섹션 제목에 의문형 ("?", "나요", "까요", "세요")
-- 마지막 섹션 본문에 행동 유도 키워드 2개 이상
+⚠️ SEO + 인간화 동시 달성:
+- 제품명 핵심 키워드를 3개 이상 섹션에 자연스럽게 (억지로 끼워 넣지 말 것)
+- 수치는 최소 3개 섹션에서 문장 속에 자연스럽게 (제목에 강제 삽입 금지)
+- 섹션 제목 6개가 모두 달라야 함 — 같은 구조 2개 이상 금지
+- 마지막 섹션에 구체적 행동 유도 + 감정적 클로징
 
 JSON만 출력 (마크다운 없이, 앞뒤 텍스트 없이):
 {
