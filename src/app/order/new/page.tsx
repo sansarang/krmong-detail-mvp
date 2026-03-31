@@ -833,15 +833,34 @@ export default function NewOrderPage() {
           : data.slides
           ? (uiLang === 'ko' ? `${data.slides}슬라이드` : `${data.slides} slides`)
           : ''
-        toast.success(
-          uiLang === 'ko' ? `✅ ${ext} 내용 추출 완료${detail ? ` (${detail})` : ''} — AI가 양식 구조를 인식했습니다` :
-          uiLang === 'ja' ? `✅ ${ext} 解析完了${detail ? ` (${detail})` : ''}` :
-          uiLang === 'zh' ? `✅ ${ext} 解析完成${detail ? ` (${detail})` : ''}` :
-          `✅ ${ext} parsed${detail ? ` (${detail})` : ''} — form structure recognized`
-        )
+        if (data.wasLarge) {
+          toast.success(
+            uiLang === 'ko'
+              ? `✅ ${ext} 추출 완료${detail ? ` (${detail})` : ''} — 대용량 파일 감지: 핵심 구조 + 샘플 데이터 추출됨 (AI 처리 최적화)`
+              : `✅ ${ext} parsed${detail ? ` (${detail})` : ''} — Large file: key structure & sample extracted for AI`,
+            { duration: 6000 }
+          )
+        } else {
+          toast.success(
+            uiLang === 'ko' ? `✅ ${ext} 내용 추출 완료${detail ? ` (${detail})` : ''} — AI가 양식 구조를 인식했습니다` :
+            uiLang === 'ja' ? `✅ ${ext} 解析完了${detail ? ` (${detail})` : ''}` :
+            uiLang === 'zh' ? `✅ ${ext} 解析完成${detail ? ` (${detail})` : ''}` :
+            `✅ ${ext} parsed${detail ? ` (${detail})` : ''} — form structure recognized`
+          )
+        }
       } catch (err) {
         toast.dismiss(tid)
-        toast.error(err instanceof Error ? err.message : `${ext} 파싱 실패 — 내용을 직접 붙여넣기 해주세요`)
+        const errMsg = err instanceof Error ? err.message : `${ext} 파싱 실패`
+        if (errMsg.includes('prompt is too long') || errMsg.includes('too long') || errMsg.includes('token')) {
+          toast.error(
+            uiLang === 'ko'
+              ? '파일이 너무 큽니다. 핵심 항목만 복사해서 붙여넣기 해주세요.'
+              : 'File too large. Please paste only the key sections.',
+            { duration: 8000 }
+          )
+        } else {
+          toast.error(errMsg + (uiLang === 'ko' ? ' — 내용을 직접 붙여넣기 해주세요' : ' — Try pasting the content directly'))
+        }
         setTmplFileName('')
       }
     } else {
@@ -1517,8 +1536,17 @@ export default function NewOrderPage() {
                           <p className="text-emerald-700 text-sm font-black truncate">
                             {tmplFileName || (uiLang === 'ko' ? '양식 로드 완료' : uiLang === 'ja' ? '書式読み込み完了' : uiLang === 'zh' ? '表格加载完成' : 'Form loaded')}
                           </p>
-                          <p className="text-emerald-600 text-xs">
-                            {templateContent.length.toLocaleString()}{uiLang === 'ko' ? '자 추출됨' : uiLang === 'en' ? ' chars extracted' : uiLang === 'ja' ? '文字抽出済み' : '字已提取'} · {uiLang === 'ko' ? '클릭해서 변경' : uiLang === 'ja' ? 'クリックして変更' : uiLang === 'zh' ? '点击更改' : 'Click to change'}
+                          <p className={`text-xs flex items-center gap-1.5 ${templateContent.length > 24000 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                            {templateContent.length > 24000 && <span className="text-amber-500">⚠️</span>}
+                            {templateContent.length.toLocaleString()}{uiLang === 'ko' ? '자 추출됨' : uiLang === 'en' ? ' chars extracted' : uiLang === 'ja' ? '文字抽出済み' : '字已提取'}
+                            {templateContent.length > 24000 && (
+                              <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-bold">
+                                {uiLang === 'ko' ? '대용량 — AI 최적화 처리' : 'Large — AI optimized'}
+                              </span>
+                            )}
+                            {templateContent.length <= 24000 && (
+                              <span className="text-gray-400"> · {uiLang === 'ko' ? '클릭해서 변경' : 'Click to change'}</span>
+                            )}
                           </p>
                         </div>
                         <button type="button"
@@ -1572,6 +1600,20 @@ export default function NewOrderPage() {
                   <textarea placeholder={L.templateFormPlaceholder} rows={5} value={templateContent}
                     onChange={e => { setTemplateContent(e.target.value); setTmplFileName('') }}
                     className="w-full mt-2 border border-indigo-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm resize-none bg-white" />
+                  {templateContent.length > 0 && (
+                    <div className={`flex items-center justify-between mt-1.5 px-1 ${templateContent.length > 24000 ? 'text-amber-600' : 'text-gray-400'}`}>
+                      <span className="text-[10px]">
+                        {templateContent.length.toLocaleString()} / 24,000자 권장
+                        {templateContent.length > 24000 && <span className="ml-1 font-bold">— 자동 최적화 처리됩니다</span>}
+                      </span>
+                      {templateContent.length > 24000 && (
+                        <div className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                          <span className="text-[10px] font-bold text-amber-600">AI 최적화 모드</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </details>
               </div>
 

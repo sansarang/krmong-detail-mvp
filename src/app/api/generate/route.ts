@@ -101,6 +101,75 @@ export async function POST(req: NextRequest) {
       const isMultiLangT = outputLang === 'all'
       const targetLangs = isMultiLangT ? ['ko', 'en', 'ja', 'zh'] : [outputLang]
 
+      // ── 토큰 안전망: 대용량 콘텐츠 스마트 압축 ────────────────────
+      // Korean ≈ 1 char/token, English ≈ 4 chars/token
+      // Budget: 200,000 - system(~500) - overhead(~1500) - output(~3500) = ~194,500 tokens
+      // Conservative safe limit: 24,000 chars (leaves plenty of room)
+      const TOKEN_SAFE_CHARS = 24000
+
+      function smartTruncateContent(content: string, docType: string): string {
+        if (content.length <= TOKEN_SAFE_CHARS) return content
+
+        const originalLen = content.length
+        const truncNote = `\n\n[⚠️ 원본 ${originalLen.toLocaleString()}자 → AI 처리 한도 초과로 핵심 구조 추출 (${TOKEN_SAFE_CHARS.toLocaleString()}자). 모든 주요 항목 포함됨.]`
+
+        // For Excel/inspection: already has structured header + sample from parse-file
+        // Just take the most important first portion
+        if (docType === 'excel' || docType === 'inspection_report') {
+          // Extract all header/column info lines first (they're most important)
+          const lines  = content.split('\n')
+          const headerLines: string[] = []
+          const dataLines:   string[] = []
+
+          lines.forEach(l => {
+            const lTrim = l.trim()
+            if (
+              lTrim.startsWith('[') ||
+              lTrim.startsWith('총 데이터') ||
+              lTrim.startsWith('컬럼:') ||
+              lTrim.startsWith('수치 통계') ||
+              lTrim.startsWith('--- ') ||
+              lTrim.startsWith('... (중간')
+            ) {
+              headerLines.push(l)
+            } else {
+              dataLines.push(l)
+            }
+          })
+
+          // Take all header lines + as many data lines as fit
+          const headerText  = headerLines.join('\n')
+          const remaining   = TOKEN_SAFE_CHARS - headerText.length - truncNote.length - 200
+          const dataText    = dataLines.join('\n').slice(0, Math.max(remaining, 0))
+          return (headerText + '\n' + dataText).trim() + truncNote
+        }
+
+        // For questionnaires/exams: try to keep complete questions (don't cut mid-question)
+        if (docType === 'questionnaire' || docType === 'exam') {
+          const questionBlocks = content.split(/\n(?=\d+[\.\)]\s)/) // split at "1. " or "1) "
+          let result = ''
+          for (const block of questionBlocks) {
+            if ((result + block).length > TOKEN_SAFE_CHARS - truncNote.length) break
+            result += block + '\n'
+          }
+          if (result.length < 500) {
+            // fallback: just truncate
+            result = content.slice(0, TOKEN_SAFE_CHARS - truncNote.length)
+          }
+          return result.trim() + truncNote
+        }
+
+        // Default: first 75% + last 10% of safe limit for context continuity
+        const firstPart = Math.floor(TOKEN_SAFE_CHARS * 0.75)
+        const lastPart  = Math.floor(TOKEN_SAFE_CHARS * 0.10)
+        return (
+          content.slice(0, firstPart) +
+          '\n\n[...]\n\n' +
+          content.slice(-(lastPart)) +
+          truncNote
+        )
+      }
+
       // 문서 유형 자동 감지 (XLSX, 질문지, 보고서 등)
       const detectDocumentType = (title: string, content: string, hint: string) => {
         const text = (title + ' ' + content + ' ' + hint).toLowerCase()
@@ -196,6 +265,15 @@ CRITICAL RULES:
 6. COMPLETENESS: Fill EVERY blank, field, and section — never skip
 7. OUTPUT FORMAT: Plain text with [Section Name] headers followed by natural prose — NOT JSON`
 
+      // Excel 등 raw data에서 FILE_TYPE 힌트 제거 + 토큰 안전 압축 (buildTemplatePrompt 밖에 정의)
+      const cleanTemplate = smartTruncateContent(
+        templateContent
+          .replace(/\[FILE_TYPE:[^\]]*\]/gi, '')
+          .replace(/\[TRANSLATION_MODE:[^\]]*\]/gi, '')
+          .trim(),
+        docType
+      )
+
       const buildTemplatePrompt = (lang: string) => {
         const langInst = lang !== 'ko'
           ? ` CRITICAL: Write ALL output entirely in ${LANG_NAMES_T[lang] ?? lang}. Translate section names too.`
@@ -205,12 +283,6 @@ CRITICAL RULES:
           ? `\n🔴 CUSTOM INSTRUCTIONS (HIGHEST PRIORITY — override all defaults):\n${customInstructions}\n🔴 END\n`
           : ''
         const typeInstructions = getDocTypeInstructions(docType, lang)
-
-        // Excel 등 raw data에서 FILE_TYPE 힌트 제거 (클린 데이터만 전달)
-        const cleanTemplate = templateContent
-          .replace(/\[FILE_TYPE:[^\]]*\]/gi, '')
-          .replace(/\[TRANSLATION_MODE:[^\]]*\]/gi, '')
-          .trim()
 
         return `${customBlock}
 
@@ -243,19 +315,53 @@ Write a complete, professional document based on the above form/data.
       }
 
       // 다중 언어 동시 생성
-      if (isMultiLangT) {
-        const langResults = await Promise.all(
-          targetLangs.map(async (lang) => {
-            const msg = await anthropic.messages.create({
+      // 안전한 API 호출 래퍼 — prompt_too_long 에러 시 자동 재시도
+      async function safeTemplateCall(lang: string, attempt = 0): Promise<string> {
+        try {
+          const msg = await anthropic.messages.create({
+            model: 'claude-sonnet-4-5',
+            max_tokens: 3000,
+            system: TEMPLATE_SYSTEM,
+            messages: [{ role: 'user', content: buildTemplatePrompt(lang) }],
+          })
+          const c = msg.content[0]
+          if (c.type !== 'text') throw new Error(`${lang} 응답 오류`)
+          return c.text.trim()
+        } catch (err: unknown) {
+          const errMsg = err instanceof Error ? err.message : String(err)
+          // Claude returns 400 with "prompt is too long" — retry with halved content
+          if ((errMsg.includes('prompt is too long') || errMsg.includes('too_long') || errMsg.includes('400')) && attempt < 2) {
+            console.warn(`[template] ${lang} token limit hit (attempt ${attempt + 1}), retrying with reduced content`)
+            const reduction = attempt === 0 ? 0.5 : 0.25 // 50% then 25% of safe limit
+            const reducedLen = Math.floor(TOKEN_SAFE_CHARS * reduction)
+            // Re-truncate more aggressively by modifying templateContent variable
+            const aggressiveTrunc = templateContent.slice(0, reducedLen) +
+              `\n\n[⚠️ 토큰 한도로 ${reducedLen.toLocaleString()}자로 축소됨]`
+            // Temporarily override for this call
+            const shortPrompt = buildTemplatePrompt(lang).replace(
+              cleanTemplate,
+              aggressiveTrunc.replace(/\[FILE_TYPE:[^\]]*\]/gi, '').trim()
+            )
+            const msg2 = await anthropic.messages.create({
               model: 'claude-sonnet-4-5',
               max_tokens: 3000,
               system: TEMPLATE_SYSTEM,
-              messages: [{ role: 'user', content: buildTemplatePrompt(lang) }],
+              messages: [{ role: 'user', content: shortPrompt }],
             })
-            const c = msg.content[0]
-            if (c.type !== 'text') throw new Error(`${lang} template 응답 오류`)
+            const c2 = msg2.content[0]
+            if (c2.type !== 'text') throw new Error(`${lang} 재시도 응답 오류`)
+            return c2.text.trim()
+          }
+          throw err
+        }
+      }
+
+      if (isMultiLangT) {
+        const langResults = await Promise.all(
+          targetLangs.map(async (lang) => {
+            const text = await safeTemplateCall(lang)
             const BG_COLORS = ['#FFFFFF', '#F8F9FA', '#F0F7FF', '#FFF8E7', '#F0FFF4', '#FFF0F5']
-            const sections = parseTemplateTextToSections(c.text.trim(), BG_COLORS)
+            const sections = parseTemplateTextToSections(text, BG_COLORS)
             return { lang, sections }
           })
         )
@@ -268,16 +374,7 @@ Write a complete, professional document based on the above form/data.
       }
 
       // 단일 언어
-      const analyzeMsg = await anthropic.messages.create({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 3000,
-        system: TEMPLATE_SYSTEM,
-        messages: [{ role: 'user', content: buildTemplatePrompt(outputLang) }],
-      })
-
-      const analyzeContent = analyzeMsg.content[0]
-      if (analyzeContent.type !== 'text') throw new Error('AI 응답 형식 오류')
-      const filledText = analyzeContent.text.trim()
+      const filledText = await safeTemplateCall(outputLang)
 
       const BG_COLORS = ['#FFFFFF', '#F8F9FA', '#F0F7FF', '#FFF8E7', '#F0FFF4', '#FFF0F5']
       const sections = parseTemplateTextToSections(filledText, BG_COLORS)
