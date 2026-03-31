@@ -840,402 +840,347 @@ export default function NewOrderPage() {
 
   const POPULAR = POPULAR_CATS[uiLang]
 
+  const [catSearch, setCatSearch] = useState('')
+  const allCatItems = CATEGORIES.flatMap(g => g.items)
+  const filteredCats = catSearch
+    ? allCatItems.filter(c => c.label.toLowerCase().includes(catSearch.toLowerCase()))
+    : null
+
   return (
-    <main className="min-h-screen bg-white">
-      {/* 업그레이드 모달 */}
+    <main className="min-h-screen bg-[#F8FAFC]">
+
+      {/* ══ 업그레이드 모달 ════════════════════════════════════ */}
       {showUpgrade && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl">
-            <div className="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5">🔒</div>
+            <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-pink-500 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5">🔒</div>
             <h2 className="text-2xl font-black text-black text-center tracking-tight mb-2">{L.upgradeTitle}</h2>
-            <p className="text-gray-400 text-sm text-center leading-relaxed mb-6">
+            <p className="text-gray-500 text-sm text-center leading-relaxed mb-6">
               {L.upgradeSub} <strong className="text-black">{FREE_LIMIT}</strong>{L.upgradeUnit.split('\n')[0]}<br />
               {L.upgradeUnit.split('\n')[1]}
             </p>
-            <div className="bg-black rounded-2xl p-5 mb-4">
-              <p className="text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Pro</p>
-              <p className="text-3xl font-black text-white mb-1">$29<span className="text-gray-500 text-sm font-normal">/mo</span></p>
-              <ul className="space-y-1.5 mt-3">
-                {['🌏 4개 언어 동시 생성', '무제한 생성', '6개 플랫폼 자동 최적화', 'Conversion Predictor'].map(f => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
-                    <span className="w-4 h-4 bg-white/10 rounded-full flex items-center justify-center text-[9px] text-white font-black">✓</span>
+            <div className="bg-[#0F172A] rounded-2xl p-5 mb-4">
+              <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.15em] mb-2">Pro Plan</p>
+              <p className="text-4xl font-black text-white mb-1">$29<span className="text-gray-500 text-sm font-normal">/mo</span></p>
+              <ul className="space-y-2 mt-3">
+                {['🌏 4개 언어 동시 생성', '무제한 생성', '6개 플랫폼 자동 최적화', 'Conversion Predictor AI'].map(f => (
+                  <li key={f} className="flex items-center gap-2 text-sm text-gray-400">
+                    <span className="w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center text-[9px] text-white font-black shrink-0">✓</span>
                     {f}
                   </li>
                 ))}
               </ul>
             </div>
-            <Link href="/#pricing" className="w-full bg-gradient-to-r from-emerald-500 to-blue-600 text-white py-4 rounded-2xl font-black text-sm text-center block hover:opacity-90 transition-all mb-3">
+            <Link href="/#pricing" className="w-full bg-gradient-to-r from-blue-600 to-violet-600 text-white py-4 rounded-2xl font-black text-sm text-center block hover:opacity-90 transition-all mb-3 shadow-lg shadow-blue-200">
               {L.upgradeBtn}
             </Link>
-            <button onClick={() => setShowUpgrade(false)} className="w-full text-gray-400 text-sm py-3 min-h-[44px] hover:text-black transition-colors">
+            <button onClick={() => setShowUpgrade(false)} className="w-full text-gray-400 text-sm py-3 hover:text-black transition-colors">
               {L.upgradeLater}
             </button>
           </div>
         </div>
       )}
 
-      <nav className="flex items-center justify-between px-4 sm:px-8 py-4 border-b border-gray-100 sticky top-0 z-20 bg-white/90 backdrop-blur-md">
-        <Link href="/" className="flex items-center gap-2"><Logo size={28} /></Link>
-        <div className="flex items-center gap-4">
-          {/* 사용량 배지 (네비에 통합) */}
-          <div className={`hidden sm:flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-full border ${remaining === 0 ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-gray-50 border-gray-100 text-gray-500'}`}>
-            {remaining === 0
-              ? <><span>🔒</span> {L.upgradeOver}<Link href="/#pricing" className="underline font-black text-orange-700">Pro →</Link></>
-              : <><span className={`w-1.5 h-1.5 rounded-full ${remaining <= 2 ? 'bg-orange-400' : 'bg-emerald-400'}`} />{monthlyUsed}/{FREE_LIMIT} {L.usageUnit}</>
-            }
+      {/* ══ HEADER ══════════════════════════════════════════════ */}
+      <nav className="bg-[#0F172A] sticky top-0 z-20 shadow-xl shadow-black/20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
+          <Link href="/" className="flex items-center gap-2.5 shrink-0">
+            <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-violet-600 rounded-lg" />
+            <span className="font-black text-white text-sm tracking-tight hidden sm:block">PageAI</span>
+          </Link>
+
+          <div className="flex items-center gap-3">
+            {/* Usage badge */}
+            <div className={`hidden sm:flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-full border ${
+              remaining === 0 ? 'bg-red-500/15 border-red-500/20 text-red-400' : 'bg-white/5 border-white/10 text-gray-400'
+            }`}>
+              {remaining === 0
+                ? <><span>🔒</span>{L.upgradeOver}<Link href="/#pricing" className="underline font-black text-red-400">Pro →</Link></>
+                : <><span className={`w-1.5 h-1.5 rounded-full ${remaining <= 2 ? 'bg-orange-400' : 'bg-emerald-400'}`} />{monthlyUsed}/{FREE_LIMIT} {L.usageUnit}</>
+              }
+            </div>
+            <Link href="/dashboard" className="text-gray-500 hover:text-white text-sm transition-colors">{L.backDash}</Link>
           </div>
-          <Link href="/dashboard" className="text-gray-400 text-sm hover:text-black transition-colors min-h-[44px] flex items-center">{L.backDash}</Link>
         </div>
       </nav>
 
-      {/* 헤더 */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-8 pt-6 pb-2">
-        <div className="mb-5">
-          <p className="text-xs font-bold text-gray-300 uppercase tracking-widest mb-1">{L.newDoc}</p>
-          <h1 className="text-2xl sm:text-3xl font-black text-black tracking-tight">AI 문서 작성</h1>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+
+        {/* ══ PAGE TITLE ═══════════════════════════════════════ */}
+        <div className="mb-8">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] mb-1">{L.newDoc}</p>
+          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+            {uiLang === 'ko' ? 'AI 상세페이지 생성' : uiLang === 'ja' ? 'AI商品ページ作成' : uiLang === 'zh' ? 'AI商品详情页生成' : 'AI Product Page Generator'}
+          </h1>
         </div>
 
-        {/* ── 크로스보더 모드 배너 (최상단, 가장 눈에 띄게) ── */}
-        <button
-          type="button"
-          onClick={() => setCrossborderMode(v => !v)}
-          className={`w-full rounded-2xl p-4 mb-4 border-2 text-left transition-all ${
-            crossborderMode
-              ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-200'
-              : 'bg-gray-50 border-gray-200 hover:border-emerald-300 hover:bg-emerald-50'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">🌏</span>
+        {/* ══ BENTO TOP ROW: Language + Crossborder ════════════ */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6">
+
+          {/* Language selector bento */}
+          <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {/* Screen lang */}
               <div>
-                <div className={`font-black text-sm ${crossborderMode ? 'text-white' : 'text-gray-800'}`}>
-                  {L.crossborderToggle}
-                  {crossborderMode && <span className="ml-2 text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold">ON</span>}
-                </div>
-                <div className={`text-xs mt-0.5 ${crossborderMode ? 'text-emerald-100' : 'text-gray-400'}`}>
-                  Amazon JP · Tmall · Rakuten · Shopify 동시 최적화
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2.5">{L.screenLangLabel}</p>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {LANGUAGES.map(lang => (
+                    <button key={`ui-${lang.value}`} type="button"
+                      onClick={() => { const v = lang.value as UiLang; setUiLang(v); persistUiLang(v) }}
+                      className={`py-2 rounded-xl text-xs font-bold border transition-all ${uiLang === lang.value ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-sm' : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400'}`}
+                    >{lang.label}</button>
+                  ))}
                 </div>
               </div>
-            </div>
-            <div className={`w-12 h-6 rounded-full transition-all relative flex-shrink-0 ${crossborderMode ? 'bg-white/30' : 'bg-gray-200'}`}>
-              <div className={`absolute top-0.5 w-5 h-5 rounded-full shadow transition-all ${crossborderMode ? 'left-6 bg-white' : 'left-0.5 bg-gray-400'}`} />
-            </div>
-          </div>
-          {crossborderMode && (
-            <div className="mt-3 pt-3 border-t border-white/20">
-              <p className="text-xs text-emerald-100 mb-2 font-medium">{L.crossborderLabel}</p>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { id: 'amazon', label: '🛒 Amazon JP' },
-                  { id: 'tmall', label: '🔴 Tmall' },
-                  { id: 'rakuten', label: '🟠 Rakuten' },
-                  { id: 'shopify', label: '🏪 Shopify' },
-                  { id: 'qoo10', label: '🟡 Qoo10' },
-                  { id: 'lazada', label: '🟣 Lazada' },
-                ].map(pl => (
-                  <button
-                    key={pl.id}
-                    type="button"
-                    onClick={e => { e.stopPropagation(); toggleCrossborderPlatform(pl.id) }}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all min-h-[36px] ${
-                      crossborderPlatforms.includes(pl.id)
-                        ? 'bg-white text-emerald-700 border-white shadow-sm'
-                        : 'bg-white/10 text-white border-white/30 hover:bg-white/20'
-                    }`}
-                  >{pl.label}</button>
-                ))}
+              {/* Output lang */}
+              <div>
+                <div className="flex items-center gap-2 mb-2.5">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">{L.langLabel}</p>
+                  {outputLang === 'all' && <span className="text-[9px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">ACTIVE</span>}
+                </div>
+                <div className="grid grid-cols-4 gap-1.5 mb-2">
+                  {LANGUAGES.map(lang => (
+                    <button key={lang.value} type="button" onClick={() => setOutputLang(lang.value)}
+                      className={`py-2 rounded-xl text-xs font-bold border transition-all ${outputLang === lang.value && outputLang !== 'all' ? 'bg-[#0F172A] text-white border-[#0F172A]' : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400'}`}
+                    >{lang.label}</button>
+                  ))}
+                </div>
+                <button type="button" onClick={() => setOutputLang(outputLang === 'all' ? 'ko' : 'all')}
+                  className={`w-full py-2.5 rounded-xl text-xs font-black border-2 transition-all flex items-center justify-center gap-1.5 ${
+                    outputLang === 'all'
+                      ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm shadow-emerald-200'
+                      : 'bg-white text-gray-600 border-dashed border-emerald-300 hover:bg-emerald-50'
+                  }`}>
+                  🌏 {outputLang === 'all' ? '✓ 4-Lang ON (KR+EN+JP+CN)' : '4개 언어 동시 생성 (KR+EN+JP+CN)'}
+                </button>
               </div>
             </div>
-          )}
-        </button>
-
-        {/* ── 언어 설정 ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5 p-4 bg-gray-50 rounded-2xl border border-gray-100">
-          <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{L.screenLangLabel}</label>
-            <div className="grid grid-cols-4 gap-1.5">
-              {LANGUAGES.map(lang => (
-                <button key={`ui-${lang.value}`} type="button"
-                  onClick={() => { const v = lang.value as UiLang; setUiLang(v); persistUiLang(v) }}
-                  className={`py-2 min-h-[44px] rounded-xl text-xs font-bold border transition-all ${uiLang === lang.value ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'}`}
-                >{lang.label}</button>
-              ))}
-            </div>
           </div>
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{L.langLabel}</label>
-              {outputLang === 'all' && (
-                <span className="text-[10px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full animate-pulse">🌏 4개국어 동시 생성</span>
-              )}
+
+          {/* Crossborder bento */}
+          <button type="button" onClick={() => setCrossborderMode(v => !v)}
+            className={`lg:col-span-2 rounded-2xl p-5 text-left transition-all border-2 ${
+              crossborderMode
+                ? 'bg-gradient-to-br from-emerald-500 to-teal-600 border-emerald-400 shadow-lg shadow-emerald-200 text-white'
+                : 'bg-white border-gray-100 shadow-sm hover:border-emerald-300 hover:shadow-md'
+            }`}>
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xl">🌏</span>
+                  <span className={`text-sm font-black ${crossborderMode ? 'text-white' : 'text-gray-900'}`}>
+                    {uiLang === 'ko' ? '크로스보더 모드' : uiLang === 'ja' ? 'クロスボーダー' : uiLang === 'zh' ? '跨境模式' : 'Cross-Border Mode'}
+                  </span>
+                  {crossborderMode && <span className="text-[9px] bg-white/25 text-white px-2 py-0.5 rounded-full font-black">ON</span>}
+                </div>
+                <p className={`text-xs ${crossborderMode ? 'text-emerald-100' : 'text-gray-400'}`}>
+                  Amazon · Tmall · Rakuten · Shopify
+                </p>
+              </div>
+              <div className={`w-11 h-6 rounded-full relative shrink-0 mt-0.5 transition-all ${crossborderMode ? 'bg-white/30' : 'bg-gray-200'}`}>
+                <div className={`absolute top-0.5 w-5 h-5 rounded-full shadow transition-all ${crossborderMode ? 'left-5 bg-white' : 'left-0.5 bg-gray-400'}`} />
+              </div>
             </div>
-            <div className="grid grid-cols-4 gap-1.5 mb-2">
-              {LANGUAGES.map(lang => (
-                <button key={lang.value} type="button" onClick={() => setOutputLang(lang.value)}
-                  className={`py-2 min-h-[44px] rounded-xl text-xs font-bold border transition-all ${outputLang === lang.value && outputLang !== 'all' ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'}`}
-                >{lang.label}</button>
-              ))}
-            </div>
-            <button
-              type="button"
-              onClick={() => setOutputLang(outputLang === 'all' ? 'ko' : 'all')}
-              className={`w-full py-3 rounded-xl text-sm font-black border-2 transition-all flex items-center justify-center gap-2 min-h-[44px] ${
-                outputLang === 'all'
-                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-100'
-                  : 'bg-white text-gray-600 border-dashed border-emerald-300 hover:bg-emerald-50 hover:border-emerald-400'
-              }`}
-            >
-              🌏 {outputLang === 'all' ? '✓ 4개 언어 동시 생성 ON' : '4개 언어 동시 생성 (KR+EN+JP+CN)'}
-            </button>
-          </div>
+            {crossborderMode && (
+              <div className="mt-3 pt-3 border-t border-white/20">
+                <div className="flex flex-wrap gap-1.5">
+                  {[{id:'amazon',label:'Amazon JP'},{id:'tmall',label:'Tmall'},{id:'rakuten',label:'Rakuten'},{id:'shopify',label:'Shopify'},{id:'qoo10',label:'Qoo10'},{id:'lazada',label:'Lazada'}].map(pl => (
+                    <button key={pl.id} type="button"
+                      onClick={e => { e.stopPropagation(); toggleCrossborderPlatform(pl.id) }}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all ${
+                        crossborderPlatforms.includes(pl.id) ? 'bg-white text-emerald-700 border-white' : 'bg-white/10 text-white border-white/25 hover:bg-white/20'
+                      }`}>
+                      {pl.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </button>
         </div>
-      </div>
 
-      {/* ── 모바일 탭 스위처 ── */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-8 mb-4 md:hidden">
-        <div className="grid grid-cols-2 gap-2 bg-gray-100 p-1 rounded-2xl">
-          <button
-            type="button"
-            onClick={() => setActiveTab('product')}
-            className={`py-2.5 rounded-xl text-sm font-black transition-all min-h-[44px] ${activeTab === 'product' ? 'bg-white text-black shadow-sm' : 'text-gray-400'}`}
-          >📦 {uiLang === 'ko' ? '제품 AI 작성' : uiLang === 'ja' ? '商品AI作成' : uiLang === 'zh' ? '商品AI创作' : 'Product AI'}</button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('template')}
-            className={`py-2.5 rounded-xl text-sm font-black transition-all min-h-[44px] ${activeTab === 'template' ? 'bg-white text-black shadow-sm' : 'text-gray-400'}`}
-          >📋 {uiLang === 'ko' ? '양식 자동 작성' : uiLang === 'ja' ? '書式自動入力' : uiLang === 'zh' ? '表格自动填写' : 'Template Fill'}</button>
+        {/* ══ MOBILE TAB SWITCHER ══════════════════════════════ */}
+        <div className="flex gap-2 bg-gray-100 p-1 rounded-2xl mb-5 md:hidden">
+          <button type="button" onClick={() => setActiveTab('product')}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'product' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>
+            📦 {uiLang === 'ko' ? '제품 AI 작성' : 'Product AI'}
+          </button>
+          <button type="button" onClick={() => setActiveTab('template')}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'template' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>
+            📋 {uiLang === 'ko' ? '양식 자동 작성' : 'Template Fill'}
+          </button>
         </div>
-      </div>
 
-      {/* ── 2열 분할 레이아웃 ── */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-8 pb-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+        {/* ══ TWO-COLUMN FORMS ═════════════════════════════════ */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
 
-          {/* ── 왼쪽: 양식 자동 작성 ── */}
+          {/* ── LEFT: 양식 자동 작성 ─────────────────────────── */}
           <form onSubmit={handleTemplateSubmit}
-            className={`bg-indigo-50/50 border-2 border-indigo-100 rounded-3xl p-6 space-y-5 ${activeTab !== 'template' ? 'hidden md:block' : ''}`}
-          >
+            className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5 ${activeTab !== 'template' ? 'hidden md:block' : ''}`}>
+
             <div>
-              <span className="inline-block text-xs font-black text-indigo-600 bg-indigo-100 px-3 py-1 rounded-full mb-3">{L.colTmplBadge}</span>
-              <h2 className="text-xl font-black text-black leading-snug mb-1">{L.colTmplTitle}</h2>
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-black text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full mb-3">
+                📋 {L.colTmplBadge}
+              </span>
+              <h2 className="text-lg font-black text-gray-900 mb-1">{L.colTmplTitle}</h2>
               <p className="text-xs text-gray-400">{L.colTmplDesc}</p>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{L.tmplTitleLabel}</label>
-              <input
-                placeholder={L.tmplTitlePlaceholder}
-                value={tmplTitle}
-                onChange={e => setTmplTitle(e.target.value)}
-                className="w-full border border-indigo-200 rounded-2xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm bg-white min-h-[48px]"
-              />
+              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">{L.tmplTitleLabel}</label>
+              <input placeholder={L.tmplTitlePlaceholder} value={tmplTitle} onChange={e => setTmplTitle(e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm bg-gray-50 min-h-[48px]" />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                {L.templateFormLabel}{' '}
-                <span className="text-gray-300 normal-case font-normal">({L.templateFormSub})</span>
+              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">
+                {L.templateFormLabel} <span className="text-gray-300 normal-case font-normal text-[9px]">({L.templateFormSub})</span>
               </label>
-              <div className="flex gap-2 mb-2">
-                <label className="flex items-center gap-2 bg-white border border-indigo-200 rounded-xl px-4 py-2.5 cursor-pointer hover:bg-indigo-50 transition-all text-xs text-indigo-700 font-bold min-h-[44px]">
-                  📎 {uiLang === 'ko' ? 'PDF·DOCX·XLSX·PPTX 파일 첨부' : uiLang === 'ja' ? 'ファイル選択' : uiLang === 'zh' ? '选择文件' : 'Attach File (PDF/DOCX/XLSX/PPTX)'}
-                  <input ref={templateFileRef} type="file" accept=".txt,.md,.csv,.pdf,.docx,.xlsx,.xls,.pptx" className="hidden" onChange={handleTemplateFile} />
-                </label>
-                {templateContent && (
-                  <button type="button" onClick={() => setTemplateContent('')} className="text-xs text-gray-400 hover:text-red-500 transition-colors px-3 min-h-[44px]">{L.fileReset}</button>
-                )}
-              </div>
-              <textarea
-                placeholder={L.templateFormPlaceholder}
-                rows={7}
-                value={templateContent}
-                onChange={e => setTemplateContent(e.target.value)}
-                className="w-full border border-indigo-200 rounded-2xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm resize-none bg-white"
-              />
-              {templateContent && (
-                <p className="text-xs text-indigo-600 font-medium mt-1">✓ {templateContent.length.toLocaleString()}{L.templateFileAdded}</p>
-              )}
+              <label className="flex items-center gap-2 bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 cursor-pointer hover:bg-indigo-100 transition-all text-xs text-indigo-700 font-bold mb-2 min-h-[48px]">
+                📎 {uiLang === 'ko' ? 'PDF·DOCX·XLSX·PPTX 파일 첨부' : uiLang === 'ja' ? 'ファイルを選択' : uiLang === 'zh' ? '选择文件' : 'Attach File (PDF/DOCX/XLSX)'}
+                <input ref={templateFileRef} type="file" accept=".txt,.md,.csv,.pdf,.docx,.xlsx,.xls,.pptx" className="hidden" onChange={handleTemplateFile} />
+                {templateContent && <span className="ml-auto text-[10px] bg-indigo-200 text-indigo-700 px-2 py-0.5 rounded-full">{templateContent.length.toLocaleString()}자</span>}
+              </label>
+              <textarea placeholder={L.templateFormPlaceholder} rows={6} value={templateContent} onChange={e => setTemplateContent(e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm resize-none bg-gray-50" />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{L.templateInfoLabel}</label>
-              <textarea
-                placeholder={L.templateInfoPlaceholder}
-                rows={4}
-                value={tmplRefInfo}
-                onChange={e => setTmplRefInfo(e.target.value)}
-                className="w-full border border-indigo-100 rounded-2xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all text-sm resize-none bg-white"
-              />
+              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">{L.templateInfoLabel}</label>
+              <textarea placeholder={L.templateInfoPlaceholder} rows={3} value={tmplRefInfo} onChange={e => setTmplRefInfo(e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm resize-none bg-gray-50" />
             </div>
 
             <button type="submit" disabled={templateLoading}
-              className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-base hover:bg-indigo-700 disabled:opacity-40 transition-all flex items-center justify-center gap-3 min-h-[56px]"
-            >
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2 min-h-[52px] shadow-sm disabled:opacity-40">
               {templateLoading ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />{L.generating}</> : L.templateBtn}
             </button>
           </form>
 
-          {/* ── 오른쪽: 제품 AI 작성 ── */}
+          {/* ── RIGHT: 제품 AI 작성 ──────────────────────────── */}
           <form onSubmit={handleProductSubmit}
-            className={`bg-white border-2 border-gray-100 rounded-3xl p-6 space-y-5 ${activeTab !== 'product' ? 'hidden md:block' : ''}`}
-          >
+            className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5 ${activeTab !== 'product' ? 'hidden md:block' : ''}`}>
+
             <div>
-              <span className="inline-block text-xs font-black text-gray-600 bg-gray-100 px-3 py-1 rounded-full mb-3">{L.colProdBadge}</span>
-              <h2 className="text-xl font-black text-black leading-snug mb-1">{L.colProdTitle}</h2>
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-black text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full mb-3">
+                📦 {L.colProdBadge}
+              </span>
+              <h2 className="text-lg font-black text-gray-900 mb-1">{L.colProdTitle}</h2>
               <p className="text-xs text-gray-400">{L.colProdDesc}</p>
             </div>
 
-            {/* URL 자동 입력 */}
-            <div className={`rounded-2xl p-4 border-2 transition-all ${urlLoading ? 'bg-blue-50 border-blue-300' : 'bg-blue-50 border-blue-200'}`}>
-              <div className="flex items-center gap-2 mb-2.5">
-                <span className="text-lg">🔗</span>
-                <label className="text-sm font-black text-blue-800">
-                  {uiLang === 'ko' ? 'URL 자동 입력' : uiLang === 'ja' ? 'URL自動入力' : uiLang === 'zh' ? 'URL自动填写' : 'Auto-fill from URL'}
-                </label>
-                <span className="text-[10px] font-bold bg-blue-200 text-blue-700 px-2 py-0.5 rounded-full">AI</span>
-                <span className="text-[10px] text-blue-500 ml-auto hidden sm:block">
-                  {uiLang === 'ko' ? 'Nike · 스마트스토어 · Shopify · Tmall' : 'Nike · Smartstore · Shopify · Tmall'}
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <input
-                  type="url"
-                  placeholder={uiLang === 'ko' ? '스마트스토어·Nike·Shopify·Tmall URL 붙여넣기...' : uiLang === 'ja' ? '楽天·Amazon·Shopify URL...' : uiLang === 'zh' ? '天猫·Shopify·Nike URL粘贴...' : 'Amazon · Nike · Shopify · Tmall URL...'}
-                  value={urlInput}
-                  onChange={e => { setUrlInput(e.target.value); setScrapedExtra(null) }}
-                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleUrlScrape())}
-                  className="flex-1 border border-blue-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white min-h-[48px]"
-                />
-                <button
-                  type="button"
-                  onClick={handleUrlScrape}
-                  disabled={urlLoading || !urlInput.trim()}
-                  className="bg-blue-600 text-white px-5 py-3 rounded-xl text-sm font-black hover:bg-blue-700 disabled:opacity-40 transition-all whitespace-nowrap flex items-center gap-2 min-h-[48px] shadow-sm"
-                >
-                  {urlLoading
-                    ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /><span className="hidden sm:inline">{urlLoadingStep || L.urlLoading}</span></>
-                    : <><span>⚡</span>{uiLang === 'ko' ? '자동 입력' : uiLang === 'ja' ? '自動入力' : uiLang === 'zh' ? '自动填写' : 'Auto-fill'}</>}
-                </button>
-              </div>
-
-              {/* 로딩 진행 바 */}
-              {urlLoading && (
-                <div className="mt-3">
-                  <div className="h-1 bg-blue-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-500 rounded-full animate-[loading_2s_ease-in-out_infinite]" style={{ width: '60%' }} />
+            {/* ── URL 자동 분석 (강화) ── */}
+            <div className={`rounded-2xl border-2 transition-all overflow-hidden ${
+              urlLoading ? 'border-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50' : scrapedExtra ? 'border-emerald-300 bg-emerald-50/30' : 'border-blue-200 bg-blue-50/50'
+            }`}>
+              {/* Header */}
+              <div className="px-4 pt-4 pb-3">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black ${urlLoading ? 'bg-blue-500 text-white' : scrapedExtra ? 'bg-emerald-500 text-white' : 'bg-blue-100 text-blue-700'}`}>
+                    {urlLoading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin block" /> : scrapedExtra ? '✓' : '🔗'}
                   </div>
-                  <p className="text-xs text-blue-600 font-medium mt-1.5 text-center">{urlLoadingStep}</p>
+                  <div className="flex-1">
+                    <p className={`text-sm font-black ${urlLoading ? 'text-blue-800' : scrapedExtra ? 'text-emerald-800' : 'text-blue-800'}`}>
+                      {urlLoading
+                        ? urlLoadingStep
+                        : scrapedExtra
+                          ? (uiLang === 'ko' ? '✅ 제품 정보 추출 완료!' : '✅ Product info extracted!')
+                          : (uiLang === 'ko' ? '제품 정보 자동 분석' : uiLang === 'ja' ? '商品情報自動分析' : uiLang === 'zh' ? '商品信息自动分析' : 'Auto-Analyze Product')}
+                    </p>
+                    <p className="text-[10px] text-gray-400">
+                      {scrapedExtra ? '' : 'Nike · 스마트스토어 · Shopify · Tmall · Amazon'}
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-black bg-blue-200 text-blue-700 px-2 py-0.5 rounded-full shrink-0">AI</span>
                 </div>
-              )}
 
-              {/* 스크래핑 결과 미니카드 */}
+                {/* URL input + button */}
+                <div className="flex gap-2">
+                  <input type="url"
+                    placeholder={uiLang === 'ko' ? '제품 URL을 붙여넣기 하세요...' : uiLang === 'ja' ? '商品URLを貼り付けてください...' : uiLang === 'zh' ? '粘贴商品URL...' : 'Paste product URL here...'}
+                    value={urlInput}
+                    onChange={e => { setUrlInput(e.target.value); setScrapedExtra(null) }}
+                    onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleUrlScrape())}
+                    className="flex-1 border border-blue-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white min-h-[48px] shadow-sm"
+                  />
+                  <button type="button" onClick={handleUrlScrape} disabled={urlLoading || !urlInput.trim()}
+                    className={`px-4 py-3 rounded-xl text-sm font-black transition-all whitespace-nowrap flex items-center gap-2 min-h-[48px] shadow-sm disabled:opacity-40 ${
+                      urlLoading ? 'bg-blue-400 text-white cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    }`}>
+                    {urlLoading
+                      ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /><span className="hidden sm:inline">{uiLang === 'ko' ? '분석 중' : 'Analyzing'}</span></>
+                      : <><span>⚡</span><span>{uiLang === 'ko' ? '자동 분석' : uiLang === 'ja' ? '自動分析' : uiLang === 'zh' ? '自动分析' : 'Analyze'}</span></>}
+                  </button>
+                </div>
+
+                {/* Progress bar */}
+                {urlLoading && (
+                  <div className="mt-3 h-1.5 bg-blue-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full animate-[pulse_1.5s_ease-in-out_infinite]" style={{ width: '70%' }} />
+                  </div>
+                )}
+              </div>
+
+              {/* Extracted info card */}
               {scrapedExtra && !urlLoading && (
-                <div className="mt-3 bg-white border border-blue-100 rounded-xl p-3 space-y-2.5">
+                <div className="border-t border-emerald-200 bg-white/70 px-4 py-3 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-black text-blue-700">
-                      ✅ {uiLang === 'ko' ? '추출된 정보' : uiLang === 'ja' ? '取得した情報' : uiLang === 'zh' ? '提取的信息' : 'Extracted Info'}
-                    </span>
+                    <p className="text-[10px] font-black text-emerald-700 uppercase tracking-wider">
+                      {uiLang === 'ko' ? '추출된 정보' : uiLang === 'ja' ? '取得した情報' : uiLang === 'zh' ? '提取的信息' : 'Extracted Info'}
+                    </p>
                     <button type="button" onClick={() => setScrapedExtra(null)} className="text-gray-400 hover:text-gray-600 text-xs">✕</button>
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
-                    {scrapedExtra.brand && (
-                      <span className="text-[11px] bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full font-bold">
-                        🏷 {scrapedExtra.brand}
-                      </span>
-                    )}
+                  {/* Badges row */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {scrapedExtra.brand && <span className="text-[11px] bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full font-bold">🏷 {scrapedExtra.brand}</span>}
                     {scrapedExtra.price && (
                       <span className="text-[11px] bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-bold">
                         💰 {scrapedExtra.price}
-                        {scrapedExtra.original_price && scrapedExtra.original_price !== scrapedExtra.price && (
-                          <s className="ml-1 text-gray-400">{scrapedExtra.original_price}</s>
-                        )}
+                        {scrapedExtra.original_price && scrapedExtra.original_price !== scrapedExtra.price && <s className="ml-1 text-gray-400 font-normal">{scrapedExtra.original_price}</s>}
                       </span>
                     )}
-                    {scrapedExtra.material && (
-                      <span className="text-[11px] bg-orange-50 text-orange-600 px-2.5 py-1 rounded-full font-bold">
-                        🧵 {scrapedExtra.material}
-                      </span>
-                    )}
-                    {scrapedExtra.target_customer && (
-                      <span className="text-[11px] bg-violet-50 text-violet-600 px-2.5 py-1 rounded-full font-bold">
-                        👤 {scrapedExtra.target_customer}
-                      </span>
-                    )}
+                    {scrapedExtra.material && <span className="text-[11px] bg-orange-50 text-orange-600 px-2.5 py-1 rounded-full font-bold">🧵 {scrapedExtra.material}</span>}
+                    {scrapedExtra.target_customer && <span className="text-[11px] bg-violet-50 text-violet-600 px-2.5 py-1 rounded-full font-bold">👤 {scrapedExtra.target_customer}</span>}
                   </div>
 
                   {scrapedExtra.features && scrapedExtra.features.length > 0 && (
                     <div>
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">
-                        {uiLang === 'ko' ? '주요 특징' : uiLang === 'ja' ? '主な特徴' : uiLang === 'zh' ? '主要特点' : 'Features'}
-                      </p>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">{uiLang === 'ko' ? '핵심 특징' : 'Features'}</p>
                       <div className="flex flex-wrap gap-1">
-                        {scrapedExtra.features.slice(0, 5).map((f, i) => (
-                          <span key={i} className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-lg">• {f}</span>
-                        ))}
+                        {scrapedExtra.features.slice(0, 5).map((f, i) => <span key={i} className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-lg">• {f}</span>)}
                       </div>
                     </div>
                   )}
 
                   {scrapedExtra.keywords && scrapedExtra.keywords.length > 0 && (
                     <div>
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">
-                        {uiLang === 'ko' ? 'SEO 키워드' : 'Keywords'}
-                      </p>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">SEO Keywords</p>
                       <div className="flex flex-wrap gap-1">
-                        {scrapedExtra.keywords.slice(0, 8).map((k, i) => (
-                          <span key={i} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-lg">#{k}</span>
-                        ))}
+                        {scrapedExtra.keywords.slice(0, 8).map((k, i) => <span key={i} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-lg">#{k}</span>)}
                       </div>
                     </div>
                   )}
 
                   {(scrapedExtra.colors?.length || scrapedExtra.sizes?.length) ? (
-                    <div className="flex gap-4">
-                      {scrapedExtra.colors && scrapedExtra.colors.length > 0 && (
-                        <div>
-                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">
-                            {uiLang === 'ko' ? '색상' : 'Colors'}
-                          </p>
-                          <div className="flex flex-wrap gap-1">
-                            {scrapedExtra.colors.map((c, i) => (
-                              <span key={i} className="text-[10px] bg-pink-50 text-pink-600 px-2 py-0.5 rounded-lg">{c}</span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {scrapedExtra.sizes && scrapedExtra.sizes.length > 0 && (
-                        <div>
-                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">
-                            {uiLang === 'ko' ? '사이즈' : 'Sizes'}
-                          </p>
-                          <div className="flex flex-wrap gap-1">
-                            {scrapedExtra.sizes.map((s, i) => (
-                              <span key={i} className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-lg">{s}</span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                    <div className="flex flex-wrap gap-3">
+                      {scrapedExtra.colors?.map((c, i) => <span key={i} className="text-[10px] bg-pink-50 text-pink-600 px-2 py-0.5 rounded-lg">{c}</span>)}
+                      {scrapedExtra.sizes?.map((s, i) => <span key={i} className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-lg">{s}</span>)}
                     </div>
                   ) : null}
 
                   {scrapedExtra.image_urls && scrapedExtra.image_urls.length > 0 && (
                     <div>
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">
-                        {uiLang === 'ko' ? '제품 이미지 URL (복사해서 사용)' : 'Image URLs'}
-                      </p>
-                      <div className="space-y-1 max-h-20 overflow-y-auto">
-                        {scrapedExtra.image_urls.map((url, i) => (
-                          <div key={i} className="flex items-center gap-2">
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1.5">{uiLang === 'ko' ? '이미지 URL' : 'Images'}</p>
+                      <div className="flex gap-2 flex-wrap">
+                        {scrapedExtra.image_urls.slice(0, 4).map((url, i) => (
+                          <button key={i} type="button"
+                            onClick={() => navigator.clipboard.writeText(url).then(() => toast.success('URL 복사됨'))}
+                            className="relative group">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={url} alt="" className="w-8 h-8 object-cover rounded-lg border border-gray-200 shrink-0" />
-                            <button type="button"
-                              onClick={() => navigator.clipboard.writeText(url).then(() => toast.success('이미지 URL 복사됨'))}
-                              className="flex-1 text-left text-[9px] text-gray-500 truncate hover:text-blue-600 transition-colors">
-                              {url}
-                            </button>
-                          </div>
+                            <img src={url} alt="" className="w-12 h-12 object-cover rounded-xl border border-gray-200 group-hover:border-blue-400 transition-colors" />
+                            <span className="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[8px] text-white font-bold">COPY</span>
+                          </button>
                         ))}
                       </div>
                     </div>
@@ -1244,143 +1189,149 @@ export default function NewOrderPage() {
               )}
             </div>
 
-            {/* 제품명 */}
+            {/* ── 제품명 ── */}
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">
                 {isDocCat ? L.docNameLabel : L.nameLabel}
               </label>
-              <input
-                placeholder={isDocCat ? L.docNamePlaceholder : L.namePlaceholder}
-                value={form.product_name}
-                onChange={e => setForm({ ...form, product_name: e.target.value })}
-                required
-                className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm min-h-[48px]"
+              <input placeholder={isDocCat ? L.docNamePlaceholder : L.namePlaceholder}
+                value={form.product_name} onChange={e => setForm({ ...form, product_name: e.target.value })} required
+                className={`w-full border rounded-xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm min-h-[48px] ${form.product_name ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-50'}`}
               />
             </div>
 
-            {/* 카테고리 — 인기 퀵셀렉트 + 드롭다운 */}
+            {/* ── 카테고리 (검색 + 인기 칩 + 전체 드롭다운) ── */}
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{L.catLabel}</label>
-              {/* 인기 카테고리 칩 */}
-              <div className="flex flex-wrap gap-1.5 mb-2">
+              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">{L.catLabel}</label>
+              {/* Popular chips */}
+              <div className="flex flex-wrap gap-1.5 mb-2.5">
                 {POPULAR.map(cat => (
-                  <button
-                    key={cat.value}
-                    type="button"
-                    onClick={() => setForm({ ...form, category: cat.value })}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all min-h-[36px] ${
-                      form.category === cat.value
-                        ? 'bg-black text-white border-black'
-                        : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400 hover:bg-gray-100'
-                    }`}
-                  >{cat.emoji} {cat.label}</button>
+                  <button key={cat.value} type="button" onClick={() => setForm({ ...form, category: cat.value })}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                      form.category === cat.value ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-sm' : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400 hover:bg-gray-100'
+                    }`}>
+                    {cat.emoji} {cat.label}
+                  </button>
                 ))}
               </div>
-              <select
-                value={form.category}
-                onChange={e => setForm({ ...form, category: e.target.value })}
-                required
-                className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm bg-white min-h-[48px]"
-              >
-                <option value="">{L.catPlaceholder}</option>
-                {CATEGORIES.map(group => (
-                  <optgroup key={group.group} label={group.group}>
-                    {group.items.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-                  </optgroup>
-                ))}
-              </select>
+              {/* Search + select */}
+              <div className="relative">
+                <input type="text" placeholder={uiLang === 'ko' ? '카테고리 검색...' : 'Search category...'}
+                  value={catSearch} onChange={e => setCatSearch(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50 mb-1.5 pr-10"
+                />
+                {catSearch && <button type="button" onClick={() => setCatSearch('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 text-sm">✕</button>}
+              </div>
+              {catSearch && filteredCats && filteredCats.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {filteredCats.slice(0, 12).map(c => (
+                    <button key={c.value} type="button" onClick={() => { setForm({ ...form, category: c.value }); setCatSearch('') }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${form.category === c.value ? 'bg-[#0F172A] text-white border-[#0F172A]' : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'}`}>
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <select value={form.category} onChange={e => { setForm({ ...form, category: e.target.value }); setCatSearch('') }} required
+                  className={`w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50 min-h-[44px] ${form.category ? 'text-gray-900 border-gray-300' : 'text-gray-400 border-gray-200'}`}>
+                  <option value="">{L.catPlaceholder}</option>
+                  {CATEGORIES.map(group => (
+                    <optgroup key={group.group} label={group.group}>
+                      {group.items.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                    </optgroup>
+                  ))}
+                </select>
+              )}
+              {form.category && (
+                <p className="text-[10px] text-blue-600 font-bold mt-1">
+                  ✓ {allCatItems.find(c => c.value === form.category)?.label ?? form.category}
+                </p>
+              )}
             </div>
 
-            {/* 설명 */}
+            {/* ── 설명 ── */}
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">
                 {isDocCat ? L.docDescLabel : L.descLabel}
               </label>
-              <textarea
-                placeholder={isDocCat ? L.docDescPlaceholder : L.descPlaceholder}
-                rows={5}
-                value={form.description}
-                onChange={e => setForm({ ...form, description: e.target.value })}
-                required
-                className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm resize-none"
+              <textarea placeholder={isDocCat ? L.docDescPlaceholder : L.descPlaceholder}
+                rows={5} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} required
+                className={`w-full border rounded-xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm resize-none ${form.description ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-50'}`}
               />
+              <p className={`text-[10px] mt-1 text-right ${form.description.length > 50 ? 'text-emerald-600' : 'text-gray-300'}`}>
+                {form.description.length}자 {form.description.length > 50 ? '✓' : ''}
+              </p>
             </div>
 
-            {/* 문서 첨부 (문서 카테고리만) */}
+            {/* ── 문서 첨부 ── */}
             {isDocCat && (
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                  {L.attachLabel} <span className="text-gray-300 normal-case font-normal">({L.attachSub})</span>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">
+                  {L.attachLabel} <span className="text-gray-300 normal-case font-normal text-[9px]">({L.attachSub})</span>
                 </label>
-                <div className="flex gap-2 mb-2">
-                  <label className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 cursor-pointer hover:bg-gray-100 transition-all text-xs text-gray-600 font-bold min-h-[44px]">
-                    📎 {uiLang === 'ko' ? 'TXT·MD 파일 업로드' : uiLang === 'ja' ? 'TXT·MDファイルアップロード' : uiLang === 'zh' ? '上传TXT·MD文件' : 'Upload TXT / MD File'}
-                    <input ref={docInputRef} type="file" accept=".txt,.md,.csv" className="hidden" onChange={handleDocFile} />
-                  </label>
-                  {docText && <button type="button" onClick={() => setDocText('')} className="text-xs text-gray-400 hover:text-red-500 px-3 min-h-[44px]">{L.fileReset}</button>}
-                </div>
-                <textarea
-                  placeholder={L.docPastePlaceholder} rows={3} value={docText}
-                  onChange={e => setDocText(e.target.value)}
-                  className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm resize-none bg-gray-50"
-                />
-                {docText && <p className="text-xs text-green-600 font-medium mt-1">✓ {docText.length.toLocaleString()}{L.fileAdded}</p>}
+                <label className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:bg-gray-100 transition-all text-xs text-gray-600 font-bold mb-2 min-h-[48px]">
+                  📎 {uiLang === 'ko' ? 'TXT·MD 파일 업로드' : 'Upload TXT / MD'}
+                  <input ref={docInputRef} type="file" accept=".txt,.md,.csv" className="hidden" onChange={handleDocFile} />
+                  {docText && <span className="ml-auto text-[10px] bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">{docText.length.toLocaleString()}자</span>}
+                </label>
+                <textarea placeholder={L.docPastePlaceholder} rows={3} value={docText} onChange={e => setDocText(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm resize-none bg-gray-50" />
               </div>
             )}
 
-            {/* 이미지 업로드 — 드래그앤드롭 강조 */}
+            {/* ── 이미지 업로드 ── */}
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">
                 {isDocCat ? L.imgRef : L.photoLabel}
-                <span className="ml-1 text-gray-300 normal-case font-normal text-[10px]">PNG · JPG · WEBP · {uiLang === 'ko' ? '최대 3장' : uiLang === 'ja' ? '最大3枚' : uiLang === 'zh' ? '最多3张' : 'max 3'}</span>
+                <span className="ml-1 text-gray-300 normal-case font-normal text-[9px]">PNG · JPG · WEBP · {uiLang === 'ko' ? '최대 3장' : 'max 3'}</span>
               </label>
               {images.length > 0 ? (
                 <div className="grid grid-cols-3 gap-2">
                   {images.map((file, i) => (
-                    <div key={i} className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
-                      <img src={URL.createObjectURL(file)} alt={`preview ${i + 1}`} className="w-full h-full object-cover" />
+                    <div key={i} className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200">
+                      <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
                       <button type="button" onClick={() => setImages(prev => prev.filter((_, idx) => idx !== i))}
-                        className="absolute top-1 right-1 w-7 h-7 bg-black/70 hover:bg-black text-white rounded-full text-xs font-black flex items-center justify-center"
-                      >×</button>
+                        className="absolute top-1 right-1 w-6 h-6 bg-black/70 hover:bg-black text-white rounded-full text-xs flex items-center justify-center">×</button>
                     </div>
                   ))}
                   {images.length < 3 && (
-                    <label htmlFor="file-upload" className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-all">
-                      <span className="text-xl text-gray-300">+</span>
-                      <span className="text-[10px] text-gray-300 mt-0.5">{L.addMore}</span>
+                    <label htmlFor="file-upload" className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all">
+                      <span className="text-2xl text-gray-300">+</span>
                     </label>
                   )}
                 </div>
               ) : (
-                <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-200 rounded-2xl py-7 cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-all group">
+                <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-200 rounded-xl py-6 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all group">
                   <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">📸</div>
-                  <p className="text-sm font-bold text-gray-500 mb-0.5">
-                    {uiLang === 'ko' ? '클릭 또는 드래그&드롭' : uiLang === 'ja' ? 'クリックまたはドラッグ&ドロップ' : uiLang === 'zh' ? '点击或拖放上传' : 'Click or drag & drop'}
-                  </p>
-                  <p className="text-xs text-gray-300">PNG · JPG · WEBP · {uiLang === 'ko' ? '제품 사진 최대 3장' : uiLang === 'ja' ? '商品写真最大3枚' : uiLang === 'zh' ? '商品图片最多3张' : 'up to 3 product photos'}</p>
+                  <p className="text-sm font-bold text-gray-500 mb-0.5">{uiLang === 'ko' ? '클릭 또는 드래그&드롭' : 'Click or drag & drop'}</p>
+                  <p className="text-xs text-gray-300">PNG · JPG · WEBP · {uiLang === 'ko' ? '최대 3장' : 'up to 3'}</p>
                 </label>
               )}
               <input id="file-upload" type="file" accept="image/*" multiple onChange={handleImageChange} className="hidden" />
             </div>
 
-            {/* 생성 버튼 — 강조 + sticky (모바일) */}
-            <div className="sticky bottom-4 md:static">
+            {/* ── 생성 버튼 ── */}
+            <div className="sticky bottom-4 md:static pt-1">
               <button type="submit" disabled={productLoading}
-                className={`w-full py-4 rounded-2xl font-black text-base transition-all flex items-center justify-center gap-3 min-h-[56px] shadow-lg ${
-                  productLoading
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : crossborderMode
-                      ? 'bg-gradient-to-r from-emerald-500 to-blue-600 text-white hover:opacity-90 shadow-emerald-200'
-                      : 'bg-gradient-to-r from-gray-900 to-black text-white hover:from-gray-800 hover:to-gray-900 shadow-gray-200'
-                }`}
-              >
+                className={`w-full py-4 rounded-xl font-black text-base transition-all flex items-center justify-center gap-2.5 min-h-[56px] shadow-lg disabled:opacity-50 ${
+                  productLoading ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
+                  : crossborderMode ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:opacity-95 shadow-emerald-200'
+                  : outputLang === 'all' ? 'bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:opacity-95 shadow-blue-200'
+                  : 'bg-[#0F172A] hover:bg-gray-800 text-white shadow-gray-200'
+                }`}>
                 {productLoading
                   ? <><span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />{L.generating}</>
                   : crossborderMode
-                    ? <><span>🌏</span>{isDocCat ? L.docBtn : (uiLang === 'ko' ? '크로스보더 글로벌 페이지 생성 →' : uiLang === 'ja' ? '越境ECページを生成 →' : uiLang === 'zh' ? '生成跨境详情页 →' : 'Generate Cross-Border Page →')}</>
-                    : <><span>⚡</span>{isDocCat ? L.docBtn : L.generateBtn}</>
-                }
+                    ? <><span>🌏</span>{uiLang === 'ko' ? '크로스보더 글로벌 페이지 생성 →' : uiLang === 'ja' ? '越境ECページを生成 →' : uiLang === 'zh' ? '生成跨境详情页 →' : 'Generate Cross-Border Page →'}</>
+                    : outputLang === 'all'
+                      ? <><span>🌏</span>{uiLang === 'ko' ? '4개 언어 동시 생성 →' : '4 Languages Simultaneous →'}</>
+                      : <><span>⚡</span>{isDocCat ? L.docBtn : L.generateBtn}</>}
               </button>
+              {(crossborderMode || outputLang === 'all') && (
+                <p className="text-center text-[10px] text-gray-400 mt-1.5">
+                  {crossborderMode ? '🌏 Amazon JP · Tmall · Rakuten · Shopify 동시 최적화' : '🇰🇷 🇺🇸 🇯🇵 🇨🇳 4개국어 동시 생성'}
+                </p>
+              )}
             </div>
           </form>
 
