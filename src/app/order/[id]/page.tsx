@@ -1444,6 +1444,60 @@ export default function OrderResultPage() {
     toast.success(p.toastTxtOk)
   }
 
+  // ── DOCX download (Word-compatible HTML wrapped in .doc) ─────────────
+  function handleDownloadDocx() {
+    if (!order || sections.length === 0) return
+    const isTemplate = order.result_json?.template_mode
+    const docTitle = order.product_name ?? 'document'
+
+    const bodyHtml = sections.map((s, i) => `
+      <div style="margin-bottom:28px; page-break-inside:avoid;">
+        <table style="width:100%; border-collapse:collapse; margin-bottom:4px;">
+          <tr>
+            <td style="background:#eef2ff; padding:8px 12px; border:1px solid #c7d2fe; border-radius:4px;">
+              <span style="font-size:10pt; font-weight:700; color:#4338ca; text-transform:uppercase; letter-spacing:1px;">
+                ${isTemplate ? `[${i + 1}] ${s.name}` : s.name}
+              </span>
+            </td>
+          </tr>
+        </table>
+        ${s.title ? `<p style="font-size:13pt; font-weight:700; color:#1e293b; margin:4px 0 8px 0;">${s.title.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>` : ''}
+        <div style="background:#f8f7ff; border:1px solid #e0e7ff; border-radius:4px; padding:12px; font-size:11pt; line-height:1.8; color:#374151; white-space:pre-wrap;">${s.body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+      </div>
+    `).join('')
+
+    const html = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+      <head>
+        <meta charset='utf-8'>
+        <title>${docTitle}</title>
+        <!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->
+        <style>
+          body { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', Arial, sans-serif; font-size: 11pt; color: #1e293b; margin: 40px 50px; }
+          h1 { font-size: 20pt; color: #0f172a; border-bottom: 2px solid #4f46e5; padding-bottom: 10px; margin-bottom: 24px; }
+          .meta { font-size: 9pt; color: #64748b; margin-bottom: 32px; }
+          @page { margin: 2cm; }
+        </style>
+      </head>
+      <body>
+        <h1>${docTitle.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</h1>
+        <p class="meta">${isTemplate ? (uiLang==='ko'?'양식 자동 완성 결과 · PageAI':uiLang==='ja'?'書類自動完成結果 · PageAI':uiLang==='zh'?'表格自动填写结果 · PageAI':'Form Auto-Fill Result · PageAI') : 'PageAI Export'} · ${new Date().toLocaleDateString()}</p>
+        ${bodyHtml}
+        <p style="font-size:8pt; color:#94a3b8; margin-top:40px; text-align:center;">Powered by PageAI (pagebeer.beer)</p>
+      </body>
+      </html>
+    `
+
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${docTitle.slice(0, 30).replace(/\s+/g, '_')}_pageai.doc`
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success(uiLang==='ko'?'📄 Word(.doc) 다운로드 완료!':uiLang==='ja'?'📄 Word(.doc)ダウンロード完了!':uiLang==='zh'?'📄 Word(.doc)下载完成!':'📄 Word (.doc) downloaded!')
+  }
+
   // ── Canvas-based image resize ─────────────────────────────────────────
   async function resizeImageToDataUrl(src: string, w: number, h: number): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -2521,6 +2575,75 @@ export default function OrderResultPage() {
               {/* PUBLISH TAB */}
               {rightTab === 'publish' && (
                 <>
+                  {/* ── 📋 템플릿 모드 전용 다운로드 패널 ────────────── */}
+                  {order.result_json?.template_mode && (
+                    <div className="rounded-2xl overflow-hidden border border-indigo-200/60 shadow-sm"
+                      style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%)' }}>
+                      <div className="px-4 py-3.5 border-b border-indigo-100/60">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">📋</span>
+                          <div>
+                            <p className="text-sm font-black text-indigo-800">
+                              {uiLang==='ko'?'문서 다운로드':'Document Download'}
+                            </p>
+                            <p className="text-[10px] text-indigo-500 mt-0.5">
+                              {uiLang==='ko'?'AI가 완성한 문서를 다양한 형식으로 저장':uiLang==='ja'?'完成書類を各種形式で保存':uiLang==='zh'?'以多种格式保存AI完成的文档':'Save AI-completed document in multiple formats'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="p-3 grid grid-cols-2 gap-2">
+                        {/* PDF */}
+                        <button type="button" onClick={handleDownloadPDF} disabled={pdfLoading}
+                          className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-white border border-indigo-100 hover:border-red-300 hover:bg-red-50 transition-all group disabled:opacity-40">
+                          <span className="text-2xl group-hover:scale-110 transition-transform">📕</span>
+                          <span className="text-[11px] font-black text-gray-700">PDF</span>
+                          <span className="text-[9px] text-gray-400">
+                            {uiLang==='ko'?'인쇄용 최적화':uiLang==='ja'?'印刷最適化':uiLang==='zh'?'打印优化':'Print-ready'}
+                          </span>
+                        </button>
+                        {/* Word */}
+                        <button type="button" onClick={handleDownloadDocx}
+                          className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-white border border-indigo-100 hover:border-blue-300 hover:bg-blue-50 transition-all group">
+                          <span className="text-2xl group-hover:scale-110 transition-transform">📘</span>
+                          <span className="text-[11px] font-black text-gray-700">Word (.doc)</span>
+                          <span className="text-[9px] text-gray-400">
+                            {uiLang==='ko'?'편집 가능':uiLang==='ja'?'編集可能':uiLang==='zh'?'可编辑':'Editable'}
+                          </span>
+                        </button>
+                        {/* TXT */}
+                        <button type="button" onClick={handleDownloadTxt}
+                          className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-white border border-indigo-100 hover:border-gray-300 hover:bg-gray-50 transition-all group">
+                          <span className="text-2xl group-hover:scale-110 transition-transform">📄</span>
+                          <span className="text-[11px] font-black text-gray-700">TXT</span>
+                          <span className="text-[9px] text-gray-400">
+                            {uiLang==='ko'?'텍스트 원본':uiLang==='ja'?'テキスト':uiLang==='zh'?'纯文本':'Plain text'}
+                          </span>
+                        </button>
+                        {/* ZIP (all languages) */}
+                        <button type="button" onClick={handleDownloadZip}
+                          className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-white border border-indigo-100 hover:border-emerald-300 hover:bg-emerald-50 transition-all group">
+                          <span className="text-2xl group-hover:scale-110 transition-transform">📦</span>
+                          <span className="text-[11px] font-black text-gray-700">ZIP</span>
+                          <span className="text-[9px] text-gray-400">
+                            {uiLang==='ko'?'전 언어 패키지':uiLang==='ja'?'全言語パック':uiLang==='zh'?'全语言包':'All languages'}
+                          </span>
+                        </button>
+                      </div>
+                      {/* Copy all text */}
+                      <div className="px-3 pb-3">
+                        <button type="button"
+                          onClick={() => {
+                            const text = sections.map((s,i) => `[${i+1}] ${s.name}\n${s.title ? s.title+'\n' : ''}${s.body}`).join('\n\n---\n\n')
+                            navigator.clipboard.writeText(text).then(() => toast.success(uiLang==='ko'?'📋 전체 내용 복사됨!':'📋 All content copied!')).catch(() => toast.error('복사 실패'))
+                          }}
+                          className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black transition-all flex items-center justify-center gap-1.5">
+                          📋 {uiLang==='ko'?'전체 내용 복사':uiLang==='ja'?'全文コピー':uiLang==='zh'?'复制全部内容':'Copy All Content'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* ── 📸 사진 자동 편집·배치 패널 ─────────────────── */}
                   <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
                     <button type="button" onClick={() => setPhotoOptOpen(o => !o)}
@@ -2804,8 +2927,82 @@ export default function OrderResultPage() {
                 </>
               )}
 
-              {/* A/B COPY TAB */}
-              {rightTab === 'copy' && abCopySet && (
+              {/* A/B COPY TAB — 템플릿 모드 시 언어별 비교 패널 */}
+              {rightTab === 'copy' && order.result_json?.template_mode && order.result_json?.multi_lang && (() => {
+                const rj = order.result_json
+                const LANGS = [
+                  { code: 'ko', flag: '🇰🇷', name: '한국어' },
+                  { code: 'en', flag: '🇺🇸', name: 'English' },
+                  { code: 'ja', flag: '🇯🇵', name: '日本語' },
+                  { code: 'zh', flag: '🇨🇳', name: '中文' },
+                ] as const
+                const available = LANGS.filter(l => (rj[l.code]?.sections?.length ?? 0) > 0)
+                const [activeLang, setActiveLang] = useState(available[0]?.code ?? 'ko')
+                const activeSections = (rj[activeLang]?.sections ?? []).map((s: {name?: string; title?: string; body?: string}, i: number) => ({
+                  id: i,
+                  name: s.name ?? '',
+                  title: s.title ?? '',
+                  body: s.body ?? '',
+                }))
+                return (
+                  <div className="space-y-3">
+                    {/* Header */}
+                    <div className="rounded-2xl border border-indigo-200/60 overflow-hidden"
+                      style={{ background: 'linear-gradient(135deg, #eef2ff, #f5f3ff)' }}>
+                      <div className="px-4 py-3.5">
+                        <p className="text-sm font-black text-indigo-800 mb-1">
+                          🌐 {uiLang==='ko'?'언어별 완성 문서 비교':uiLang==='ja'?'言語別完成書類比較':uiLang==='zh'?'各语言完成文档对比':'Language Comparison'}
+                        </p>
+                        <p className="text-[10px] text-indigo-500">
+                          {uiLang==='ko'?`${available.length}개 언어로 완성된 문서를 비교하세요`:uiLang==='ja'?`${available.length}言語の完成書類を比較`:uiLang==='zh'?`比较${available.length}种语言的完成文档`:`Compare ${available.length} language versions`}
+                        </p>
+                      </div>
+                      {/* Language tabs */}
+                      <div className="flex border-t border-indigo-100/60">
+                        {available.map(l => (
+                          <button key={l.code} type="button" onClick={() => setActiveLang(l.code)}
+                            className={`flex-1 py-2.5 text-[11px] font-black transition-all border-b-2 ${
+                              activeLang === l.code
+                                ? 'border-indigo-600 text-indigo-700 bg-white'
+                                : 'border-transparent text-gray-400 hover:text-indigo-500 hover:bg-indigo-50/50'
+                            }`}>
+                            {l.flag} {l.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Content preview for active language */}
+                    <div className="space-y-2">
+                      {activeSections.map((s, i) => (
+                        <div key={s.id} className="bg-white rounded-2xl border border-indigo-100 overflow-hidden">
+                          <div className="flex items-center gap-2 px-3.5 py-2.5 border-b border-indigo-50"
+                            style={{ background: 'linear-gradient(135deg, #f5f3ff, #eef2ff)' }}>
+                            <span className="w-5 h-5 rounded-lg bg-indigo-500 text-white text-[9px] font-black flex items-center justify-center shrink-0">{i+1}</span>
+                            <span className="text-[11px] font-black text-indigo-700 truncate">{s.name}</span>
+                            <button type="button"
+                              onClick={() => navigator.clipboard.writeText(s.body).then(() => toast.success('복사됨')).catch(()=>{})}
+                              className="ml-auto text-[9px] text-indigo-400 hover:text-indigo-600 font-bold shrink-0">
+                              📋
+                            </button>
+                          </div>
+                          {s.title && <p className="px-3.5 pt-2 text-[11px] font-bold text-gray-700">{s.title}</p>}
+                          <p className="px-3.5 py-2.5 text-[11px] text-gray-600 leading-relaxed line-clamp-4 whitespace-pre-line">{s.body}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Download this language */}
+                    <button type="button" onClick={handleDownloadDocx}
+                      className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black transition-all flex items-center justify-center gap-1.5">
+                      📘 {uiLang==='ko'?`현재 언어(${available.find(l=>l.code===activeLang)?.name}) Word 다운로드`:uiLang==='ja'?'現在の言語でWord保存':uiLang==='zh'?'下载当前语言Word':'Download Current Language (.doc)'}
+                    </button>
+                  </div>
+                )
+              })()}
+
+              {/* A/B COPY TAB — 일반 제품 페이지 */}
+              {rightTab === 'copy' && !order.result_json?.template_mode && abCopySet && (
                 <ConversionAbPanel titles={abCopySet.titles} openers={abCopySet.openers} ctas={abCopySet.ctas}
                   recommendation={abCopySet.recommendation} runnerUp={abCopySet.runnerUp}
                   utmRecommendedQuery={abCopySet.utmRecommendedQuery} ui={t}
@@ -2975,7 +3172,51 @@ export default function OrderResultPage() {
                   <OrderWritingWidgets uiLang={uiLang} />
                 </>
               )}
-              {rightTab === 'copy' && abCopySet && (
+              {/* A/B 탭 — 모바일 템플릿 모드 */}
+              {rightTab === 'copy' && order.result_json?.template_mode && order.result_json?.multi_lang && (() => {
+                const rj = order.result_json
+                const LANGS = [
+                  { code: 'ko', flag: '🇰🇷', name: '한국어' },
+                  { code: 'en', flag: '🇺🇸', name: 'English' },
+                  { code: 'ja', flag: '🇯🇵', name: '日本語' },
+                  { code: 'zh', flag: '🇨🇳', name: '中文' },
+                ] as const
+                const available = LANGS.filter(l => (rj[l.code]?.sections?.length ?? 0) > 0)
+                const [activeLang2, setActiveLang2] = useState(available[0]?.code ?? 'ko')
+                const activeSections2 = (rj[activeLang2]?.sections ?? []).map((s: {name?: string; title?: string; body?: string}, i: number) => ({
+                  id: i, name: s.name ?? '', title: s.title ?? '', body: s.body ?? '',
+                }))
+                return (
+                  <div className="space-y-3">
+                    <div className="rounded-2xl border border-indigo-200/60 overflow-hidden"
+                      style={{ background: 'linear-gradient(135deg, #eef2ff, #f5f3ff)' }}>
+                      <p className="text-sm font-black text-indigo-800 px-4 py-3">
+                        🌐 {uiLang==='ko'?'언어별 문서 비교':'Language Comparison'}
+                      </p>
+                      <div className="flex border-t border-indigo-100/60">
+                        {available.map(l => (
+                          <button key={l.code} type="button" onClick={() => setActiveLang2(l.code)}
+                            className={`flex-1 py-2.5 text-[11px] font-black transition-all border-b-2 ${activeLang2 === l.code ? 'border-indigo-600 text-indigo-700 bg-white' : 'border-transparent text-gray-400'}`}>
+                            {l.flag}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {activeSections2.map((s, i) => (
+                      <div key={i} className="bg-white rounded-xl border border-indigo-100 p-3">
+                        <p className="text-[10px] font-black text-indigo-600 mb-1">[{i+1}] {s.name}</p>
+                        {s.title && <p className="text-xs font-bold text-gray-700 mb-1">{s.title}</p>}
+                        <p className="text-[11px] text-gray-600 leading-relaxed line-clamp-3">{s.body}</p>
+                      </div>
+                    ))}
+                    <button type="button" onClick={handleDownloadDocx}
+                      className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black transition-all">
+                      📘 Word {uiLang==='ko'?'다운로드':'Download'}
+                    </button>
+                  </div>
+                )
+              })()}
+              {rightTab === 'copy' && !order.result_json?.template_mode && abCopySet && (
                 <ConversionAbPanel titles={abCopySet.titles} openers={abCopySet.openers} ctas={abCopySet.ctas} recommendation={abCopySet.recommendation} runnerUp={abCopySet.runnerUp} utmRecommendedQuery={abCopySet.utmRecommendedQuery} ui={t} open={abCopyOpen} onToggle={() => setAbCopyOpen(o=>!o)} hasFirst={sections.length>0} lastSectionId={lastSectionId}
                   onCopyLine={line => navigator.clipboard.writeText(line).then(() => toast.success(t.abCopyToast)).catch(() => toast.error(t.toastCopyFail))}
                   onApplyTitle={idx => { const s0=sections[0]; if(!s0||!abCopySet) return; updateSection(s0.id,'title',abCopySet.titles[idx]); toast.success(t.abCopyToastApplyTitle) }}
