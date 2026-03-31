@@ -270,6 +270,10 @@ const UI: Record<UiLang, {
   colProdBadge: string; colProdTitle: string; colProdDesc: string;
   tmplTitleLabel: string; tmplTitlePlaceholder: string;
   tmplTitleRequired: string;
+  // URL 스크래핑
+  urlLabel: string; urlPlaceholder: string; urlBtn: string; urlLoading: string;
+  // 크로스보더
+  crossborderToggle: string; crossborderLabel: string;
 }> = {
   ko: {
     newDoc: '새 문서 생성', backDash: '← 대시보드',
@@ -311,6 +315,9 @@ const UI: Record<UiLang, {
     colProdBadge: '📦 제품 · 서비스 AI 작성', colProdTitle: '정보를 입력하면 상세페이지가 완성돼요', colProdDesc: '제품명·카테고리 입력 → 전환율 높은 카피 자동 생성',
     tmplTitleLabel: '문서 제목', tmplTitlePlaceholder: '예: 2025 스마트시티 사업계획서',
     tmplTitleRequired: '문서 제목을 입력해주세요',
+    urlLabel: '제품 URL로 자동 입력', urlPlaceholder: '예: https://smartstore.naver.com/...',
+    urlBtn: '🔍 AI 자동 입력', urlLoading: '분석 중...',
+    crossborderToggle: '🌏 크로스보더 모드', crossborderLabel: '판매할 플랫폼 선택',
   },
   en: {
     newDoc: 'New Document', backDash: '← Dashboard',
@@ -352,6 +359,9 @@ const UI: Record<UiLang, {
     colProdBadge: '📦 Product / Service AI', colProdTitle: 'Enter info and get a high-converting page', colProdDesc: 'Product name & category → AI generates copy',
     tmplTitleLabel: 'Document Title', tmplTitlePlaceholder: 'e.g. 2025 Smart City R&D Proposal',
     tmplTitleRequired: 'Please enter a document title',
+    urlLabel: 'Auto-fill from Product URL', urlPlaceholder: 'e.g. https://amazon.com/dp/...',
+    urlBtn: '🔍 AI Auto-fill', urlLoading: 'Analyzing...',
+    crossborderToggle: '🌏 Cross-border Mode', crossborderLabel: 'Select selling platforms',
   },
   ja: {
     newDoc: '新規ドキュメント作成', backDash: '← ダッシュボード',
@@ -393,6 +403,9 @@ const UI: Record<UiLang, {
     colProdBadge: '📦 商品・サービスAI作成', colProdTitle: '情報を入力すると商品ページが完成', colProdDesc: '商品名・カテゴリ → 転換率の高いコピーを自動生成',
     tmplTitleLabel: '文書タイトル', tmplTitlePlaceholder: '例：2025年スマートシティR&D事業提案書',
     tmplTitleRequired: '文書タイトルを入力してください',
+    urlLabel: '商品URLから自動入力', urlPlaceholder: '例：https://item.rakuten.co.jp/...',
+    urlBtn: '🔍 AI自動入力', urlLoading: '分析中...',
+    crossborderToggle: '🌏 越境ECモード', crossborderLabel: '販売プラットフォームを選択',
   },
   zh: {
     newDoc: '新建文档', backDash: '← 仪表盘',
@@ -434,6 +447,9 @@ const UI: Record<UiLang, {
     colProdBadge: '📦 商品·服务AI创作', colProdTitle: '填写信息，AI生成高转化详情页', colProdDesc: '商品名·分类 → 自动生成营销文案',
     tmplTitleLabel: '文档标题', tmplTitlePlaceholder: '例：2025年智慧城市R&D项目提案书',
     tmplTitleRequired: '请输入文档标题',
+    urlLabel: '从商品URL自动填写', urlPlaceholder: '例：https://detail.tmall.com/...',
+    urlBtn: '🔍 AI自动填写', urlLoading: '分析中...',
+    crossborderToggle: '🌏 跨境模式', crossborderLabel: '选择销售平台',
   },
 }
 
@@ -454,6 +470,10 @@ export default function NewOrderPage() {
   const [templateContent, setTemplateContent] = useState('')
   const [tmplTitle, setTmplTitle]           = useState('')
   const [tmplRefInfo, setTmplRefInfo]       = useState('')
+  const [urlInput, setUrlInput]             = useState('')
+  const [urlLoading, setUrlLoading]         = useState(false)
+  const [crossborderMode, setCrossborderMode] = useState(false)
+  const [crossborderPlatforms, setCrossborderPlatforms] = useState<string[]>([])
   const docInputRef     = useRef<HTMLInputElement>(null)
   const templateFileRef = useRef<HTMLInputElement>(null)
 
@@ -600,13 +620,47 @@ export default function NewOrderPage() {
     if (templateFileRef.current) templateFileRef.current.value = ''
   }
 
+  // URL 자동 입력
+  async function handleUrlScrape() {
+    if (!urlInput.trim()) return
+    setUrlLoading(true)
+    try {
+      const res = await fetch('/api/scrape-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: urlInput.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setForm(prev => ({
+        product_name: data.product_name ?? prev.product_name,
+        category: data.category ?? prev.category,
+        description: data.description ?? prev.description,
+      }))
+      toast.success('제품 정보를 자동으로 가져왔습니다!')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'URL 분석 실패')
+    } finally {
+      setUrlLoading(false)
+    }
+  }
+
+  function toggleCrossborderPlatform(platform: string) {
+    setCrossborderPlatforms(prev =>
+      prev.includes(platform) ? prev.filter(p => p !== platform) : [...prev, platform]
+    )
+  }
+
   // 제품 모드 제출
   async function handleProductSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.product_name || !form.category || !form.description) { toast.error(L.errRequired); return }
-    const combinedDesc = docText.trim()
+    let combinedDesc = docText.trim()
       ? `${form.description}\n\n[첨부 문서 내용]\n${docText.trim()}`
       : form.description
+    if (crossborderMode && crossborderPlatforms.length > 0) {
+      combinedDesc += `\n[CROSSBORDER:${crossborderPlatforms.join(',')}]`
+    }
     await submitOrder({ ...form, description: combinedDesc }, images, setProductLoading)
   }
 
@@ -791,6 +845,31 @@ export default function NewOrderPage() {
               <p className="text-xs text-gray-400">{L.colProdDesc}</p>
             </div>
 
+            {/* URL 자동 입력 */}
+            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+              <label className="block text-xs font-bold text-blue-700 uppercase tracking-wider mb-2">{L.urlLabel}</label>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  placeholder={L.urlPlaceholder}
+                  value={urlInput}
+                  onChange={e => setUrlInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleUrlScrape())}
+                  className="flex-1 border border-blue-200 rounded-xl px-3 py-2 text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+                />
+                <button
+                  type="button"
+                  onClick={handleUrlScrape}
+                  disabled={urlLoading || !urlInput.trim()}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-700 disabled:opacity-40 transition-all whitespace-nowrap flex items-center gap-1.5"
+                >
+                  {urlLoading
+                    ? <><span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />{L.urlLoading}</>
+                    : L.urlBtn}
+                </button>
+              </div>
+            </div>
+
             {/* 제품명 */}
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
@@ -859,6 +938,48 @@ export default function NewOrderPage() {
                 {docText && <p className="text-xs text-green-600 font-medium mt-1">✓ {docText.length.toLocaleString()}{L.fileAdded}</p>}
               </div>
             )}
+
+            {/* 크로스보더 모드 */}
+            <div className="border border-gray-100 rounded-2xl p-4">
+              <button
+                type="button"
+                onClick={() => setCrossborderMode(v => !v)}
+                className={`flex items-center gap-2 text-sm font-bold transition-colors w-full text-left ${crossborderMode ? 'text-emerald-700' : 'text-gray-500'}`}
+              >
+                <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${crossborderMode ? 'border-emerald-600 bg-emerald-600' : 'border-gray-300'}`}>
+                  {crossborderMode && <span className="w-1.5 h-1.5 bg-white rounded-full" />}
+                </span>
+                {L.crossborderToggle}
+              </button>
+              {crossborderMode && (
+                <div className="mt-3">
+                  <p className="text-xs text-gray-400 mb-2">{L.crossborderLabel}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { id: 'amazon', label: '🛒 Amazon' },
+                      { id: 'shopify', label: '🏪 Shopify' },
+                      { id: 'tmall', label: '🔴 天猫' },
+                      { id: 'rakuten', label: '🟠 楽天' },
+                      { id: 'qoo10', label: '🟡 Qoo10' },
+                      { id: 'lazada', label: '🟣 Lazada' },
+                    ].map(p => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => toggleCrossborderPlatform(p.id)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                          crossborderPlatforms.includes(p.id)
+                            ? 'bg-emerald-600 text-white border-emerald-600'
+                            : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                        }`}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* 이미지 업로드 */}
             <div>

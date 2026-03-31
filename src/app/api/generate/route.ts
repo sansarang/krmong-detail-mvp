@@ -230,18 +230,69 @@ ${templateContent}
 - 제품/서비스명 키워드를 최소 3개 섹션 제목에 자연스럽게 포함
 - 마지막 섹션에 행동 유도 키워드 2개 이상 ("지금", "바로", "무료", "상담", "예약", "구매")`
 
+    // ── 크로스보더 플랫폼 마커 파싱 ───────────────────────────
+    const crossborderMatch = (order.description ?? '').match(/\[CROSSBORDER:([^\]]+)\]/)
+    const crossborderPlatforms = crossborderMatch
+      ? crossborderMatch[1].split(',').map((s: string) => s.trim()).filter(Boolean)
+      : []
+    const cleanDescription = (order.description ?? '')
+      .replace(/\[CROSSBORDER:[^\]]+\]/g, '')
+      .trim()
+
+    // ── 타겟 마켓 문화 로컬라이징 ────────────────────────────
+    const CULTURAL_CONTEXT: Record<string, string> = {
+      ko: `[한국 내수 시장 최적화]
+- 감성적 스토리텔링 (사용 전/후, 고민 공감)
+- 신뢰 구축: 인증, 수상이력, 언론보도, 누적 판매수 언급
+- 구매 촉진 키워드: 한정수량, 오늘만특가, 무료배송, 당일출고
+- 스마트스토어·쿠팡·11번가 SEO 최적화 키워드 밀도 높게`,
+      en: `[Global/Amazon Market Optimization]
+- Benefit-first structure with quantified, specific claims
+- Amazon A+ Content style: 5 concise feature bullets + comparison table hints
+- Problem → Solution → Result framework in every section
+- Trust signals: verified reviews count, certifications, stats (e.g. "4.8★ from 12,000+ reviews")
+- SEO: high keyword density for English-language search intent`,
+      ja: `[日本市場（楽天・Yahooショッピング）特化]
+- 丁寧語・敬語を徹底し、礼儀正しく誠実なトーン
+- 品質・精度・職人技・細部へのこだわりを強調
+- 季節・シーン・用途別の具体的な使用シーン提案
+- 信頼シグナル: 品質保証、検査済み、○○年実績、お客様の声
+- 楽天SEOキーワードを自然に含める`,
+      zh: `[中国市场（天猫/淘宝/京东）特化优化]
+- 天猫A+详情页结构：主图文案 + 卖点图 + 场景图
+- 强调社交认可：销量XX件、好评率99%、达人推荐
+- 突出品质感或性价比（根据定位选择一个方向）
+- 促销信息：限时优惠、满减活动、包邮、7天退换
+- 关键词：正品保障、品牌直营、顺丰发货`,
+    }
+    const culturalContext = !isDocType ? (CULTURAL_CONTEXT[outputLang] ?? '') : ''
+
+    // ── 크로스보더 플랫폼별 추가 섹션 가이드 ────────────────
+    const PLATFORM_GUIDE: Record<string, string> = {
+      amazon: '・Amazon: SEO title (80자), 5 Feature Bullets (each starting with caps), A+ Content description',
+      shopify: '・Shopify: Brand story, detailed product features, social proof, strong CTA with urgency',
+      tmall: '・天猫: 主图文案(5字以内冲击力标题), 详情页卖点(3个核心), 场景图说明, 促销活动',
+      rakuten: '・楽天: 商品名キーワード最適化, 商品説明(詳細スペック含む), セール情報, お客様の声',
+      qoo10: '・Qoo10: Deal highlight, product detail with specs, seller reputation signals',
+      lazada: '・Lazada: Product highlights (5 bullets), brand story, warranty/return policy',
+    }
+    const platformGuide = crossborderPlatforms.length > 0
+      ? `\n[크로스보더 플랫폼 최적화 — ${crossborderPlatforms.map((p: string) => p.toUpperCase()).join('/')}]\n` +
+        crossborderPlatforms.map((p: string) => PLATFORM_GUIDE[p] ?? '').filter(Boolean).join('\n')
+      : ''
+
     const LANG_NAMES: Record<string, string> = { ko: '한국어', en: 'English', ja: '日本語 (Japanese)', zh: '中文 (Chinese)' }
     const langInstruction = outputLang !== 'ko'
       ? `\n⚠️ IMPORTANT: Write ALL output content (title, body, section names) entirely in ${LANG_NAMES[outputLang] ?? outputLang}. Do NOT use Korean anywhere.`
       : ''
 
-    // ── 데이터 기반 카피 컨텍스트 (7번 기능) ──────────────────
+    // ── 데이터 기반 카피 컨텍스트 ─────────────────────────────
     const dataContext = !isDocType
       ? buildDataContextBlock(
           outputLang as 'ko' | 'en' | 'ja' | 'zh',
           order.product_name,
           order.category,
-          order.description ?? '',
+          cleanDescription,
         )
       : ''
     // ──────────────────────────────────────────────────────────
@@ -256,8 +307,9 @@ ${templateContent}
 
 카테고리: ${order.category}
 제목/이름: ${order.product_name}
-내용: ${order.description}
+내용: ${cleanDescription}
 ${dataContext}
+${culturalContext ? `\n${culturalContext}` : ''}${platformGuide ? `\n${platformGuide}` : ''}
 ${sectionGuide}
 
 반드시 지켜야 할 규칙:
