@@ -42,25 +42,34 @@ export async function POST(req: NextRequest) {
 
       const monthlyCount = count ?? 0
 
-      // profiles 테이블에서 플랜 확인 (없으면 free로 간주)
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('plan')
-        .eq('id', user.id)
-        .single()
+      // 관리자 이메일 먼저 체크 (profiles 테이블 없어도 동작)
+      const HARDCODED_ADMINS = ['jyj1653@krmong.local']
+      const envAdmins = (process.env.ADMIN_EMAILS ?? '').split(',').map(e => e.trim()).filter(Boolean)
+      const allAdmins = [...new Set([...HARDCODED_ADMINS, ...envAdmins])]
 
-      const plan = profile?.plan ?? 'free'
+      if (allAdmins.includes(user.email ?? '')) {
+        // 관리자 → 바로 생성 진행 (무제한)
+      } else {
+        // profiles 테이블에서 플랜 확인 (테이블 없으면 free로 간주)
+        let plan = 'free'
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('plan')
+            .eq('id', user.id)
+            .single()
+          plan = profile?.plan ?? 'free'
+        } catch { /* profiles 테이블 없음 */ }
 
-      // 관리자 이메일은 무제한 (ADMIN_EMAILS 환경변수 또는 기본 관리자)
-      const adminEmails = (process.env.ADMIN_EMAILS ?? '').split(',').map(e => e.trim()).filter(Boolean)
-      const isAdmin = adminEmails.includes(user.email ?? '') || plan === 'admin'
-
-      if (!isAdmin && plan === 'free' && monthlyCount > FREE_LIMIT) {
-        return NextResponse.json(
-          { error: 'LIMIT_EXCEEDED', message: `무료 플랜은 월 ${FREE_LIMIT}회까지 생성할 수 있어요.` },
-          { status: 402 }
-        )
+        const isPaidPlan = plan === 'admin' || plan === 'pro' || plan === 'business'
+        if (!isPaidPlan && monthlyCount > FREE_LIMIT) {
+          return NextResponse.json(
+            { error: 'LIMIT_EXCEEDED', message: `무료 플랜은 월 ${FREE_LIMIT}회까지 생성할 수 있어요.` },
+            { status: 402 }
+          )
+        }
       }
+
     }
     // ─────────────────────────────────────────────────────────────
 

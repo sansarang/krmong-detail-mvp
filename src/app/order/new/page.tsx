@@ -544,17 +544,33 @@ export default function NewOrderPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      // 관리자 체크 (plan === 'admin' 또는 env의 ADMIN_EMAILS)
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('plan')
-        .eq('id', user.id)
-        .single()
-      const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? '').split(',').map(e => e.trim()).filter(Boolean)
-      const isAdmin = profile?.plan === 'admin' || adminEmails.includes(user.email ?? '')
-      setIsAdminUser(isAdmin)
+      // 관리자 이메일 목록 (하드코딩 + 환경변수 병합)
+      const ADMIN_EMAIL_LIST = ['jyj1653@krmong.local']
+      const envAdmins = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? '')
+        .split(',').map(e => e.trim()).filter(Boolean)
+      const allAdminEmails = [...new Set([...ADMIN_EMAIL_LIST, ...envAdmins])]
 
-      if (isAdmin) return // 관리자는 사용량 체크 불필요
+      // 이메일 먼저 체크 (profiles 테이블 없어도 동작)
+      if (allAdminEmails.includes(user.email ?? '')) {
+        setIsAdminUser(true)
+        return
+      }
+
+      // profiles 테이블이 있을 경우 plan 체크 (없으면 무시)
+      let plan: string | null = null
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('plan')
+          .eq('id', user.id)
+          .single()
+        plan = profile?.plan ?? null
+      } catch { /* profiles 테이블 없음 — 무시 */ }
+
+      if (plan === 'admin' || plan === 'pro' || plan === 'business') {
+        setIsAdminUser(true)
+        return
+      }
 
       const now = new Date()
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
