@@ -706,19 +706,36 @@ export default function NewOrderPage() {
         body: JSON.stringify({ url: urlInput.trim() }),
       })
       const data = await res.json()
+
+      // 완전 차단 (422 restricted)
+      if (res.status === 422 && data.restricted) {
+        toast.error('이 사이트는 자동 수집이 제한되어 있어요. 제품명과 설명을 직접 입력해 주세요.', { duration: 5000 })
+        return
+      }
+
       if (!res.ok) throw new Error(data.error)
+
+      // 정보 채우기
+      const hasData = data.product_name || data.category || data.description
+      if (!hasData) throw new Error('제품 정보를 찾을 수 없습니다.')
+
       setForm(prev => ({
-        product_name: data.product_name ?? prev.product_name,
-        category: data.category ?? prev.category,
-        description: data.description ?? prev.description,
+        product_name: data.product_name || prev.product_name,
+        category: data.category || prev.category,
+        description: data.description || prev.description,
       }))
-      toast.success('제품 정보를 자동으로 가져왔습니다!')
+
+      if (data.partial) {
+        toast.success('일부 정보만 가져왔습니다. 내용을 확인하고 보완해 주세요.', { duration: 5000 })
+      } else {
+        toast.success('제품 정보를 자동으로 가져왔습니다!')
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'URL 분석 실패'
       const isBlocked = msg.includes('제한') || msg.includes('429') || msg.includes('403')
       toast.error(
         isBlocked
-          ? '이 사이트는 자동 수집이 제한되어 있어요.\n제품명과 설명을 직접 입력해 주세요.'
+          ? '이 사이트는 자동 수집이 제한되어 있어요. 제품명과 설명을 직접 입력해 주세요.'
           : msg,
         { duration: 5000 }
       )
