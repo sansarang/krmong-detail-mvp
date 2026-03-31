@@ -55,15 +55,21 @@ async function extractWithAI(fetchUrl: string, context: string, partial: boolean
     messages: [{
       role: 'user',
       content: partial
-        ? `아래 URL과 부분 정보만으로 제품 정보를 추론해서 JSON으로 반환하세요.
+        ? `아래 URL과 부분 힌트를 보고, 제품 정보를 추론해서 JSON으로만 반환하세요.
 URL: ${fetchUrl}
-부분 정보: ${context}
+힌트: ${context}
+
+규칙:
+- 확실히 알 수 있는 정보만 채우세요
+- "Access Denied", "Forbidden", "오류" 같은 에러 메시지는 절대 포함하지 마세요
+- 모르는 경우 빈 문자열("")로 두세요
+- URL의 도메인(coupang.com → electronics/fashion 등)으로 category는 추론 가능합니다
 
 반드시 아래 JSON 형식으로만 반환 (다른 텍스트 없이):
 {
-  "product_name": "제품명 (URL/정보에서 최대한 추출, 불확실하면 빈칸 가능)",
-  "category": "카테고리 영문코드 (food/beauty/living/fashion/electronics/health/pet/sports/saas/other 중 하나, URL 도메인 참고)",
-  "description": "알 수 있는 범위 내 제품 설명 (불확실한 내용은 제외)"
+  "product_name": "",
+  "category": "food/beauty/living/fashion/electronics/health/pet/sports/saas/other 중 하나",
+  "description": ""
 }`
         : `아래 웹페이지 정보에서 제품/서비스 정보를 추출하고 JSON으로만 반환하세요.
 
@@ -130,10 +136,19 @@ export async function POST(req: NextRequest) {
 
       if (pageRes.ok) {
         html = await pageRes.text()
-        fetchOk = true
-      } else if ((pageRes.status === 429 || pageRes.status === 403) && restricted) {
-        // 제한된 사이트 → 부분 응답이라도 읽어보기
-        try { html = await pageRes.text() } catch { /* ignore */ }
+        // Access Denied 본문이면 fetchOk = false 처리
+        const snippet = html.slice(0, 2000).toLowerCase()
+        const isAccessDenied = snippet.includes('access denied') || snippet.includes('403 forbidden') || snippet.includes('robot') || snippet.includes('captcha')
+        fetchOk = !isAccessDenied
+        if (!fetchOk) html = '' // 오류 HTML은 버림
+      } else if (pageRes.status === 429 || pageRes.status === 403) {
+        // 차단 응답 → OG 태그만 빠르게 시도
+        try {
+          const body = await pageRes.text()
+          const snippet = body.slice(0, 2000).toLowerCase()
+          const isJunk = snippet.includes('access denied') || snippet.includes('forbidden') || snippet.includes('robot') || snippet.includes('captcha')
+          if (!isJunk) html = body
+        } catch { /* ignore */ }
       } else if (!pageRes.ok) {
         throw new Error(`페이지 응답 오류 (${pageRes.status})`)
       }
@@ -162,20 +177,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ...parsed, partial: true })
     }
 
-    // 완전 차단 → URL만으로 AI 추론 시도
-    if (restricted) {
-      const parsed = await extractWithAI(fetchUrl, '(페이지 접근 불가)', true)
-      // product_name이 비어있으면 실패 처리
-      if (!parsed.product_name || parsed.product_name.length < 2) {
-        return NextResponse.json({
-          error: '이 사이트는 자동 수집이 제한되어 있어요. 제품명과 설명을 직접 입력해 주세요.',
-          restricted: true,
-        }, { status: 422 })
-      }
+    // 완전 차단 → URL만으로 카테고리 추론 시도
+    const parsed = await extractWithAI(fetchUrl, '(페이지 접근 차단)', true)
+
+    // category만 있어도 부분 성공으로 반환
+    if (parsed.category && parsed.category !== 'other') {
       return NextResponse.json({ ...parsed, partial: true })
     }
 
-    throw new Error('페이지 정보를 가져올 수 없습니다.')
+    // 아무것도 없으면 사용자에게 직접 입력 요청
+    return NextResponse.json({
+      error: '이 사이트는 자동 수집이 제한되어 있어요. 제품명과 설명을 직접 입력해 주세요.',
+      restricted: true,
+    }, { status: 422 })
   } catch (err: unknown) {
     console.error('Scrape URL error:', err)
     const msg = err instanceof Error ? err.message : 'URL 스크래핑 실패'
