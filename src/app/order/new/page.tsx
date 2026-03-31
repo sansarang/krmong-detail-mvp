@@ -739,17 +739,31 @@ export default function NewOrderPage() {
     setUrlLoading(true)
     setScrapedExtra(null)
 
+    // 플랫폼 감지
+    const urlLower = urlInput.toLowerCase()
+    const platform =
+      urlLower.includes('coupang') ? (uiLang === 'ko' ? '쿠팡' : 'Coupang') :
+      urlLower.includes('amazon') ? 'Amazon' :
+      urlLower.includes('smartstore') ? (uiLang === 'ko' ? '스마트스토어' : 'Smartstore') :
+      urlLower.includes('tmall') ? 'Tmall' :
+      urlLower.includes('rakuten') ? '楽天' :
+      urlLower.includes('shopify') ? 'Shopify' :
+      urlLower.includes('qoo10') ? 'Qoo10' :
+      urlLower.includes('lazada') ? 'Lazada' :
+      (uiLang === 'ko' ? '사이트' : 'site')
+
     const steps = [
-      uiLang === 'ko' ? '페이지 분석 중...' : uiLang === 'ja' ? 'ページ分析中...' : uiLang === 'zh' ? '页面分析中...' : 'Analyzing page...',
-      uiLang === 'ko' ? '제품 정보 추출 중...' : uiLang === 'ja' ? '製品情報を抽出中...' : uiLang === 'zh' ? '提取产品信息...' : 'Extracting product info...',
-      uiLang === 'ko' ? 'AI가 최적화 중...' : uiLang === 'ja' ? 'AIが最適化中...' : uiLang === 'zh' ? 'AI优化中...' : 'AI optimizing...',
+      uiLang === 'ko' ? `${platform} 페이지 접근 중...` : `Connecting to ${platform}...`,
+      uiLang === 'ko' ? '제품명·가격·이미지 추출 중...' : uiLang === 'ja' ? '商品名・価格・画像を抽出中...' : uiLang === 'zh' ? '提取商品名·价格·图片...' : 'Extracting name·price·images...',
+      uiLang === 'ko' ? 'AI가 설명·키워드 최적화 중...' : uiLang === 'ja' ? 'AIが説明・キーワードを最適化中...' : uiLang === 'zh' ? 'AI优化描述·关键词...' : 'AI optimizing description & keywords...',
+      uiLang === 'ko' ? '마무리 중...' : 'Finalizing...',
     ]
     let stepIdx = 0
     setUrlLoadingStep(steps[0])
     const stepTimer = setInterval(() => {
-      stepIdx = (stepIdx + 1) % steps.length
+      stepIdx = Math.min(stepIdx + 1, steps.length - 1)
       setUrlLoadingStep(steps[stepIdx])
-    }, 1800)
+    }, 2200)
 
     try {
       const res = await fetch('/api/scrape-url', {
@@ -809,20 +823,26 @@ export default function NewOrderPage() {
         target_customer: data.target_customer,
       })
 
+      // 채워진 필드 개수 계산
+      const filledCount = [
+        data.product_name, data.brand, data.category, data.description,
+        data.price, data.features?.length, data.keywords?.length, data.image_urls?.length,
+      ].filter(Boolean).length
+
       if (data.partial) {
         toast.success(
-          uiLang === 'ko' ? '일부 정보를 가져왔습니다. 내용을 확인하고 보완해 주세요. ✏️'
-          : uiLang === 'ja' ? '一部の情報を取得しました。内容を確認・補足してください。'
-          : uiLang === 'zh' ? '已获取部分信息，请确认并补充。'
-          : 'Partial info fetched. Please review and complete.',
+          uiLang === 'ko' ? `✏️ ${filledCount}개 항목 자동 입력 — 부족한 부분을 보완해 주세요`
+          : uiLang === 'ja' ? `✏️ ${filledCount}項目を自動入力 — 不足部分を補完してください`
+          : uiLang === 'zh' ? `✏️ 已自动填写 ${filledCount} 项 — 请补充缺少的部分`
+          : `✏️ ${filledCount} fields auto-filled — please complete the rest`,
           { duration: 6000 }
         )
       } else {
         toast.success(
-          uiLang === 'ko' ? '✅ 제품 정보를 자동으로 가져왔습니다! 수정이 필요하면 아래에서 편집하세요.'
-          : uiLang === 'ja' ? '✅ 製品情報を自動取得しました！必要に応じて編集してください。'
-          : uiLang === 'zh' ? '✅ 产品信息已自动填写！如需修改请在下方编辑。'
-          : '✅ Product info auto-filled! Edit below if needed.',
+          uiLang === 'ko' ? `✅ ${filledCount}개 항목 자동 완성! 수정이 필요하면 아래에서 편집하세요.`
+          : uiLang === 'ja' ? `✅ ${filledCount}項目を自動入力しました！必要に応じて編集してください。`
+          : uiLang === 'zh' ? `✅ 已自动填写 ${filledCount} 项！如需修改请在下方编辑。`
+          : `✅ ${filledCount} fields auto-filled! Edit below if needed.`,
           { duration: 5000 }
         )
       }
