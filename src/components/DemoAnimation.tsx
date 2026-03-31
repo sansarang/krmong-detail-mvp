@@ -163,7 +163,7 @@ export default function DemoAnimation({ lang = 'ko' }: { lang?: Lang }) {
                 {step >= 0 ? (
                   <>
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                    {lang === 'ja' ? 'ヒアルロン酸 モイスチャーセラム' : lang === 'zh' ? '玻尿酸保湿精华液' : '히알루론산 모이스처 세럼'}
+                    {lang === 'ja' ? 'ヒアルロン酸 モイスチャーセラム' : lang === 'zh' ? '玻尿酸保湿精华液' : lang === 'en' ? 'Hyaluronic Acid Moisture Serum' : '히알루론산 모이스처 세럼'}
                   </>
                 ) : (
                   <span className="w-24 h-3 bg-gray-200 rounded animate-pulse" />
