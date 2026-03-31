@@ -130,7 +130,7 @@ export default function Home() {
       </nav>
 
       {/* ═══ HERO ═══════════════════════════════════════════ */}
-      <section className="relative bg-[#0F172A] min-h-[88vh] flex items-center overflow-hidden">
+      <section className="relative bg-[#0F172A] min-h-[85vh] sm:min-h-[88vh] md:min-h-[90vh] flex items-center overflow-hidden">
         {/* 배경 gradient mesh */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-[120px]" />
@@ -169,7 +169,7 @@ export default function Home() {
           {/* 서브헤드 */}
           <p className="text-center text-gray-400 text-base md:text-xl max-w-2xl mx-auto mb-8 leading-relaxed font-medium px-2">
             One input → <span className="text-white font-bold">KR · EN · JP · CN simultaneously.</span><br className="hidden sm:block" />
-            Optimized for Amazon JP, Tmall, Rakuten, Shopify & more.
+            Fully optimized for Amazon JP, Tmall, Rakuten, Shopify, Qoo10 & more.
           </p>
 
           {/* 4개국어 플래그 배지 */}
@@ -207,9 +207,9 @@ export default function Home() {
             </Link>
             <Link
               href="/login"
-              className="border border-white/20 text-white px-7 md:px-10 py-4 rounded-2xl text-base font-bold hover:bg-white/10 transition-all text-center backdrop-blur-sm"
+              className="border border-white/20 text-white px-7 md:px-10 py-4 rounded-2xl text-base font-bold hover:bg-white/10 transition-all text-center backdrop-blur-sm flex items-center justify-center gap-2"
             >
-              🌏 See 4-Language Demo
+              <span className="text-sm">▶</span> Watch 4-Language Demo
             </Link>
           </div>
 
@@ -240,6 +240,38 @@ export default function Home() {
               <span className="text-xs font-bold">{p.name}</span>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ═══ CROSS-BORDER BANNER ════════════════════════════ */}
+      <section className="bg-[#0A0F1A] py-6 px-4 md:px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="relative rounded-2xl md:rounded-3xl overflow-hidden border border-emerald-500/20 bg-gradient-to-r from-emerald-950/80 via-[#0F172A] to-teal-950/80 px-6 md:px-10 py-6 md:py-7">
+            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 80% 50%, #10b981 0%, transparent 60%)' }} />
+            <div className="relative flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-8">
+              {/* 왼쪽 텍스트 */}
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-2xl">🌏</span>
+                  <span className="text-white font-black text-lg md:text-xl tracking-tight">Cross-Border Mode</span>
+                  <span className="text-[10px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full uppercase tracking-wide">ON</span>
+                </div>
+                <p className="text-gray-400 text-sm md:text-base">
+                  <span className="text-white font-semibold">4 Languages + Global Platform Optimization</span> — one click, four countries, zero outsourcing.
+                </p>
+              </div>
+              {/* 플랫폼 태그 */}
+              <div className="flex flex-wrap gap-2">
+                {['Amazon JP', 'Tmall CN', '楽天', 'Shopify', 'Qoo10', 'Lazada'].map(p => (
+                  <span key={p} className="bg-white/8 border border-white/10 text-gray-300 text-xs font-semibold px-3 py-1.5 rounded-full hover:bg-white/15 transition-colors">{p}</span>
+                ))}
+              </div>
+              {/* CTA */}
+              <Link href="/login" className="shrink-0 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-black px-5 py-3 rounded-xl hover:opacity-90 transition-all hover:scale-105 whitespace-nowrap">
+                Try Cross-Border →
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -619,12 +651,12 @@ export default function Home() {
       <LiveTicker lang="ko" />
 
       {/* ═══ MOBILE FLOATING CTA ══════════════════════════════ */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0F172A]/95 backdrop-blur-xl border-t border-white/10 px-4 py-3">
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0F172A]/95 backdrop-blur-xl border-t border-white/10 px-4 py-3 safe-area-inset-bottom">
         <Link
           href="/login"
-          className="block w-full bg-gradient-to-r from-blue-500 to-violet-600 text-white text-center font-black text-base py-4 rounded-2xl hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-blue-500/20"
+          className="block w-full bg-gradient-to-r from-blue-500 to-violet-600 text-white text-center font-black text-base py-[17px] rounded-2xl hover:opacity-90 transition-all active:scale-95 shadow-xl shadow-blue-500/30"
         >
-          🚀 Create Free Product Page Now
+          Start Free Now — No Credit Card
         </Link>
       </div>
     </main>
