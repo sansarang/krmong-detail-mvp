@@ -1921,6 +1921,56 @@ export default function OrderResultPage() {
         {/* ── MAIN CONTENT ──────────────────────────────────────── */}
         <div className="flex-1 min-w-0 px-4 md:px-6 xl:px-8 py-6 md:py-8">
 
+          {/* ── 제품 정보 헤더 카드 ──────────────────────────────── */}
+          <div className="bg-gradient-to-r from-[#0F172A] to-[#1E293B] rounded-2xl px-5 py-4 mb-5 border border-white/5 shadow-lg print:hidden">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                    {uiLang==='ko'?'생성된 콘텐츠':uiLang==='ja'?'生成済みコンテンツ':uiLang==='zh'?'已生成内容':'Generated Content'}
+                  </span>
+                  {order.result_json?.template_mode && (
+                    <span className="text-[10px] font-black bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full">
+                      📋 {uiLang==='ko'?'양식 자동완성':'Form Auto-fill'}
+                    </span>
+                  )}
+                  {order.result_json?.multi_lang && (
+                    <span className="text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                      🌏 {uiLang==='ko'?'4개국어 동시 생성':'4-Language Generated'}
+                    </span>
+                  )}
+                </div>
+                <h1 className="text-white font-black text-lg md:text-xl tracking-tight truncate leading-tight">
+                  {order.product_name}
+                </h1>
+                <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+                  <span className="text-xs text-gray-500 font-medium capitalize">{order.category}</span>
+                  {seoReport && (
+                    <span className={`text-xs font-black px-2 py-0.5 rounded-full border ${scoreBg} ${scoreColor}`}>
+                      SEO {seoReport.score}점
+                    </span>
+                  )}
+                  {sections.length > 0 && (
+                    <span className="text-xs text-gray-600 font-medium">
+                      {sections.length}{uiLang==='ko'?'개 섹션':uiLang==='ja'?'セクション':uiLang==='zh'?'个章节':' sections'}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button type="button" onClick={handleDownloadZip}
+                  className="flex items-center gap-1.5 bg-white/8 hover:bg-white/14 border border-white/10 text-gray-300 px-3 py-2 rounded-xl text-xs font-bold transition-all">
+                  ⬇️ ZIP
+                </button>
+                <button type="button" onClick={handleNaverCopy}
+                  className={`${primStyle.bg} ${primStyle.hover} text-white px-3 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5`}>
+                  <span className="text-sm">{primaryRow?.icon}</span>
+                  {copyDone ? '✓' : (uiLang==='ko'?'복사':'Copy')}
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Top bar */}
           <div className="flex items-center justify-between mb-5 print:hidden">
             <div className="flex items-center gap-2">

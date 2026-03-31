@@ -87,57 +87,102 @@ export async function POST(req: NextRequest) {
     // 상태 업데이트
     await supabase.from('orders').update({ status: 'generating' }).eq('id', orderId)
 
-    // ── 양식 자동 작성 모드 감지 ──────────────────────────────
+    // ── 양식 자동 작성 모드 감지 (완전 독립 처리) ────────────────
     const templateMatch = (order.description ?? '').match(/\[TEMPLATE_FORM\]([\s\S]*?)\[\/TEMPLATE_FORM\]/)
     if (templateMatch) {
       const templateContent = templateMatch[1].trim()
-      const userInfo = (order.description ?? '').replace(/\[TEMPLATE_FORM\][\s\S]*?\[\/TEMPLATE_FORM\]/, '').trim()
+      const userInfo = (order.description ?? '')
+        .replace(/\[TEMPLATE_FORM\][\s\S]*?\[\/TEMPLATE_FORM\]/, '')
+        .replace(/\[MARKETS:[^\]]*\]/g, '')
+        .replace(/\[CROSSBORDER:[^\]]*\]/g, '')
+        .trim()
 
       const LANG_NAMES_T: Record<string, string> = { ko: '한국어', en: 'English', ja: '日本語', zh: '中文' }
-      const langInstructionT = outputLang !== 'ko'
-        ? ` All answers must be written in ${LANG_NAMES_T[outputLang] ?? outputLang}.`
-        : ''
+      const isMultiLangT = outputLang === 'all'
+      const targetLangs = isMultiLangT ? ['ko', 'en', 'ja', 'zh'] : [outputLang]
 
-      // ── 1단계: 양식을 분석해 항목 목록을 텍스트로 추출 ─────────
+      const TEMPLATE_SYSTEM = `You are an elite document completion specialist — the world's best at filling in forms, templates, applications, reports, and proposals. You understand document structure, professional tone, and context-appropriate content.
+
+YOUR STANDARDS:
+1. COMPLETENESS: Fill EVERY blank, field, and section — never leave anything empty
+2. PROFESSIONALISM: Use appropriate formal/professional language for the document type
+3. SPECIFICITY: Include specific details, dates, numbers, and concrete examples
+4. CONTEXTUAL FIT: Match the document's purpose (business plan ≠ academic report ≠ application form)
+5. OUTPUT FORMAT: Return structured sections as JSON only`
+
+      const buildTemplatePrompt = (lang: string) => {
+        const langInst = lang !== 'ko'
+          ? ` CRITICAL: All answers must be written entirely in ${LANG_NAMES_T[lang] ?? lang}.`
+          : ''
+        const docTitle = order.product_name || '문서'
+        const customBlock = customInstructions
+          ? `\n🔴 CUSTOM INSTRUCTIONS (HIGHEST PRIORITY):\n${customInstructions}\n🔴 END\n`
+          : ''
+
+        return `${customBlock}Complete this document/form with expert-level content.${langInst}
+
+Document Title: ${docTitle}
+${userInfo ? `\n=== USER PROVIDED REFERENCE INFO (use this to fill in answers) ===\n${userInfo}\n=== END REFERENCE INFO ===\n` : ''}
+
+=== FORM / TEMPLATE TO COMPLETE ===
+${templateContent}
+=== END OF FORM ===
+
+TASK:
+1. Read the form/template above carefully
+2. Identify ALL fields, blanks, questions, and sections
+3. Fill in every single item with professional, specific, contextually-appropriate content
+4. Use the reference info provided (if any) as the primary source of truth
+
+FORMAT (for each section/field):
+[Section or Field Name]
+(Complete answer — minimum 2 sentences, specific and professional)
+
+RULES:
+- Fill EVERY field — no skipping
+- Use reference info maximally — don't invent conflicting details
+- If a field is unclear, make a logical professional assumption
+- Formal, professional tone throughout
+- Numbers, dates, and specifics where appropriate`
+      }
+
+      // 다중 언어 동시 생성
+      if (isMultiLangT) {
+        const langResults = await Promise.all(
+          targetLangs.map(async (lang) => {
+            const msg = await anthropic.messages.create({
+              model: 'claude-sonnet-4-5',
+              max_tokens: 3000,
+              system: TEMPLATE_SYSTEM,
+              messages: [{ role: 'user', content: buildTemplatePrompt(lang) }],
+            })
+            const c = msg.content[0]
+            if (c.type !== 'text') throw new Error(`${lang} template 응답 오류`)
+            const BG_COLORS = ['#FFFFFF', '#F8F9FA', '#F0F7FF', '#FFF8E7', '#F0FFF4', '#FFF0F5']
+            const sections = parseTemplateTextToSections(c.text.trim(), BG_COLORS)
+            return { lang, sections }
+          })
+        )
+        const multiResult: Record<string, unknown> = { multi_lang: true, output_lang: 'all', template_mode: true }
+        for (const { lang, sections } of langResults) {
+          multiResult[lang] = { sections }
+        }
+        await supabase.from('orders').update({ status: 'done', result_json: multiResult }).eq('id', orderId)
+        return NextResponse.json({ success: true, result: multiResult })
+      }
+
+      // 단일 언어
       const analyzeMsg = await anthropic.messages.create({
         model: 'claude-sonnet-4-5',
-        max_tokens: 2000,
-        system: '당신은 문서 양식 분석 전문가입니다. 주어진 양식에서 작성해야 할 모든 항목/질문을 파악하고, 각 항목에 구체적인 답변을 작성합니다.',
-        messages: [
-          {
-            role: 'user',
-            content: `아래 양식의 각 항목/질문에 답변을 작성해주세요.${langInstructionT}
-
-문서 제목: ${order.product_name}
-${userInfo ? `\n참고 정보 (답변 작성 시 활용):\n${userInfo}` : ''}
-
-=== 양식 내용 ===
-${templateContent}
-=== 양식 끝 ===
-
-위 양식의 각 항목을 순서대로 아래 형식으로 답변해주세요:
-[항목1 제목]
-(답변 내용 - 최소 2문장 이상, 구체적으로)
-
-[항목2 제목]
-(답변 내용 - 최소 2문장 이상, 구체적으로)
-
-...
-
-규칙:
-- 양식의 모든 빈칸/항목에 답변
-- 참고 정보를 최대한 반영
-- 공식적이고 전문적인 문체
-- 항목이 명확하지 않으면 논리적으로 섹션을 구성`,
-          },
-        ],
+        max_tokens: 3000,
+        system: TEMPLATE_SYSTEM,
+        messages: [{ role: 'user', content: buildTemplatePrompt(outputLang) }],
       })
 
       const analyzeContent = analyzeMsg.content[0]
       if (analyzeContent.type !== 'text') throw new Error('AI 응답 형식 오류')
       const filledText = analyzeContent.text.trim()
 
-      // ── 2단계: 텍스트 답변을 JSON sections로 변환 ──────────────
       const BG_COLORS = ['#FFFFFF', '#F8F9FA', '#F0F7FF', '#FFF8E7', '#F0FFF4', '#FFF0F5']
       const sections = parseTemplateTextToSections(filledText, BG_COLORS)
 
@@ -389,6 +434,46 @@ TONE: 高端品质感 × 社会认同 × 限时紧迫 = 爆款三角公式
           cleanDescription,
         )
       : ''
+
+    // ── 제품 앵커 블록 (hallucination 방지 핵심) ─────────────
+    // 카테고리별 "이것이 아니다" negative 힌트
+    const NEGATIVE_HINTS: Record<string, string> = {
+      beauty:      'NOT a food, clothing, electronics, or furniture product.',
+      fashion:     'NOT a beauty product, electronics, food, or home appliance.',
+      electronics: 'NOT a clothing, food, beauty, or furniture product.',
+      food:        'NOT a beauty product, clothing, electronics, or furniture.',
+      living:      'NOT a beauty product, clothing, or electronics product.',
+      health:      'NOT a food brand, clothing, or electronics product.',
+      sports:      'NOT a beauty product, food, or home appliance.',
+      saas:        'NOT a physical product. This is a software/digital service.',
+      other:       '',
+    }
+    const negativeHint = NEGATIVE_HINTS[order.category] ?? ''
+
+    const buildProductAnchor = (lang: string) => {
+      if (lang === 'ko' || lang === 'all') {
+        return `🔒 제품 앵커 (절대 지켜야 할 사실):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+제품명: ${order.product_name}
+카테고리: ${order.category}
+핵심 설명: ${cleanDescription.slice(0, 500)}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ 이 제품은 반드시 위의 제품명과 카테고리를 기반으로 작성해야 한다.
+⚠️ 절대 다른 제품이나 브랜드로 착각하거나 다른 제품에 대한 내용을 쓰지 마라.${negativeHint ? `\n⚠️ ${negativeHint}` : ''}
+⚠️ 입력된 제품명 "${order.product_name}"을 3개 이상 섹션에서 반드시 언급할 것.
+`
+      }
+      return `🔒 PRODUCT ANCHOR (ABSOLUTE TRUTH — DO NOT DEVIATE):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Product Name: ${order.product_name}
+Category: ${order.category}
+Core Description: ${cleanDescription.slice(0, 500)}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ CRITICAL: You are writing about THIS SPECIFIC PRODUCT: "${order.product_name}"
+⚠️ DO NOT confuse this with any other product or brand.${negativeHint ? `\n⚠️ ${negativeHint}` : ''}
+⚠️ MUST mention the product name "${order.product_name}" in at least 3 sections.
+`
+    }
     // ──────────────────────────────────────────────────────────
 
     // ── 4개 언어 동시 생성 모드 ───────────────────────────────
@@ -413,7 +498,8 @@ TONE: 高端品质感 × 社会认同 × 限时紧迫 = 爆款三角公式
         const customBlock = customInstructions
           ? `\n\n🔴 USER'S CUSTOM INSTRUCTIONS (HIGHEST PRIORITY — override defaults if conflicting):\n${customInstructions}\n🔴 END CUSTOM INSTRUCTIONS\n`
           : ''
-        return `${customBlock}You are a world-class ${langLabel[lang] ?? roleDesc}.${lInst}
+        const anchor = buildProductAnchor(lang)
+        return `${anchor}${customBlock}You are a world-class ${langLabel[lang] ?? roleDesc}.${lInst}
 
 Product: ${order.product_name}
 Category: ${order.category}
@@ -477,13 +563,15 @@ Output JSON only (no other text, no markdown):
       ? `\n🔴 USER'S CUSTOM INSTRUCTIONS (HIGHEST PRIORITY):\n${customInstructions}\n🔴 END\n`
       : ''
 
+    const productAnchor = buildProductAnchor(outputLang)
+
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-5',
       max_tokens: 4500,
       system: GLOBAL_SYSTEM_PROMPT,
       messages: [{
         role: 'user',
-        content: `${customBlock}당신은 ${roleDesc}입니다.${langInstruction}
+        content: `${productAnchor}${customBlock}당신은 ${roleDesc}입니다.${langInstruction}
 
 카테고리: ${order.category}
 제목/이름: ${order.product_name}

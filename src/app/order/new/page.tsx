@@ -908,8 +908,20 @@ export default function NewOrderPage() {
     e.preventDefault()
     if (!tmplTitle.trim()) { toast.error(L.tmplTitleRequired); return }
     if (!templateContent.trim()) { toast.error(L.errTemplateRequired); return }
-    const description = `${tmplRefInfo.trim() ? tmplRefInfo.trim() + '\n\n' : ''}[TEMPLATE_FORM]\n${templateContent.trim()}\n[/TEMPLATE_FORM]`
-    await submitOrder({ product_name: tmplTitle.trim(), category: 'other', description }, [], setTemplateLoading)
+
+    // 문서 유형 힌트를 참고 정보에 추가
+    const docTypeHint = tmplDocType ? `[문서 유형: ${tmplDocType}]\n` : ''
+    const description = `${docTypeHint}${tmplRefInfo.trim() ? tmplRefInfo.trim() + '\n\n' : ''}[TEMPLATE_FORM]\n${templateContent.trim()}\n[/TEMPLATE_FORM]`
+
+    // 다중 언어 선택 시 'all', 단일 언어 시 해당 언어 코드
+    const effectiveLang = tmplOutputLangs.length > 1 ? 'all' : (tmplOutputLangs[0] ?? 'ko')
+
+    await submitOrder(
+      { product_name: tmplTitle.trim(), category: 'other', description },
+      [],
+      setTemplateLoading,
+      effectiveLang,
+    )
   }
 
   const POPULAR = POPULAR_CATS[uiLang]
