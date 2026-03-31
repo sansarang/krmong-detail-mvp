@@ -101,49 +101,145 @@ export async function POST(req: NextRequest) {
       const isMultiLangT = outputLang === 'all'
       const targetLangs = isMultiLangT ? ['ko', 'en', 'ja', 'zh'] : [outputLang]
 
-      const TEMPLATE_SYSTEM = `You are an elite document completion specialist — the world's best at filling in forms, templates, applications, reports, and proposals. You understand document structure, professional tone, and context-appropriate content.
+      // 문서 유형 자동 감지 (XLSX, 질문지, 보고서 등)
+      const detectDocumentType = (title: string, content: string, hint: string) => {
+        const text = (title + ' ' + content + ' ' + hint).toLowerCase()
+        if (/\[file_type:\s*excel_spreadsheet/i.test(content)) return 'excel'
+        if (/\[file_type:\s*question_sheet/i.test(content)) return 'questionnaire'
+        if (/\[문서 유형:.*질문지|questionnaire|survey|설문/i.test(hint)) return 'questionnaire'
+        if (/\[문서 유형:.*시험지|exam|quiz|test/i.test(hint)) return 'exam'
+        if (/\[문서 유형:.*사업계획서|business plan/i.test(hint)) return 'business_plan'
+        if (/\[문서 유형:.*ir|피칭|pitch deck/i.test(hint)) return 'ir_pitch'
+        if (/\[문서 유형:.*보고서|report/i.test(hint)) return 'report'
+        if (/\[문서 유형:.*제안서|proposal/i.test(hint)) return 'proposal'
+        if (text.includes('defect') || text.includes('grade') || text.includes('countermeasure') || text.includes('inspection') || text.includes('점검')) return 'inspection_report'
+        if (text.includes('area_number') || text.includes('location') || text.includes('points')) return 'inspection_report'
+        return 'general'
+      }
 
-YOUR STANDARDS:
-1. COMPLETENESS: Fill EVERY blank, field, and section — never leave anything empty
-2. PROFESSIONALISM: Use appropriate formal/professional language for the document type
-3. SPECIFICITY: Include specific details, dates, numbers, and concrete examples
-4. CONTEXTUAL FIT: Match the document's purpose (business plan ≠ academic report ≠ application form)
-5. OUTPUT FORMAT: Return structured sections as JSON only`
+      const docType = detectDocumentType(order.product_name ?? '', templateContent, userInfo)
+
+      const getDocTypeInstructions = (type: string, lang: string) => {
+        const isKo = lang === 'ko'
+        switch (type) {
+          case 'excel':
+            return isKo
+              ? `이 문서는 엑셀 스프레드시트 데이터입니다. 각 행/열의 데이터를 분석하여 아래 형식으로 완전한 전문 보고서를 작성하세요:
+1. 각 항목(컬럼)을 독립적인 섹션으로 처리
+2. raw 데이터를 그대로 나열하지 말고, 데이터를 해석하여 자연스러운 문장으로 설명
+3. 수치 데이터는 분석·요약하여 전문적으로 서술
+4. 표 형식 데이터는 bullet points나 요약 문단으로 변환`
+              : `This is Excel spreadsheet data. Analyze each row/column and write a complete professional document:
+1. Treat each column as an independent section
+2. Do NOT list raw data — interpret and explain in natural professional sentences
+3. Summarize numerical data analytically
+4. Convert tabular data into clear bullet points or summary paragraphs`
+
+          case 'inspection_report':
+            return isKo
+              ? `이 문서는 점검/검사 보고서입니다. 각 검사 항목(AREA, LOCATION, DEFECTS, GRADE, POINTS 등)을 분석하여:
+1. 전체 검사 결과 요약 (총평)
+2. 각 구역별 상세 분석 (발견된 결함, 등급, 점수)
+3. 심각도 평가 및 우선순위
+4. 구체적인 개선 조치(COUNTERMEASURE) 권고 사항
+5. 결론 및 다음 단계
+형식으로 전문 점검 보고서를 작성하세요. 숫자 데이터는 통계로 정리하세요.`
+              : `This is an inspection/quality report. Analyze each inspection item (AREA, LOCATION, DEFECTS, GRADE, POINTS, COUNTERMEASURE etc.) and write:
+1. Executive Summary of total inspection results
+2. Detailed analysis per area (defects found, grade, score)
+3. Severity assessment and priority ranking
+4. Specific countermeasure recommendations
+5. Conclusion and next steps
+Present numerical data as statistics. Write as a formal professional inspection report.`
+
+          case 'questionnaire':
+            return isKo
+              ? `이 문서는 질문지/설문지입니다. 각 질문에 완전하고 전문적인 답변을 제공하세요:
+1. 각 질문 번호와 질문 내용을 유지하면서 답변 작성
+2. 주관식: 3-5문장으로 구체적이고 전문적으로 답변
+3. 객관식: 답을 선택하고 이유를 설명
+4. 서술형: 논리적 구조로 상세히 작성`
+              : `This is a questionnaire/survey. Provide complete professional answers:
+1. Maintain each question number and content while writing answers
+2. Open questions: 3-5 sentences, specific and professional
+3. Multiple choice: select answer and explain reasoning
+4. Essay questions: write in logical structure with detail`
+
+          case 'exam':
+            return isKo
+              ? `이 문서는 시험지/테스트입니다. 각 문항에 정확하고 완전한 답변을 제공하세요:
+1. 문항 번호와 유형(객관식/주관식/서술형)을 정확히 인식
+2. 객관식: 정답과 간략한 해설
+3. 주관식: 핵심 포인트를 포함한 모범 답안
+4. 서술형: 논리적이고 체계적인 답안 작성`
+              : `This is an exam/test. Provide accurate and complete answers:
+1. Identify question number and type (multiple choice/short answer/essay)
+2. Multiple choice: correct answer with brief explanation
+3. Short answer: model answer with key points
+4. Essay: logical and systematic answer`
+
+          default:
+            return isKo
+              ? `이 문서의 모든 항목과 빈칸을 전문가 수준으로 작성하세요. 각 섹션에 충분한 내용(최소 3-5문장)을 포함하고, 구체적인 수치와 사례를 활용하세요.`
+              : `Complete all fields and blanks at expert level. Include sufficient content (minimum 3-5 sentences per section) with specific numbers and examples.`
+        }
+      }
+
+      const TEMPLATE_SYSTEM = `You are an elite document completion specialist — the world's best at analyzing forms, spreadsheets, questionnaires, and templates, then producing polished, professional, human-readable documents.
+
+CRITICAL RULES:
+1. NEVER output raw JSON, raw data dumps, or machine-readable formats
+2. ALWAYS write in natural, professional language that humans can read directly
+3. NEVER copy-paste raw table data or spreadsheet rows without interpretation
+4. Transform ALL structured/tabular data into readable professional prose, bullet points, or summaries
+5. Every section must read like it was written by a domain expert, not a data entry tool
+6. COMPLETENESS: Fill EVERY blank, field, and section — never skip
+7. OUTPUT FORMAT: Plain text with [Section Name] headers followed by natural prose — NOT JSON`
 
       const buildTemplatePrompt = (lang: string) => {
         const langInst = lang !== 'ko'
-          ? ` CRITICAL: All answers must be written entirely in ${LANG_NAMES_T[lang] ?? lang}.`
+          ? ` CRITICAL: Write ALL output entirely in ${LANG_NAMES_T[lang] ?? lang}. Translate section names too.`
           : ''
         const docTitle = order.product_name || '문서'
         const customBlock = customInstructions
-          ? `\n🔴 CUSTOM INSTRUCTIONS (HIGHEST PRIORITY):\n${customInstructions}\n🔴 END\n`
+          ? `\n🔴 CUSTOM INSTRUCTIONS (HIGHEST PRIORITY — override all defaults):\n${customInstructions}\n🔴 END\n`
           : ''
+        const typeInstructions = getDocTypeInstructions(docType, lang)
 
-        return `${customBlock}Complete this document/form with expert-level content.${langInst}
+        // Excel 등 raw data에서 FILE_TYPE 힌트 제거 (클린 데이터만 전달)
+        const cleanTemplate = templateContent
+          .replace(/\[FILE_TYPE:[^\]]*\]/gi, '')
+          .replace(/\[TRANSLATION_MODE:[^\]]*\]/gi, '')
+          .trim()
 
+        return `${customBlock}
+
+=== DOCUMENT TASK ===
 Document Title: ${docTitle}
-${userInfo ? `\n=== USER PROVIDED REFERENCE INFO (use this to fill in answers) ===\n${userInfo}\n=== END REFERENCE INFO ===\n` : ''}
+Document Type: ${docType}
+Output Language: ${LANG_NAMES_T[lang] ?? lang}${langInst}
 
-=== FORM / TEMPLATE TO COMPLETE ===
-${templateContent}
-=== END OF FORM ===
+${typeInstructions}
 
-TASK:
-1. Read the form/template above carefully
-2. Identify ALL fields, blanks, questions, and sections
-3. Fill in every single item with professional, specific, contextually-appropriate content
-4. Use the reference info provided (if any) as the primary source of truth
+${userInfo ? `=== REFERENCE INFORMATION (USE THIS AS PRIMARY SOURCE — DO NOT CONTRADICT) ===\n${userInfo}\n=== END REFERENCE ===\n` : ''}
 
-FORMAT (for each section/field):
-[Section or Field Name]
-(Complete answer — minimum 2 sentences, specific and professional)
+=== ORIGINAL FORM / DATA TO PROCESS ===
+${cleanTemplate}
+=== END OF ORIGINAL ===
 
-RULES:
-- Fill EVERY field — no skipping
-- Use reference info maximally — don't invent conflicting details
-- If a field is unclear, make a logical professional assumption
-- Formal, professional tone throughout
-- Numbers, dates, and specifics where appropriate`
+=== OUTPUT INSTRUCTIONS ===
+Write a complete, professional document based on the above form/data.
+- Use [Section Title] to mark each section
+- Under each section, write natural professional prose (NOT raw data, NOT JSON)
+- Each section body: minimum 3 sentences, maximum 1 paragraph or bullet list
+- For Excel/spreadsheet data: summarize and interpret each data column/category
+- For inspection reports: create executive summary → detailed findings → recommendations
+- For questionnaires: answer each question naturally and professionally
+- Final section: always include a "결론 및 권고사항" (Conclusion & Recommendations) or equivalent
+- Tone: professional, clear, authoritative
+
+⚠️ FORBIDDEN: raw JSON output, raw table dumps, "undefined", empty sections, "{}" or "[]" characters
+✅ REQUIRED: natural flowing prose, professional vocabulary, complete sentences`
       }
 
       // 다중 언어 동시 생성
@@ -932,15 +1028,70 @@ function parseTemplateTextToSections(
 ): { id: number; name: string; title: string; body: string; bg_color: string }[] {
   const sections: { id: number; name: string; title: string; body: string; bg_color: string }[] = []
 
+  // JSON 오염 감지 및 제거
+  let cleanText = text
+  // 만약 텍스트가 JSON처럼 보이면, 값들만 추출
+  if (cleanText.trim().startsWith('{') || cleanText.trim().startsWith('[')) {
+    try {
+      const parsed = JSON.parse(cleanText)
+      // JSON sections 배열이라면 변환
+      if (Array.isArray(parsed)) {
+        return parsed.map((item: Record<string,unknown>, i: number) => ({
+          id: i + 1,
+          name: String(item.name || item.title || item.section || `항목 ${i+1}`),
+          title: String(item.title || item.name || item.section || `항목 ${i+1}`),
+          body: String(item.body || item.content || item.answer || item.text || JSON.stringify(item)),
+          bg_color: bgColors[i % bgColors.length],
+        }))
+      }
+      if (typeof parsed === 'object' && parsed !== null) {
+        const entries = Object.entries(parsed as Record<string, unknown>)
+        return entries.map(([k, v], i) => ({
+          id: i + 1,
+          name: k,
+          title: k,
+          body: typeof v === 'string' ? v : JSON.stringify(v, null, 2),
+          bg_color: bgColors[i % bgColors.length],
+        }))
+      }
+    } catch {
+      // not valid JSON — continue with text parsing
+    }
+  }
+
+  // 마크다운 헤딩 (## Title) 또는 [Title] 패턴 두 가지 지원
+  // 먼저 ## / # 헤딩 패턴 시도
+  const headingPattern = /^#{1,3}\s+(.+)$/gm
+  const headingMatches = [...cleanText.matchAll(headingPattern)]
+
+  if (headingMatches.length >= 2) {
+    headingMatches.forEach((m, i) => {
+      const title = m[1].trim()
+      const start = (m.index ?? 0) + m[0].length
+      const end = headingMatches[i + 1]?.index ?? cleanText.length
+      const body = cleanText.slice(start, end).trim()
+      if (!title) return
+      sections.push({
+        id: i + 1,
+        name: title,
+        title,
+        body: body || title,
+        bg_color: bgColors[i % bgColors.length],
+      })
+    })
+    if (sections.length > 0) return sections
+  }
+
   // [항목 제목] 패턴으로 분할
   const blockPattern = /\[([^\]]+)\]\s*([\s\S]*?)(?=\[[^\]]+\]|$)/g
   let match: RegExpExecArray | null
   let id = 1
 
-  while ((match = blockPattern.exec(text)) !== null) {
+  while ((match = blockPattern.exec(cleanText)) !== null) {
     const title = match[1].trim()
     const body = match[2].trim()
-    if (!title || !body) continue
+    // 빈 body나 단순 FILE_TYPE 힌트 skip
+    if (!title || !body || /^(FILE_TYPE|TRANSLATION_MODE|MARKETS|CROSSBORDER):/i.test(title)) continue
     sections.push({
       id,
       name: title,
@@ -953,11 +1104,12 @@ function parseTemplateTextToSections(
 
   // [항목] 패턴이 없으면 빈 줄로 단락 분리
   if (sections.length === 0) {
-    const paragraphs = text.split(/\n{2,}/).map(p => p.trim()).filter(Boolean)
+    const paragraphs = cleanText.split(/\n{2,}/).map(p => p.trim()).filter(Boolean)
     paragraphs.forEach((para, i) => {
       const lines = para.split('\n')
-      const title = lines[0].replace(/^#+\s*/, '').trim() || `항목 ${i + 1}`
-      const body = lines.slice(1).join('\n').trim() || para
+      const firstLine = lines[0].replace(/^#+\s*/, '').trim()
+      const title = firstLine.length < 80 ? firstLine : `섹션 ${i + 1}`
+      const body = lines.length > 1 ? lines.slice(1).join('\n').trim() : para
       sections.push({
         id: i + 1,
         name: title,
