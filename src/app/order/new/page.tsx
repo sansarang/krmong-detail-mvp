@@ -624,6 +624,9 @@ export default function NewOrderPage() {
   const [tmplDocType, setTmplDocType] = useState('')
   const [tmplOutputLangs, setTmplOutputLangs] = useState<string[]>(['ko'])
   const [tmplDragOver, setTmplDragOver] = useState(false)
+  const [tmplTranslate, setTmplTranslate] = useState(false)
+  const [tmplFileName, setTmplFileName] = useState('')
+  const [tmplPreviewOpen, setTmplPreviewOpen] = useState(false)
   const docInputRef     = useRef<HTMLInputElement>(null)
   const templateFileRef = useRef<HTMLInputElement>(null)
 
@@ -770,36 +773,69 @@ export default function NewOrderPage() {
     const file = e.target.files?.[0]
     if (!file) return
     const name = file.name.toLowerCase()
+    setTmplFileName(file.name)
+
     const isText = file.type.startsWith('text/') || name.endsWith('.txt') || name.endsWith('.md') || name.endsWith('.csv')
     const isServerParsed = name.endsWith('.pdf') || name.endsWith('.docx') ||
       name.endsWith('.xlsx') || name.endsWith('.xls') || name.endsWith('.pptx')
 
+    // 파일 유형별 AI 힌트 주입 (XLSX 표/설문지 인식 강화)
+    const getFileTypeHint = () => {
+      if (name.endsWith('.xlsx') || name.endsWith('.xls'))
+        return '\n[FILE_TYPE: EXCEL_SPREADSHEET — AI must recognize table structure, column headers, formulas, and fill empty cells with appropriate data]\n'
+      if (name.endsWith('.pptx'))
+        return '\n[FILE_TYPE: PRESENTATION — AI must identify slide titles, bullet points, and fill each slide\'s content professionally]\n'
+      if (name.includes('quiz') || name.includes('test') || name.includes('exam') || name.includes('시험') || name.includes('문제') || name.includes('질문') || name.includes('survey') || name.includes('설문'))
+        return '\n[FILE_TYPE: QUESTION_SHEET — AI must identify question numbers, question types (multiple choice, short answer, essay), and generate appropriate answers or solutions for each question]\n'
+      return ''
+    }
+
     if (isText) {
       const reader = new FileReader()
       reader.onload = ev => {
-        setTemplateContent(ev.target?.result as string)
+        const hint = getFileTypeHint()
+        setTemplateContent((ev.target?.result as string) + hint)
         toast.success(L.toastFile)
       }
       reader.readAsText(file)
     } else if (isServerParsed) {
       const ext = name.split('.').pop()?.toUpperCase() ?? '파일'
-      const tid = toast.loading(`${ext} 파싱 중...`)
+      const tid = toast.loading(
+        uiLang === 'ko' ? `${ext} 분석 중... AI가 양식 구조를 파악합니다` :
+        uiLang === 'ja' ? `${ext} 解析中... AIが書式を認識しています` :
+        uiLang === 'zh' ? `${ext} 解析中... AI正在识别文档结构` :
+        `Parsing ${ext}... AI analyzing form structure`
+      )
       try {
         const fd = new FormData()
         fd.append('file', file)
         const res = await fetch('/api/parse-file', { method: 'POST', body: fd })
         const data = await res.json()
         if (!res.ok) throw new Error(data.error)
-        setTemplateContent(data.text ?? '')
+        const hint = getFileTypeHint()
+        setTemplateContent((data.text ?? '') + hint)
         toast.dismiss(tid)
-        const detail = data.pages ? `${data.pages}페이지` : data.sheets ? `${data.sheets}시트` : data.slides ? `${data.slides}슬라이드` : ''
-        toast.success(`${ext} 내용 추출 완료${detail ? ` (${detail})` : ''}`)
+        const detail = data.pages
+          ? (uiLang === 'ko' ? `${data.pages}페이지` : `${data.pages} pages`)
+          : data.sheets
+          ? (uiLang === 'ko' ? `${data.sheets}시트` : `${data.sheets} sheets`)
+          : data.slides
+          ? (uiLang === 'ko' ? `${data.slides}슬라이드` : `${data.slides} slides`)
+          : ''
+        toast.success(
+          uiLang === 'ko' ? `✅ ${ext} 내용 추출 완료${detail ? ` (${detail})` : ''} — AI가 양식 구조를 인식했습니다` :
+          uiLang === 'ja' ? `✅ ${ext} 解析完了${detail ? ` (${detail})` : ''}` :
+          uiLang === 'zh' ? `✅ ${ext} 解析完成${detail ? ` (${detail})` : ''}` :
+          `✅ ${ext} parsed${detail ? ` (${detail})` : ''} — form structure recognized`
+        )
       } catch (err) {
         toast.dismiss(tid)
         toast.error(err instanceof Error ? err.message : `${ext} 파싱 실패 — 내용을 직접 붙여넣기 해주세요`)
+        setTmplFileName('')
       }
     } else {
       toast.info(L.toastFilePaste)
+      setTmplFileName('')
     }
     if (templateFileRef.current) templateFileRef.current.value = ''
   }
@@ -982,7 +1018,10 @@ export default function NewOrderPage() {
 
     // 문서 유형 힌트를 참고 정보에 추가
     const docTypeHint = tmplDocType ? `[문서 유형: ${tmplDocType}]\n` : ''
-    const description = `${docTypeHint}${tmplRefInfo.trim() ? tmplRefInfo.trim() + '\n\n' : ''}[TEMPLATE_FORM]\n${templateContent.trim()}\n[/TEMPLATE_FORM]`
+    const translationHint = tmplTranslate
+      ? `[TRANSLATION_MODE: ON — Detect the original language of the template, then translate AND complete the document in the requested output language(s). Preserve form structure while naturalizing expressions for the target language and culture.]\n`
+      : ''
+    const description = `${translationHint}${docTypeHint}${tmplRefInfo.trim() ? tmplRefInfo.trim() + '\n\n' : ''}[TEMPLATE_FORM]\n${templateContent.trim()}\n[/TEMPLATE_FORM]`
 
     // 다중 언어 선택 시 'all', 단일 언어 시 해당 언어 코드
     const effectiveLang = tmplOutputLangs.length > 1 ? 'all' : (tmplOutputLangs[0] ?? 'ko')
@@ -1286,52 +1325,61 @@ export default function NewOrderPage() {
             </div>
           )}
           <form onSubmit={handleTemplateSubmit}
-            className="rounded-2xl overflow-hidden border border-indigo-100 shadow-lg"
-            style={{ background: 'linear-gradient(160deg, #f8f7ff 0%, #ffffff 60%)' }}>
+            className="rounded-3xl overflow-hidden border border-indigo-100/80 shadow-xl"
+            style={{ background: 'linear-gradient(160deg, #faf9ff 0%, #ffffff 50%)' }}>
 
-            {/* Header gradient banner */}
-            <div className="relative px-6 pt-6 pb-5 overflow-hidden"
-              style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 60%, #6d28d9 100%)' }}>
-              <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 80% 20%, #a78bfa, transparent 50%)' }} />
+            {/* ── Header ─────────────────────────────────────────── */}
+            <div className="relative px-6 pt-6 pb-6 overflow-hidden"
+              style={{ background: 'linear-gradient(135deg, #3730a3 0%, #4f46e5 40%, #7c3aed 100%)' }}>
+              <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 75% 10%, #a78bfa, transparent 55%), radial-gradient(circle at 20% 90%, #818cf8, transparent 45%)' }} />
+              <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
               <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="inline-flex items-center gap-1.5 text-[10px] font-black text-indigo-100 bg-white/15 border border-white/20 px-3 py-1 rounded-full">
-                    📋 {L.colTmplBadge}
-                  </span>
-                  <span className="text-[10px] font-black text-emerald-300 bg-emerald-500/20 border border-emerald-400/30 px-2.5 py-1 rounded-full">AI AUTO</span>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-black text-indigo-100 bg-white/15 border border-white/20 px-2.5 py-1 rounded-full">
+                      📋 {uiLang === 'ko' ? '양식 자동 작성' : uiLang === 'ja' ? '書類自動作成' : uiLang === 'zh' ? '表格自动填写' : 'Form Auto-Fill'}
+                    </span>
+                    <span className="text-[10px] font-black text-emerald-300 bg-emerald-500/20 border border-emerald-400/30 px-2 py-1 rounded-full">AI AUTO</span>
+                  </div>
+                  <span className="text-[10px] text-indigo-300 font-bold">v2.0</span>
                 </div>
-                <h2 className="text-xl font-black text-white mb-1 tracking-tight">{L.colTmplTitle}</h2>
-                <p className="text-indigo-200 text-xs leading-relaxed">
-                  {uiLang === 'ko' ? '과제·시험지·사업계획서·제안서·보고서 — 어떤 양식이든 AI가 자동 완성' :
-                   uiLang === 'ja' ? '課題・事業計画書・提案書・報告書 — あらゆる書類をAIが自動完成' :
-                   uiLang === 'zh' ? '作业·商业计划书·提案书·报告书 — 任何表格AI自动完成' :
-                   'Assignments · Business Plans · Reports · Any form — AI completes it all'}
+                <h2 className="text-lg font-black text-white mb-1.5 tracking-tight leading-snug">
+                  {uiLang === 'ko' ? '과제·시험지·질문지·사업계획서·제안서' :
+                   uiLang === 'ja' ? '課題・試験・事業計画書・提案書・報告書' :
+                   uiLang === 'zh' ? '作业·考试·商业计划书·提案书·报告书' :
+                   'Assignments · Exams · Business Plans · Proposals'}
+                </h2>
+                <p className="text-indigo-200 text-xs leading-relaxed font-medium">
+                  {uiLang === 'ko' ? '어떤 양식이든 업로드하면 AI가 전문가 수준으로 자동 완성' :
+                   uiLang === 'ja' ? 'どんな書式でもアップロードすれば AIが専門家レベルで自動完成' :
+                   uiLang === 'zh' ? '上传任何表格，AI自动以专业水准完成填写' :
+                   'Upload any form — AI completes it at expert level, instantly'}
                 </p>
               </div>
             </div>
 
             <div className="p-5 space-y-4">
 
-              {/* Document type quick-selector */}
+              {/* ── Document type chips ─────────────────────────── */}
               <div>
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">
-                  {uiLang === 'ko' ? '문서 유형 (선택)' : uiLang === 'ja' ? '文書タイプ（任意）' : uiLang === 'zh' ? '文档类型（可选）' : 'Document Type (optional)'}
+                  {uiLang === 'ko' ? '문서 유형 선택 (선택)' : uiLang === 'ja' ? '文書タイプ（任意）' : uiLang === 'zh' ? '文档类型（可选）' : 'Document Type (optional)'}
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {(uiLang === 'ko'
-                    ? ['📝 과제·시험지', '💼 사업계획서', '📊 보고서', '📝 제안서', '🏛 신청서', '🎓 논문·학술', '📋 IR 피칭']
+                    ? ['📝 과제·시험지', '❓ 질문지·설문지', '💼 사업계획서', '📊 보고서', '📋 제안서', '🏛 신청서·공문', '🎓 논문·학술', '📈 IR 피칭', '📊 XLSX 표']
                     : uiLang === 'ja'
-                    ? ['📝 課題・試験', '💼 事業計画書', '📊 報告書', '📝 提案書', '🏛 申請書', '🎓 論文・学術', '📋 IRピッチ']
+                    ? ['📝 課題・試験', '❓ アンケート', '💼 事業計画書', '📊 報告書', '📋 提案書', '🏛 申請書', '🎓 論文・学術', '📈 IRピッチ', '📊 Excelシート']
                     : uiLang === 'zh'
-                    ? ['📝 作业·考试', '💼 商业计划书', '📊 报告书', '📝 提案书', '🏛 申请书', '🎓 论文·学术', '📋 IR路演']
-                    : ['📝 Assignment', '💼 Business Plan', '📊 Report', '📝 Proposal', '🏛 Application', '🎓 Academic', '📋 IR Pitch']
+                    ? ['📝 作业·考试', '❓ 问卷·调查', '💼 商业计划书', '📊 报告书', '📋 提案书', '🏛 申请书', '🎓 论文·学术', '📈 IR路演', '📊 Excel表格']
+                    : ['📝 Assignment/Exam', '❓ Questionnaire', '💼 Business Plan', '📊 Report', '📋 Proposal', '🏛 Application', '🎓 Academic', '📈 IR Pitch', '📊 Excel Sheet']
                   ).map(dt => (
                     <button key={dt} type="button"
                       onClick={() => setTmplDocType(tmplDocType === dt ? '' : dt)}
-                      className={`text-[11px] font-bold px-3 py-1.5 rounded-xl border transition-all ${
+                      className={`text-[11px] font-bold px-2.5 py-1.5 rounded-xl border transition-all ${
                         tmplDocType === dt
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm shadow-indigo-200'
-                          : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-600'
+                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                          : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50/50'
                       }`}>
                       {dt}
                     </button>
@@ -1339,18 +1387,40 @@ export default function NewOrderPage() {
                 </div>
               </div>
 
-              {/* Document title */}
+              {/* ── Document title ──────────────────────────────── */}
               <div>
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1.5">{L.tmplTitleLabel}</label>
                 <input placeholder={L.tmplTitlePlaceholder} value={tmplTitle} onChange={e => setTmplTitle(e.target.value)}
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm bg-white min-h-[48px]" />
               </div>
 
-              {/* BIG Upload zone */}
+              {/* ── BIG Upload Zone ─────────────────────────────── */}
               <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1.5">
-                  {L.templateFormLabel} <span className="text-gray-300 normal-case font-normal text-[9px]">({L.templateFormSub})</span>
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">
+                    {uiLang === 'ko' ? '양식 파일 업로드 (필수)' : uiLang === 'ja' ? '書式ファイルアップロード（必須）' : uiLang === 'zh' ? '上传表格文件（必填）' : 'Upload Form File (required)'}
+                  </label>
+                  {templateContent && (
+                    <button type="button" onClick={() => { setTemplateContent(''); setTmplFileName(''); setTmplPreviewOpen(false) }}
+                      className="text-[10px] text-gray-400 hover:text-red-500 font-bold transition-colors">
+                      ✕ {uiLang === 'ko' ? '초기화' : 'Clear'}
+                    </button>
+                  )}
+                </div>
+
+                {/* Supported formats badge row */}
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {['PDF', 'DOCX', 'XLSX', 'PPTX', 'TXT', 'HWP'].map(fmt => (
+                    <span key={fmt} className="text-[9px] font-black px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-600 border border-indigo-100">{fmt}</span>
+                  ))}
+                  <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                    {uiLang === 'ko' ? '질문지·시험지' : uiLang === 'ja' ? '問題用紙' : uiLang === 'zh' ? '问卷·试卷' : 'Quiz/Exam'}
+                  </span>
+                  <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    {uiLang === 'ko' ? '설문지' : uiLang === 'ja' ? 'アンケート' : uiLang === 'zh' ? '调查问卷' : 'Survey'}
+                  </span>
+                </div>
+
                 <label
                   onDragOver={e => { e.preventDefault(); setTmplDragOver(true) }}
                   onDragLeave={() => setTmplDragOver(false)}
@@ -1363,69 +1433,145 @@ export default function NewOrderPage() {
                       templateFileRef.current.dispatchEvent(new Event('change', { bubbles: true }))
                     }
                   }}
-                  className={`flex flex-col items-center gap-2 rounded-2xl p-5 cursor-pointer transition-all border-2 border-dashed ${
+                  className={`flex flex-col items-center gap-3 rounded-2xl p-6 cursor-pointer transition-all duration-200 border-2 border-dashed ${
                     tmplDragOver
-                      ? 'border-indigo-500 bg-indigo-50 scale-[1.01]'
+                      ? 'border-indigo-500 bg-indigo-50 scale-[1.01] shadow-inner'
                       : templateContent
-                      ? 'border-emerald-400 bg-emerald-50'
-                      : 'border-indigo-200 bg-indigo-50/50 hover:border-indigo-400 hover:bg-indigo-50'
+                      ? 'border-emerald-400 bg-emerald-50/60'
+                      : 'border-indigo-200 bg-gradient-to-b from-indigo-50/60 to-white hover:border-indigo-400 hover:from-indigo-50 hover:shadow-sm'
                   }`}>
-                  <input ref={templateFileRef} type="file" accept=".txt,.md,.csv,.pdf,.docx,.xlsx,.xls,.pptx" className="hidden" onChange={handleTemplateFile} />
+                  <input ref={templateFileRef} type="file"
+                    accept=".txt,.md,.csv,.pdf,.docx,.xlsx,.xls,.pptx,.hwp,.hwpx"
+                    className="hidden" onChange={handleTemplateFile} />
+
                   {templateContent ? (
-                    <>
-                      <span className="text-3xl">✅</span>
-                      <p className="text-emerald-700 text-sm font-black">
-                        {uiLang === 'ko' ? '파일 파싱 완료' : uiLang === 'ja' ? 'ファイル解析完了' : uiLang === 'zh' ? '文件解析完成' : 'File parsed'}
-                      </p>
-                      <p className="text-emerald-600 text-xs">{templateContent.length.toLocaleString()}{uiLang === 'ko' ? '자' : uiLang === 'en' ? ' chars' : uiLang === 'ja' ? '文字' : '字'} — {uiLang === 'ko' ? '클릭해서 변경' : uiLang === 'ja' ? 'クリックして変更' : uiLang === 'zh' ? '点击更改' : 'Click to change'}</p>
-                      {/* Mini preview */}
-                      <div className="w-full mt-1 bg-white rounded-xl p-3 border border-emerald-200">
-                        <p className="text-[10px] text-gray-400 font-black uppercase mb-1">
-                          {uiLang === 'ko' ? '미리보기' : 'Preview'}
-                        </p>
-                        <p className="text-xs text-gray-600 leading-relaxed line-clamp-3">{templateContent.slice(0, 200)}…</p>
+                    <div className="w-full space-y-3">
+                      {/* File info row */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-xl shrink-0">✅</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-emerald-700 text-sm font-black truncate">
+                            {tmplFileName || (uiLang === 'ko' ? '양식 로드 완료' : uiLang === 'ja' ? '書式読み込み完了' : uiLang === 'zh' ? '表格加载完成' : 'Form loaded')}
+                          </p>
+                          <p className="text-emerald-600 text-xs">
+                            {templateContent.length.toLocaleString()}{uiLang === 'ko' ? '자 추출됨' : uiLang === 'en' ? ' chars extracted' : uiLang === 'ja' ? '文字抽出済み' : '字已提取'} · {uiLang === 'ko' ? '클릭해서 변경' : uiLang === 'ja' ? 'クリックして変更' : uiLang === 'zh' ? '点击更改' : 'Click to change'}
+                          </p>
+                        </div>
+                        <button type="button"
+                          onClick={e => { e.preventDefault(); e.stopPropagation(); setTmplPreviewOpen(v => !v) }}
+                          className={`shrink-0 text-[10px] font-black px-2.5 py-1.5 rounded-lg border transition-all ${
+                            tmplPreviewOpen ? 'bg-indigo-100 border-indigo-300 text-indigo-700' : 'bg-white border-gray-200 text-gray-500 hover:border-indigo-300'
+                          }`}>
+                          {tmplPreviewOpen ? '▲' : '▼'} {uiLang === 'ko' ? '미리보기' : 'Preview'}
+                        </button>
                       </div>
-                    </>
+                      {/* Expandable preview */}
+                      {tmplPreviewOpen && (
+                        <div className="bg-white rounded-xl border border-emerald-200 p-3 max-h-40 overflow-y-auto">
+                          <p className="text-[10px] text-gray-400 font-black uppercase mb-1.5">
+                            {uiLang === 'ko' ? '원본 양식 미리보기' : uiLang === 'ja' ? '元書式プレビュー' : uiLang === 'zh' ? '原始表格预览' : 'Original form preview'}
+                          </p>
+                          <pre className="text-[11px] text-gray-600 leading-relaxed whitespace-pre-wrap break-words font-mono">{templateContent.replace(/\[FILE_TYPE:.*?\]\n?/g, '').slice(0, 800)}{templateContent.length > 800 ? '…' : ''}</pre>
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <>
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl transition-transform ${tmplDragOver ? 'scale-125' : ''}`}
-                        style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)' }}>📤</div>
-                      <p className="text-indigo-700 text-sm font-black text-center">
-                        {uiLang === 'ko' ? 'PDF · DOCX · XLSX · PPTX' : 'PDF · DOCX · XLSX · PPTX'}
-                      </p>
-                      <p className="text-indigo-400 text-xs text-center">
-                        {uiLang === 'ko' ? '드래그하거나 클릭해서 업로드' : uiLang === 'ja' ? 'ドラッグまたはクリックでアップロード' : uiLang === 'zh' ? '拖放或点击上传' : 'Drag & drop or click to upload'}
-                      </p>
-                      <span className="text-[11px] font-black text-white bg-indigo-600 px-4 py-2 rounded-xl mt-1 hover:bg-indigo-700 transition-colors">
-                        {uiLang === 'ko' ? '파일 선택' : uiLang === 'ja' ? 'ファイル選択' : uiLang === 'zh' ? '选择文件' : 'Choose File'}
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl transition-transform duration-200 ${tmplDragOver ? 'scale-125 rotate-3' : ''}`}
+                        style={{ background: 'linear-gradient(135deg, #4338ca, #7c3aed)' }}>📤</div>
+                      <div className="text-center">
+                        <p className="text-indigo-800 text-sm font-black mb-1">
+                          {uiLang === 'ko' ? '파일을 드래그하거나 클릭해서 업로드' :
+                           uiLang === 'ja' ? 'ファイルをドラッグまたはクリック' :
+                           uiLang === 'zh' ? '拖放文件或点击选择' :
+                           'Drag & drop your form file or click'}
+                        </p>
+                        <p className="text-indigo-400 text-xs">
+                          {uiLang === 'ko' ? 'PDF · DOCX · XLSX · PPTX · TXT · HWP · 질문지 · 설문지' :
+                           uiLang === 'ja' ? 'PDF · DOCX · XLSX · PPTX · TXT · 問題用紙 · アンケート' :
+                           uiLang === 'zh' ? 'PDF · DOCX · XLSX · PPTX · TXT · 问卷 · 试卷' :
+                           'PDF · DOCX · XLSX · PPTX · TXT · Quiz · Survey · HWP'}
+                        </p>
+                      </div>
+                      <span className="text-[11px] font-black text-white bg-indigo-600 hover:bg-indigo-700 px-5 py-2.5 rounded-xl transition-colors shadow-sm">
+                        {uiLang === 'ko' ? '📂 파일 선택' : uiLang === 'ja' ? '📂 ファイル選択' : uiLang === 'zh' ? '📂 选择文件' : '📂 Choose File'}
                       </span>
                     </>
                   )}
                 </label>
+
                 {/* Or: paste directly */}
                 <details className="mt-2">
-                  <summary className="text-[10px] text-indigo-500 font-bold cursor-pointer hover:text-indigo-700 transition-colors select-none px-1">
+                  <summary className="text-[10px] text-indigo-500 font-bold cursor-pointer hover:text-indigo-700 transition-colors select-none px-1 py-0.5">
                     {uiLang === 'ko' ? '또는 양식 내용 직접 붙여넣기 ▾' : uiLang === 'ja' ? 'またはテキストを直接貼り付け ▾' : uiLang === 'zh' ? '或直接粘贴内容 ▾' : 'Or paste form text directly ▾'}
                   </summary>
-                  <textarea placeholder={L.templateFormPlaceholder} rows={5} value={templateContent} onChange={e => setTemplateContent(e.target.value)}
+                  <textarea placeholder={L.templateFormPlaceholder} rows={5} value={templateContent}
+                    onChange={e => { setTemplateContent(e.target.value); setTmplFileName('') }}
                     className="w-full mt-2 border border-indigo-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm resize-none bg-white" />
                 </details>
               </div>
 
-              {/* Reference info */}
+              {/* ── 번역 + 자동 완성 토글 ───────────────────────── */}
+              <div className={`rounded-2xl border-2 p-3.5 transition-all duration-200 ${
+                tmplTranslate ? 'border-violet-300 bg-gradient-to-r from-violet-50 to-indigo-50' : 'border-gray-100 bg-gray-50/60'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-xl">🔄</span>
+                    <div>
+                      <p className="text-xs font-black text-gray-800">
+                        {uiLang === 'ko' ? '번역 + 자동 완성 모드' : uiLang === 'ja' ? '翻訳 + 自動補完モード' : uiLang === 'zh' ? '翻译 + 自动完成模式' : 'Translate + Auto-Fill Mode'}
+                      </p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">
+                        {uiLang === 'ko' ? '원본 언어를 자동 감지 → 출력 언어로 번역하면서 완성' :
+                         uiLang === 'ja' ? '元言語を自動検出 → 出力言語に翻訳しながら補完' :
+                         uiLang === 'zh' ? '自动检测原始语言 → 翻译为输出语言并完成填写' :
+                         'Auto-detect source language → translate & complete in output language'}
+                      </p>
+                    </div>
+                  </div>
+                  <button type="button" onClick={() => setTmplTranslate(v => !v)}
+                    className={`relative w-11 h-6 rounded-full transition-all duration-200 shrink-0 ${tmplTranslate ? 'bg-violet-600' : 'bg-gray-200'}`}>
+                    <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-200 ${tmplTranslate ? 'left-5.5' : 'left-0.5'}`} />
+                  </button>
+                </div>
+                {tmplTranslate && (
+                  <div className="mt-2.5 pt-2.5 border-t border-violet-200/60 flex items-center gap-2 text-[11px] text-violet-700 font-bold">
+                    <span>🌐</span>
+                    <span>
+                      {uiLang === 'ko' ? '원본 언어 자동 감지 → 아래에서 선택한 출력 언어로 자동 번역 후 완성' :
+                       uiLang === 'ja' ? '元言語自動検出 → 下記の出力言語に翻訳・補完' :
+                       uiLang === 'zh' ? '自动识别原语言 → 翻译为下方选择的输出语言并完成' :
+                       'Source auto-detected → translated & completed in selected output language(s)'}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* ── Reference info ──────────────────────────────── */}
               <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1.5">{L.templateInfoLabel}</label>
-                <textarea placeholder={L.templateInfoPlaceholder} rows={3} value={tmplRefInfo} onChange={e => setTmplRefInfo(e.target.value)}
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">{L.templateInfoLabel}</label>
+                  <span className="text-[9px] bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded-md font-bold">
+                    {uiLang === 'ko' ? '선택' : uiLang === 'ja' ? '任意' : uiLang === 'zh' ? '选填' : 'optional'}
+                  </span>
+                </div>
+                <textarea placeholder={
+                  uiLang === 'ko' ? '어떤 내용으로 채울지 알려주세요.\n예: 회사명은 "테크스타트", 2024년 매출 5억, 주요 서비스는 AI 기반 문서 자동화...' :
+                  uiLang === 'ja' ? '記入内容に関する情報を入力してください。\n例: 会社名「テックスタート」、2024年売上5億ウォン...' :
+                  uiLang === 'zh' ? '请输入填写参考内容。\n例：公司名"TechStart"，2024年营收5亿韩元，主要业务是AI文档自动化...' :
+                  'Provide context for the AI to fill in the form.\nE.g. Company: TechStart, 2024 revenue $500K, core service: AI document automation...'
+                } rows={3} value={tmplRefInfo} onChange={e => setTmplRefInfo(e.target.value)}
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm resize-none bg-white" />
               </div>
 
-              {/* Output language selector */}
+              {/* ── Output language multi-select ─────────────────── */}
               <div>
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">
-                  {uiLang === 'ko' ? '출력 언어 (다중 선택 가능)' : uiLang === 'ja' ? '出力言語（複数選択可）' : uiLang === 'zh' ? '输出语言（可多选）' : 'Output Language (multi-select)'}
+                  {uiLang === 'ko' ? '출력 언어 (복수 선택 → 동시 생성)' : uiLang === 'ja' ? '出力言語（複数選択→同時生成）' : uiLang === 'zh' ? '输出语言（多选→同时生成）' : 'Output Language (multi-select → simultaneous)'}
                 </label>
-                <div className="flex gap-2 flex-wrap">
-                  {([['🇰🇷', 'ko', 'KR'], ['🇺🇸', 'en', 'EN'], ['🇯🇵', 'ja', 'JP'], ['🇨🇳', 'zh', 'CN']] as [string, string, string][]).map(([flag, code, label]) => {
+                <div className="grid grid-cols-4 gap-1.5">
+                  {([['🇰🇷', 'ko', 'KR', '한국어'], ['🇺🇸', 'en', 'EN', 'English'], ['🇯🇵', 'ja', 'JP', '日本語'], ['🇨🇳', 'zh', 'CN', '中文']] as [string, string, string, string][]).map(([flag, code, shortLabel, fullLabel]) => {
                     const active = tmplOutputLangs.includes(code)
                     return (
                       <button key={code} type="button"
@@ -1434,31 +1580,46 @@ export default function NewOrderPage() {
                             ? tmplOutputLangs.filter(l => l !== code)
                             : active ? tmplOutputLangs : [...tmplOutputLangs, code]
                         )}
-                        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl border text-xs font-black transition-all ${
+                        className={`flex flex-col items-center gap-0.5 py-2.5 px-1 rounded-xl border text-center transition-all ${
                           active
-                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm shadow-indigo-200'
-                            : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-300'
+                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200/50'
+                            : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-300 hover:bg-indigo-50/30'
                         }`}>
-                        {flag} {label}
+                        <span className="text-lg leading-none">{flag}</span>
+                        <span className="text-[11px] font-black">{shortLabel}</span>
+                        <span className={`text-[8px] font-medium ${active ? 'text-indigo-200' : 'text-gray-400'}`}>{fullLabel}</span>
                       </button>
                     )
                   })}
-                  {tmplOutputLangs.length > 1 && (
-                    <span className="flex items-center gap-1 text-[10px] text-emerald-600 font-bold px-2">
-                      <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-                      {uiLang === 'ko' ? `${tmplOutputLangs.length}개 언어 동시 생성` : `${tmplOutputLangs.length} languages simultaneously`}
-                    </span>
-                  )}
                 </div>
+                {tmplOutputLangs.length > 1 && (
+                  <div className="mt-2 flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
+                    <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse shrink-0" />
+                    <span className="text-[11px] text-emerald-700 font-black">
+                      {uiLang === 'ko' ? `${tmplOutputLangs.length}개 언어 동시 생성 — 각 언어에 맞게 자연스럽게 로컬라이징` :
+                       uiLang === 'ja' ? `${tmplOutputLangs.length}言語同時生成 — 各言語に自然ローカライズ` :
+                       uiLang === 'zh' ? `${tmplOutputLangs.length}种语言同时生成 — 自动本地化表达` :
+                       `${tmplOutputLangs.length} languages simultaneously — auto-localized for each`}
+                    </span>
+                  </div>
+                )}
               </div>
 
-              {/* Submit */}
+              {/* ── Submit button ────────────────────────────────── */}
               <button type="submit" disabled={templateLoading}
-                className="w-full text-white py-4 rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2 min-h-[54px] shadow-lg hover:opacity-90 hover:scale-[1.01] disabled:opacity-40 disabled:scale-100"
-                style={{ background: templateLoading ? '#6366f1' : 'linear-gradient(135deg, #4f46e5, #7c3aed)' }}>
+                className="w-full text-white py-4 rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2.5 min-h-[56px] shadow-lg hover:opacity-90 hover:scale-[1.01] hover:shadow-indigo-200/60 disabled:opacity-40 disabled:scale-100 disabled:shadow-none"
+                style={{ background: templateLoading ? '#6366f1' : 'linear-gradient(135deg, #3730a3, #4f46e5 40%, #7c3aed)' }}>
                 {templateLoading
-                  ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />{L.generating}</>
-                  : <>⚡ {L.templateBtn}</>}
+                  ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /><span>{L.generating}</span></>
+                  : <>
+                      <span className="text-base">⚡</span>
+                      <span>{uiLang === 'ko' ? 'AI 자동 완성 시작 →' : uiLang === 'ja' ? 'AI自動完成を開始 →' : uiLang === 'zh' ? '启动AI自动填写 →' : 'Start AI Auto-Fill →'}</span>
+                      {tmplOutputLangs.length > 1 && (
+                        <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full">
+                          {tmplOutputLangs.length}{uiLang === 'ko' ? '개국어' : uiLang === 'ja' ? '言語' : uiLang === 'zh' ? '种语言' : ' langs'}
+                        </span>
+                      )}
+                    </>}
               </button>
 
             </div>
