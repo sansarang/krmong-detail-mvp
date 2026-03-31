@@ -1667,10 +1667,10 @@ export default function OrderResultPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-[#0F172A] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-10 h-10 border-2 border-gray-100 border-t-black rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-400 text-sm font-medium">{t.loading}</p>
+          <div className="w-12 h-12 border-2 border-white/10 border-t-white/60 rounded-full animate-spin mx-auto mb-5" />
+          <p className="text-gray-500 text-sm font-medium">{t.loading}</p>
         </div>
       </div>
     )
@@ -1678,10 +1678,14 @@ export default function OrderResultPage() {
 
   if (!order?.result_json || sections.length === 0) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-500 mb-4">{p.noResult}</p>
-          <button type="button" onClick={() => router.push('/dashboard')} className="bg-black text-white px-6 py-3 rounded-xl text-sm font-semibold">{p.dashboard}</button>
+      <div className="min-h-screen bg-[#F1F5F9] flex items-center justify-center">
+        <div className="text-center bg-white rounded-3xl p-12 shadow-sm border border-gray-100 max-w-sm mx-4">
+          <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5">📄</div>
+          <p className="text-gray-700 font-bold mb-2">{p.noResult}</p>
+          <button type="button" onClick={() => router.push('/dashboard')}
+            className="bg-[#0F172A] text-white px-6 py-3 rounded-xl text-sm font-bold mt-4 hover:bg-gray-800 transition-all">
+            {p.dashboard}
+          </button>
         </div>
       </div>
     )
@@ -1699,652 +1703,239 @@ export default function OrderResultPage() {
       ? t.complianceIndustryBadge(industryBucketLabel(t, industryBucket))
       : null
 
+  const [rightTab, setRightTab] = useState<'publish'|'copy'|'tools'>('publish')
+  const [mobileToolsOpen, setMobileToolsOpen] = useState(false)
+
   return (
-    <main className="min-h-screen bg-gray-50">
-      {/* 헤더 */}
-      <header className="bg-white border-b border-gray-100 px-8 py-4 sticky top-0 z-20 print:hidden">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-black rounded-md" />
-              <span className="font-bold text-sm tracking-tight">{p.brand}</span>
+    <main className="min-h-screen bg-[#F1F5F9] overflow-x-hidden">
+      {/* ══ HEADER ══════════════════════════════════════════════════ */}
+      <header className="bg-[#0F172A] sticky top-0 z-30 print:hidden shadow-xl shadow-black/20">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between gap-3">
+          {/* Left: Logo + product */}
+          <div className="flex items-center gap-3 min-w-0">
+            <Link href="/" className="shrink-0 flex items-center gap-2">
+              <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-violet-600 rounded-lg" />
+              <span className="font-black text-white text-sm tracking-tight hidden sm:block">{p.brand}</span>
             </Link>
-            <div className="w-px h-4 bg-gray-200" />
-            <span className="text-sm font-semibold text-gray-900">{order.product_name}</span>
-            <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full border border-emerald-200">{p.badgeDone}</span>
+            <div className="w-px h-4 bg-white/10 hidden sm:block" />
+            <div className="min-w-0 hidden sm:block">
+              <span className="text-white text-sm font-semibold truncate block max-w-[200px] lg:max-w-xs">{order.product_name}</span>
+            </div>
+            <span className="shrink-0 text-[10px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-full">
+              {p.badgeDone}
+            </span>
           </div>
-          <div className="flex items-center gap-2 flex-wrap justify-end">
-            <div className="flex items-center gap-1 mr-1">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter hidden sm:inline">{p.headerUiLangTitle}</span>
-              {(['ko', 'en', 'ja', 'zh'] as const).map(code => (
-                <button
-                  key={code}
-                  type="button"
-                  onClick={() => {
-                    setUiLang(code)
-                    persistUiLang(code)
-                  }}
-                  className={`text-[10px] font-black px-2 py-1 rounded-lg border transition-all ${
-                    uiLang === code ? 'bg-black text-white border-black' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+
+          {/* Center: Language tabs */}
+          <div className="flex items-center gap-1 bg-white/6 rounded-xl p-1 shrink-0">
+            {(['ko','en','ja','zh'] as const).map(code => {
+              const FLAGS: Record<string,string> = {ko:'🇰🇷',en:'🇺🇸',ja:'🇯🇵',zh:'🇨🇳'}
+              return (
+                <button key={code} type="button"
+                  onClick={() => { setUiLang(code); persistUiLang(code) }}
+                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-black transition-all ${
+                    uiLang === code ? 'bg-white text-[#0F172A] shadow-sm' : 'text-gray-500 hover:text-gray-300'
                   }`}
                 >
-                  {code.toUpperCase()}
+                  <span>{FLAGS[code]}</span>
+                  <span className="hidden md:inline">{code.toUpperCase()}</span>
                 </button>
-              ))}
+              )
+            })}
+          </div>
+
+          {/* Right: Action buttons */}
+          <div className="flex items-center gap-2 shrink-0">
+            <button onClick={handleRegenerate} disabled={regenLoading}
+              className="hidden sm:flex items-center gap-1.5 text-gray-400 hover:text-white border border-white/10 hover:border-white/20 px-3 py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-40">
+              {regenLoading ? <span className="w-3 h-3 border-2 border-gray-600 border-t-white rounded-full animate-spin" /> : '↺'}
+              <span className="hidden md:inline">{p.regen}</span>
+            </button>
+            <button type="button" onClick={() => setShowChat(true)}
+              className="flex items-center gap-1.5 bg-indigo-500/15 text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500/25 px-3 py-2 rounded-xl text-xs font-bold transition-all">
+              <span>✦</span>
+              <span className="hidden md:inline">{p.chatOpen}</span>
+            </button>
+            {/* Download group */}
+            <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1">
+              <button type="button" onClick={handleDownloadPDF} disabled={pdfLoading}
+                className="flex items-center gap-1 text-gray-300 hover:text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all hover:bg-white/10 disabled:opacity-40">
+                {pdfLoading ? <span className="w-3 h-3 border-2 border-gray-600 border-t-white rounded-full animate-spin" /> : 'PDF'}
+              </button>
+              {sections.length > 0 && (
+                <button type="button" onClick={handleDownloadTxt}
+                  className="text-gray-300 hover:text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all hover:bg-white/10">TXT</button>
+              )}
+              {order.result_json?.multi_lang && (
+                <button type="button" onClick={handleDownloadZip}
+                  className="text-emerald-400 hover:text-emerald-300 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all hover:bg-emerald-500/10">ZIP</button>
+              )}
             </div>
-            <span className="text-xs text-gray-400 hidden lg:block">{p.headerHint}</span>
-            <div className="w-px h-4 bg-gray-200 hidden lg:block" />
-            <button
-              onClick={handleRegenerate}
-              disabled={regenLoading}
-              className="border border-gray-200 text-gray-600 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition-all disabled:opacity-40 flex items-center gap-1.5"
-            >
-              {regenLoading ? <><span className="w-3 h-3 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />{p.regenLoading}</> : p.regen}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowChat(true)}
-              className="border border-indigo-200 bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-indigo-100 transition-all flex items-center gap-1.5"
-            >
-              {p.chatOpen}
-            </button>
-            <button
-              type="button"
-              onClick={handleDownloadPDF}
-              disabled={pdfLoading}
-              className="bg-black text-white px-5 py-2 rounded-xl text-sm font-semibold hover:bg-gray-800 transition-all disabled:opacity-40 flex items-center gap-1.5"
-            >
-              {pdfLoading ? <><span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />{p.pdfLoading}</> : p.pdf}
-            </button>
             {sections.length > 0 && (
-              <button
-                type="button"
-                onClick={handleDownloadTxt}
-                className="border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all flex items-center gap-1.5"
-              >
-                {p.txtDownload}
-              </button>
-            )}
-            {order.result_json?.multi_lang && (
-              <button
-                type="button"
-                onClick={handleDownloadZip}
-                className="border-2 border-emerald-200 bg-emerald-50 text-emerald-700 px-5 py-2 rounded-xl text-sm font-bold hover:bg-emerald-100 transition-all flex items-center gap-1.5"
-              >
-                {p.zipDownload}
-              </button>
-            )}
-            {sections.length > 0 && (
-              <button
-                type="button"
-                onClick={handleCopyShareLink}
-                className="border border-amber-200 bg-amber-50 text-amber-900 px-4 py-2 rounded-xl text-sm font-bold hover:bg-amber-100 transition-all"
-              >
-                {p.shareLinkBtn}
+              <button type="button" onClick={handleCopyShareLink}
+                className="hidden lg:flex items-center gap-1.5 text-amber-400 border border-amber-500/20 hover:bg-amber-500/10 px-3 py-2 rounded-xl text-xs font-bold transition-all">
+                🔗
               </button>
             )}
           </div>
         </div>
       </header>
 
-      <div className="max-w-6xl mx-auto px-8 py-10 flex gap-10">
-        {/* 목차 */}
-        <aside className="hidden min-w-0 w-48 shrink-0 xl:block">
-          <div className="sticky top-24 min-w-0 space-y-6">
-            {/* 편집용 점프 목차 — 발행 미리보기 열림·인쇄 시 숨김 (본문 미리보기에 목차 불필요) */}
-            <div className={`print:hidden ${showBlogPreview ? 'hidden' : ''}`}>
-              <p className="text-xs font-bold text-gray-300 uppercase tracking-widest mb-4">{p.toc}</p>
+      {/* ══ 3-COLUMN LAYOUT ════════════════════════════════════════ */}
+      <div className="max-w-7xl mx-auto flex min-h-[calc(100vh-56px)]">
+
+        {/* ── LEFT SIDEBAR: TOC + SEO + Publish ─────────────────── */}
+        <aside className="hidden lg:flex flex-col w-56 xl:w-60 shrink-0 border-r border-[#E2E8F0] bg-white print:hidden">
+          <div className="sticky top-14 overflow-y-auto max-h-[calc(100vh-56px)] p-4 space-y-5">
+
+            {/* TOC */}
+            <div className={showBlogPreview ? 'hidden' : ''}>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.12em] mb-3">{p.toc}</p>
               <div className="space-y-0.5">
                 {sections.map((s, i) => (
-                  <a
-                    key={s.id}
-                    href={`#section-${i}`}
-                    className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-900 py-1.5 px-3 rounded-lg hover:bg-white transition-all group"
-                  >
-                    <div className="w-1.5 h-1.5 rounded-full transition-all group-hover:scale-125" style={{ backgroundColor: ACCENT_COLORS[i % ACCENT_COLORS.length] }} />
-                    {s.name}
+                  <a key={s.id} href={`#section-${i}`}
+                    className="flex items-center gap-2.5 py-2 px-2.5 rounded-xl text-sm text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all group">
+                    <div className="w-2 h-2 rounded-full shrink-0 group-hover:scale-125 transition-transform" style={{ backgroundColor: ACCENT_COLORS[i % ACCENT_COLORS.length] }} />
+                    <span className="truncate text-xs font-medium">{s.name}</span>
                   </a>
                 ))}
               </div>
             </div>
 
-            {/* SEO 점수 미니 카드 */}
+            {/* SEO Score card */}
             {seoReport && (
-              <button
-                onClick={() => setShowSeo(true)}
-                className={`w-full text-left border rounded-2xl p-3 transition-all hover:shadow-md ${scoreBg}`}
-              >
-                <p className="text-xs font-black text-gray-400 uppercase tracking-wider mb-1">{p.seoScore}</p>
-                <p className={`text-3xl font-black ${scoreColor}`}>{seoReport.score}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{p.seoSeeMore}</p>
+              <button onClick={() => setShowSeo(true)}
+                className={`w-full text-left rounded-2xl p-4 border transition-all hover:shadow-lg hover:-translate-y-0.5 ${scoreBg}`}>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">{p.seoScore}</p>
+                <div className="flex items-end gap-2">
+                  <span className={`text-4xl font-black leading-none ${scoreColor}`}>{seoReport.score}</span>
+                  <span className="text-gray-400 text-sm mb-0.5 font-medium">/ 100</span>
+                </div>
+                <div className="mt-2 h-1.5 bg-black/5 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-1000"
+                    style={{ width: `${seoReport.score}%`, background: seoReport.score >= 80 ? '#10b981' : seoReport.score >= 60 ? '#f59e0b' : '#ef4444' }} />
+                </div>
+                <p className="text-xs text-gray-400 mt-1.5">{p.seoSeeMore}</p>
               </button>
             )}
 
-            <div className="print:hidden">
-              <ComplianceScanPanel
-                findings={complianceFindings}
-                disclosurePack={complianceDisclosurePack}
-                open={complianceOpen}
-                onToggle={() => setComplianceOpen(o => !o)}
-                ui={t}
-                industryBadge={complianceIndustryBadge}
-              />
-            </div>
-
-            {channelKitContent && (
-              <div className="print:hidden">
-                <ChannelPublishKitPanel
-                  platforms={PLATFORMS}
-                  platform={platform}
-                  setPlatform={setPlatform}
-                  kit={channelKitContent}
-                  ui={t}
-                  open={channelKitOpen}
-                  onToggle={() => setChannelKitOpen(o => !o)}
-                  onCopyHook={line => {
-                    navigator.clipboard.writeText(line).then(() => {
-                      toast.success(t.channelKitToastHook)
-                    }).catch(() => toast.error(t.toastCopyFail))
-                  }}
-                  pasteBundle={listingPasteBundle}
-                  onCopyPasteBundle={() => {
-                    if (!listingPasteBundle.trim()) return
-                    navigator.clipboard.writeText(listingPasteBundle).then(() => {
-                      toast.success(t.channelKitToastPasteBundle)
-                    }).catch(() => toast.error(t.toastCopyFail))
-                  }}
-                />
-              </div>
-            )}
-
-            {abCopySet && (
-              <div className="print:hidden">
-                <ConversionAbPanel
-                  titles={abCopySet.titles}
-                  openers={abCopySet.openers}
-                  ctas={abCopySet.ctas}
-                  recommendation={abCopySet.recommendation}
-                  runnerUp={abCopySet.runnerUp}
-                  utmRecommendedQuery={abCopySet.utmRecommendedQuery}
-                  ui={t}
-                  open={abCopyOpen}
-                  onToggle={() => setAbCopyOpen(o => !o)}
-                  hasFirst={sections.length > 0}
-                  lastSectionId={lastSectionId}
-                  onCopyLine={line => {
-                    navigator.clipboard.writeText(line).then(() => {
-                      toast.success(t.abCopyToast)
-                    }).catch(() => toast.error(t.toastCopyFail))
-                  }}
-                  onApplyTitle={idx => {
-                    const s0 = sections[0]
-                    if (!s0 || !abCopySet) return
-                    updateSection(s0.id, 'title', abCopySet.titles[idx])
-                    toast.success(t.abCopyToastApplyTitle)
-                  }}
-                  onApplyOpener={idx => {
-                    const s0 = sections[0]
-                    if (!s0 || !abCopySet) return
-                    updateSection(s0.id, 'body', `${abCopySet.openers[idx]}\n\n${s0.body}`)
-                    toast.success(t.abCopyToastApplyOpener)
-                  }}
-                  onApplyCta={idx => {
-                    if (!abCopySet || lastSectionId === null) return
-                    const last = sections.find(s => s.id === lastSectionId)
-                    if (!last) return
-                    updateSection(last.id, 'body', `${last.body}\n\n${abCopySet.ctas[idx]}`)
-                    toast.success(t.abCopyToastApplyCta)
-                  }}
-                  onApplyCombo={applyAbCombo}
-                  onCopyUtm={() => {
-                    navigator.clipboard.writeText(abCopySet.utmRecommendedQuery).then(() => {
-                      toast.success(t.abCopyToastUtm)
-                    }).catch(() => toast.error(t.toastCopyFail))
-                  }}
-                  onCopyExperimentSheet={() => {
-                    navigator.clipboard.writeText(abCopySet.experimentSheet).then(() => {
-                      toast.success(t.abCopyToastExperimentSheet)
-                    }).catch(() => toast.error(t.toastCopyFail))
-                  }}
-                />
-              </div>
-            )}
-
-            {evidencePack && (
-              <div className="print:hidden">
-                <EvidencePackPanel
-                  pack={evidencePack}
-                  ui={t}
-                  open={evidenceOpen}
-                  onToggle={() => setEvidenceOpen(o => !o)}
-                />
-              </div>
-            )}
-
-            {assetKit && (
-              <div className="print:hidden">
-                <AssetKitPanel
-                  kit={assetKit}
-                  ui={t}
-                  open={assetKitOpen}
-                  onToggle={() => setAssetKitOpen(o => !o)}
-                />
-              </div>
-            )}
-
-            {intelPack && (
-              <div className="print:hidden">
-                <MarketIntelPanel
-                  pack={intelPack}
-                  ui={t}
-                  open={intelOpen}
-                  onToggle={() => setIntelOpen(o => !o)}
-                />
-              </div>
-            )}
-
-            {/* ── Competitor Cross-Border Analysis ── */}
-            {sections.length > 0 && (
-              <div className="print:hidden bg-white border border-gray-100 rounded-2xl overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => setCompetitorOpen(o => !o)}
-                  className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-base">🔍</span>
-                    <div className="text-left">
-                      <p className="text-sm font-black text-gray-900">
-                        {uiLang === 'ko' ? '경쟁사 크로스보더 분석' : uiLang === 'ja' ? '競合クロスボーダー分析' : uiLang === 'zh' ? '竞品跨境分析' : 'Competitor Cross-Border Analysis'}
-                      </p>
-                      <p className="text-[11px] text-gray-400">
-                        {uiLang === 'ko' ? '경쟁사 URL 입력 → AI 즉시 비교' : uiLang === 'ja' ? '競合URL入力 → AI即時比較' : uiLang === 'zh' ? '输入竞品URL → AI即时对比' : 'Enter competitor URL → AI instant comparison'}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-gray-300 text-xs font-bold">{competitorOpen ? '▲' : '▼'}</span>
-                </button>
-
-                {competitorOpen && (
-                  <div className="border-t border-gray-100 px-5 pb-5 pt-4 space-y-4">
-                    <div className="flex gap-2">
-                      <input
-                        type="url"
-                        value={competitorUrl}
-                        onChange={e => setCompetitorUrl(e.target.value)}
-                        placeholder={uiLang === 'ko' ? '경쟁사 상품 URL 입력...' : uiLang === 'ja' ? '競合商品URLを入力...' : uiLang === 'zh' ? '输入竞品商品URL...' : 'Enter competitor product URL...'}
-                        className="flex-1 min-w-0 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-200"
-                        onKeyDown={e => { if (e.key === 'Enter') handleCompetitorAnalysis() }}
-                      />
-                      <button
-                        type="button"
-                        onClick={handleCompetitorAnalysis}
-                        disabled={competitorLoading || !competitorUrl.trim()}
-                        className="shrink-0 bg-black text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-800 transition-all disabled:opacity-40 flex items-center gap-1.5"
-                      >
-                        {competitorLoading
-                          ? <><span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />{uiLang === 'ko' ? '분석중' : 'Analyzing'}</>
-                          : uiLang === 'ko' ? '분석' : uiLang === 'ja' ? '分析' : uiLang === 'zh' ? '分析' : 'Analyze'}
-                      </button>
-                    </div>
-
-                    {competitorResult && (
-                      <div className="space-y-3">
-                        {/* 점수 비교 */}
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center">
-                            <div className="text-2xl font-black text-emerald-700">{competitorResult.my_score}</div>
-                            <div className="text-[10px] font-bold text-emerald-600 mt-0.5">
-                              {uiLang === 'ko' ? '내 페이지' : uiLang === 'ja' ? '自分のページ' : uiLang === 'zh' ? '我的页面' : 'My Page'}
-                            </div>
-                            {competitorResult.my_score > competitorResult.competitor_score && (
-                              <div className="text-[9px] font-black text-emerald-500 mt-0.5">🏆 우위</div>
-                            )}
-                          </div>
-                          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-center">
-                            <div className="text-2xl font-black text-gray-700">{competitorResult.competitor_score}</div>
-                            <div className="text-[10px] font-bold text-gray-500 mt-0.5 truncate px-1">{competitorResult.competitor_name || (uiLang === 'ko' ? '경쟁사' : 'Competitor')}</div>
-                            {competitorResult.competitor_score > competitorResult.my_score && (
-                              <div className="text-[9px] font-black text-amber-500 mt-0.5">⚡ 따라잡아야 함</div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* 판정 */}
-                        <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3">
-                          <p className="text-xs font-bold text-indigo-700">💡 {competitorResult.verdict}</p>
-                        </div>
-
-                        {/* 강점 */}
-                        <div className="space-y-2">
-                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">
-                            {uiLang === 'ko' ? '내 강점' : uiLang === 'ja' ? '自分の強み' : uiLang === 'zh' ? '我的优势' : 'My Strengths'}
-                          </p>
-                          {competitorResult.my_strengths.map((s, i) => (
-                            <div key={i} className="flex gap-2 text-xs text-gray-700">
-                              <span className="text-emerald-500 shrink-0 font-black">✓</span>
-                              <span>{s}</span>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* 개선점 */}
-                        <div className="space-y-2">
-                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">
-                            {uiLang === 'ko' ? '개선 필요' : uiLang === 'ja' ? '改善が必要' : uiLang === 'zh' ? '需要改善' : 'Needs Improvement'}
-                          </p>
-                          {competitorResult.my_weaknesses.map((w, i) => (
-                            <div key={i} className="flex gap-2 text-xs text-gray-700">
-                              <span className="text-amber-500 shrink-0 font-black">△</span>
-                              <span>{w}</span>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* 전략 */}
-                        <div className="space-y-2">
-                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">
-                            {uiLang === 'ko' ? '우위 전략' : uiLang === 'ja' ? '勝利戦略' : uiLang === 'zh' ? '胜出策略' : 'Winning Strategies'}
-                          </p>
-                          {competitorResult.recommendations.map((r, i) => (
-                            <div key={i} className="flex gap-2 text-xs text-gray-700">
-                              <span className="text-indigo-500 shrink-0 font-black">{i + 1}.</span>
-                              <span>{r}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {metaExportBlocks && (
-              <div className="print:hidden">
-                <MetaOgExportPanel
-                  htmlBlock={metaExportBlocks.html}
-                  jsonBlock={metaExportBlocks.json}
-                  ui={t}
-                  open={metaOgOpen}
-                  onToggle={() => setMetaOgOpen(o => !o)}
-                  onCopyHtml={() => {
-                    navigator.clipboard.writeText(metaExportBlocks.html).then(() => {
-                      toast.success(t.metaOgToastHtml)
-                    }).catch(() => toast.error(t.toastCopyFail))
-                  }}
-                  onCopyJson={() => {
-                    navigator.clipboard.writeText(metaExportBlocks.json).then(() => {
-                      toast.success(t.metaOgToastJson)
-                    }).catch(() => toast.error(t.toastCopyFail))
-                  }}
-                />
-              </div>
-            )}
-
-            <div className="print:hidden">
-              <OrderWritingWidgets uiLang={uiLang} />
-            </div>
-
-            {/* Primary publish (locale default platform) */}
+            {/* Publish button */}
             <div className="space-y-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setPlatform(primaryPlatform)
-                  setShowBlogPreview(true)
-                }}
-                className={`w-full ${primStyle.bg} ${primStyle.hover} text-white rounded-2xl p-3 text-sm font-black transition-all hover:shadow-md flex items-center gap-2`}
-              >
-                <span className="text-lg font-black leading-none">{primaryRow?.icon}</span>
+              <button type="button"
+                onClick={() => { setPlatform(primaryPlatform); setShowBlogPreview(true) }}
+                className={`w-full ${primStyle.bg} ${primStyle.hover} text-white rounded-2xl py-3 px-4 text-sm font-black transition-all hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2`}>
+                <span className="text-base">{primaryRow?.icon}</span>
                 {t.primaryPublishLabel}
               </button>
-              <button
-                type="button"
-                onClick={handleNaverCopy}
-                className={`w-full border ${primStyle.border} ${primStyle.text} hover:bg-gray-50 rounded-2xl p-2 text-xs font-bold transition-all flex items-center justify-center gap-1.5`}
-              >
+              <button type="button" onClick={handleNaverCopy}
+                className={`w-full border ${primStyle.border} ${primStyle.text} hover:bg-gray-50 rounded-2xl py-2 px-4 text-xs font-bold transition-all`}>
                 {copyDone ? t.copyDoneCheck : copyFormatIsListing ? t.copyListingBundleShort : t.copyHtmlShort}
               </button>
             </div>
+
+            {/* Compliance alert */}
+            {complianceHighCount > 0 && (
+              <div className="bg-red-50 border border-red-200 rounded-2xl p-3">
+                <p className="text-xs font-black text-red-700 mb-1">⚠ {complianceHighCount} 위험 항목</p>
+                <button type="button" onClick={() => setCompetitorOpen(o => !o)}
+                  className="text-[10px] text-red-600 font-bold underline">자세히 보기</button>
+              </div>
+            )}
+
           </div>
         </aside>
 
-        {/* 미리보기 */}
-        <div className="flex-1">
-          <div className="flex items-center justify-between mb-6">
-            <p className="text-xs text-gray-400 font-medium">{p.previewBar}</p>
+        {/* ── MAIN CONTENT ──────────────────────────────────────── */}
+        <div className="flex-1 min-w-0 px-4 md:px-6 xl:px-8 py-6 md:py-8">
+
+          {/* Top bar */}
+          <div className="flex items-center justify-between mb-5 print:hidden">
             <div className="flex items-center gap-2">
-              {/* 모바일용 네이버 버튼 */}
-              <button
-                type="button"
-                onClick={handleNaverCopy}
-                className={`xl:hidden flex items-center gap-1.5 ${primStyle.bg} ${primStyle.hover} text-white px-3 py-2 rounded-xl text-xs font-black transition-all`}
-              >
-                <span className="font-black">{primaryRow?.icon}</span>
+              <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+              <span className="text-xs text-gray-500 font-medium">{p.liveEdit}</span>
+              {seoReport && (
+                <button onClick={() => setShowSeo(true)}
+                  className={`lg:hidden flex items-center gap-1 border px-2.5 py-1 rounded-lg text-xs font-black transition-all ${scoreBg} ${scoreColor}`}>
+                  SEO {seoReport.score}
+                </button>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Mobile Tools button */}
+              <button type="button" onClick={() => setMobileToolsOpen(true)}
+                className="xl:hidden bg-[#0F172A] text-white px-3 py-2 rounded-xl text-xs font-black flex items-center gap-1.5">
+                🛠 {uiLang === 'ko' ? 'AI 도구' : uiLang === 'ja' ? 'AIツール' : uiLang === 'zh' ? 'AI工具' : 'AI Tools'}
+              </button>
+              {/* Primary mobile publish */}
+              <button type="button" onClick={handleNaverCopy}
+                className={`lg:hidden ${primStyle.bg} ${primStyle.hover} text-white px-3 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5`}>
+                <span>{primaryRow?.icon}</span>
                 {copyDone ? t.mobileCopyDone : copyFormatIsListing ? t.mobileListingCopy : t.mobileBlogCopy}
               </button>
-              {/* 모바일용 SEO 버튼 */}
-              {seoReport && (
-                <button
-                  onClick={() => setShowSeo(true)}
-                  className={`xl:hidden flex items-center gap-1.5 border px-3 py-2 rounded-xl text-xs font-black transition-all ${scoreBg} ${scoreColor}`}
-                >
-                  {p.seoPts(seoReport.score)}
-                </button>
-              )}
-              <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-full px-3 py-1">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-xs text-gray-500 font-medium">{p.liveEdit}</span>
+            </div>
+          </div>
+
+          <input ref={imageInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif"
+            className="hidden" onChange={onProductImageChange} />
+
+          {/* Product images */}
+          {((order.image_urls ?? []).length > 0 || true) && (
+            <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-5 shadow-sm print:hidden">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">{p.prodImages}</p>
+              <div className="flex flex-wrap items-end gap-3">
+                {(order.image_urls ?? []).map((url, i) => (
+                  <div key={`${url}-${i}`} className="flex flex-col items-center gap-1.5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={url} alt={p.imgAlt(i)} crossOrigin="anonymous"
+                      className="w-20 h-20 object-cover rounded-xl border border-gray-200 bg-gray-50 shadow-sm" />
+                    <button type="button" disabled={imageBusy} onClick={() => pickImageSlot(i)}
+                      className="text-[10px] font-bold text-gray-500 hover:text-black border border-gray-200 rounded-lg px-2 py-0.5 disabled:opacity-40 transition-colors">
+                      {p.replace}
+                    </button>
+                  </div>
+                ))}
+                {(order.image_urls ?? []).length < 3 && (
+                  <button type="button" disabled={imageBusy} onClick={() => pickImageSlot((order.image_urls ?? []).length)}
+                    className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-200 text-gray-400 text-2xl hover:border-blue-400 hover:text-blue-400 disabled:opacity-40 flex items-center justify-center transition-all"
+                    title={p.addImgTitle}>
+                    {p.addImg}
+                  </button>
+                )}
               </div>
-            </div>
-          </div>
-
-          <input
-            ref={imageInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            className="hidden"
-            onChange={onProductImageChange}
-          />
-
-          {/* 제품 이미지 교체·추가 (PDF 제외) */}
-          <div className="max-w-[390px] mx-auto w-full mb-3 print:hidden">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">{p.prodImages}</p>
-            <div className="flex flex-wrap items-end gap-2">
-              {(order.image_urls ?? []).map((url, i) => (
-                <div key={`${url}-${i}`} className="relative flex flex-col items-center gap-1">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary storage URLs; tiny thumbs */}
-                  <img
-                    src={url}
-                    alt={p.imgAlt(i)}
-                    className="w-16 h-16 sm:w-[72px] sm:h-[72px] object-cover rounded-xl border border-gray-200 bg-gray-50"
-                  />
-                  <button
-                    type="button"
-                    disabled={imageBusy}
-                    onClick={() => pickImageSlot(i)}
-                    className="text-[10px] font-bold text-gray-500 hover:text-black border border-gray-200 rounded-lg px-2 py-0.5 disabled:opacity-40"
-                  >
-                    {p.replace}
-                  </button>
-                </div>
-              ))}
-              {(order.image_urls ?? []).length < 3 && (
-                <button
-                  type="button"
-                  disabled={imageBusy}
-                  onClick={() => pickImageSlot((order.image_urls ?? []).length)}
-                  className="w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-xl border-2 border-dashed border-gray-200 text-gray-400 text-xl font-light hover:border-gray-400 hover:text-gray-600 disabled:opacity-40 flex items-center justify-center"
-                  title={p.addImgTitle}
-                >
-                  {p.addImg}
-                </button>
-              )}
-            </div>
-            <p className="text-[10px] text-gray-400 mt-2 leading-relaxed">
-              {p.imageHint}
-            </p>
-          </div>
-
-          <div className="max-w-[390px] mx-auto w-full mb-4 xl:hidden print:hidden space-y-3">
-            <ComplianceScanPanel
-              findings={complianceFindings}
-              disclosurePack={complianceDisclosurePack}
-              open={complianceOpen}
-              onToggle={() => setComplianceOpen(o => !o)}
-              ui={t}
-              industryBadge={complianceIndustryBadge}
-            />
-            {channelKitContent && (
-              <ChannelPublishKitPanel
-                platforms={PLATFORMS}
-                platform={platform}
-                setPlatform={setPlatform}
-                kit={channelKitContent}
-                ui={t}
-                open={channelKitOpen}
-                onToggle={() => setChannelKitOpen(o => !o)}
-                onCopyHook={line => {
-                  navigator.clipboard.writeText(line).then(() => {
-                    toast.success(t.channelKitToastHook)
-                  }).catch(() => toast.error(t.toastCopyFail))
-                }}
-                pasteBundle={listingPasteBundle}
-                onCopyPasteBundle={() => {
-                  if (!listingPasteBundle.trim()) return
-                  navigator.clipboard.writeText(listingPasteBundle).then(() => {
-                    toast.success(t.channelKitToastPasteBundle)
-                  }).catch(() => toast.error(t.toastCopyFail))
-                }}
-              />
-            )}
-            {abCopySet && (
-              <ConversionAbPanel
-                titles={abCopySet.titles}
-                openers={abCopySet.openers}
-                ctas={abCopySet.ctas}
-                recommendation={abCopySet.recommendation}
-                runnerUp={abCopySet.runnerUp}
-                utmRecommendedQuery={abCopySet.utmRecommendedQuery}
-                ui={t}
-                open={abCopyOpen}
-                onToggle={() => setAbCopyOpen(o => !o)}
-                hasFirst={sections.length > 0}
-                lastSectionId={lastSectionId}
-                onCopyLine={line => {
-                  navigator.clipboard.writeText(line).then(() => {
-                    toast.success(t.abCopyToast)
-                  }).catch(() => toast.error(t.toastCopyFail))
-                }}
-                onApplyTitle={idx => {
-                  const s0 = sections[0]
-                  if (!s0 || !abCopySet) return
-                  updateSection(s0.id, 'title', abCopySet.titles[idx])
-                  toast.success(t.abCopyToastApplyTitle)
-                }}
-                onApplyOpener={idx => {
-                  const s0 = sections[0]
-                  if (!s0 || !abCopySet) return
-                  updateSection(s0.id, 'body', `${abCopySet.openers[idx]}\n\n${s0.body}`)
-                  toast.success(t.abCopyToastApplyOpener)
-                }}
-                onApplyCta={idx => {
-                  if (!abCopySet || lastSectionId === null) return
-                  const last = sections.find(s => s.id === lastSectionId)
-                  if (!last) return
-                  updateSection(last.id, 'body', `${last.body}\n\n${abCopySet.ctas[idx]}`)
-                  toast.success(t.abCopyToastApplyCta)
-                }}
-                onApplyCombo={applyAbCombo}
-                onCopyUtm={() => {
-                  navigator.clipboard.writeText(abCopySet.utmRecommendedQuery).then(() => {
-                    toast.success(t.abCopyToastUtm)
-                  }).catch(() => toast.error(t.toastCopyFail))
-                }}
-                onCopyExperimentSheet={() => {
-                  navigator.clipboard.writeText(abCopySet.experimentSheet).then(() => {
-                    toast.success(t.abCopyToastExperimentSheet)
-                  }).catch(() => toast.error(t.toastCopyFail))
-                }}
-              />
-            )}
-            {evidencePack && (
-              <EvidencePackPanel
-                pack={evidencePack}
-                ui={t}
-                open={evidenceOpen}
-                onToggle={() => setEvidenceOpen(o => !o)}
-              />
-            )}
-            {assetKit && (
-              <AssetKitPanel
-                kit={assetKit}
-                ui={t}
-                open={assetKitOpen}
-                onToggle={() => setAssetKitOpen(o => !o)}
-              />
-            )}
-            {intelPack && (
-              <MarketIntelPanel
-                pack={intelPack}
-                ui={t}
-                open={intelOpen}
-                onToggle={() => setIntelOpen(o => !o)}
-              />
-            )}
-            {metaExportBlocks && (
-              <MetaOgExportPanel
-                htmlBlock={metaExportBlocks.html}
-                jsonBlock={metaExportBlocks.json}
-                ui={t}
-                open={metaOgOpen}
-                onToggle={() => setMetaOgOpen(o => !o)}
-                onCopyHtml={() => {
-                  navigator.clipboard.writeText(metaExportBlocks.html).then(() => {
-                    toast.success(t.metaOgToastHtml)
-                  }).catch(() => toast.error(t.toastCopyFail))
-                }}
-                onCopyJson={() => {
-                  navigator.clipboard.writeText(metaExportBlocks.json).then(() => {
-                    toast.success(t.metaOgToastJson)
-                  }).catch(() => toast.error(t.toastCopyFail))
-                }}
-              />
-            )}
-            <OrderWritingWidgets uiLang={uiLang} />
-          </div>
-
-          {/* 멀티랭 탭 (4개 언어 동시 생성 결과) */}
-          {order.result_json?.multi_lang && (
-            <div className="flex gap-2 justify-center mb-4 flex-wrap">
-              {(['ko', 'en', 'ja', 'zh'] as const).map(lang => {
-                const FLAG: Record<string, string> = { ko: '🇰🇷', en: '🇺🇸', ja: '🇯🇵', zh: '🇨🇳' }
-                const LABEL: Record<string, string> = { ko: '한국어', en: 'English', ja: '日本語', zh: '中文' }
-                const hasSections = (order.result_json?.[lang]?.sections?.length ?? 0) > 0
-                return (
-                  <button
-                    key={lang}
-                    type="button"
-                    disabled={!hasSections}
-                    onClick={() => setMultiLangTab(lang)}
-                    className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all flex items-center gap-1.5 ${
-                      multiLangTab === lang
-                        ? 'bg-black text-white border-black shadow-lg'
-                        : hasSections
-                          ? 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
-                          : 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
-                    }`}
-                  >
-                    {FLAG[lang]} {LABEL[lang]}
-                  </button>
-                )
-              })}
-              <span className="text-xs text-gray-400 self-center ml-1">🌏 4개 언어 동시 생성 결과</span>
+              <p className="text-[10px] text-gray-400 mt-2">{p.imageHint}</p>
             </div>
           )}
 
-          {/* Conversion Predictor — 멀티랭 or 크로스보더 결과에 표시 */}
+          {/* Multi-lang tabs */}
+          {order.result_json?.multi_lang && (
+            <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-5 shadow-sm print:hidden">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-sm">🌏</span>
+                <p className="text-xs font-black text-gray-500 uppercase tracking-wider">4-Language Result</p>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {(['ko','en','ja','zh'] as const).map(lang => {
+                  const FLAG: Record<string,string> = {ko:'🇰🇷',en:'🇺🇸',ja:'🇯🇵',zh:'🇨🇳'}
+                  const LABEL: Record<string,string> = {ko:'한국어',en:'English',ja:'日本語',zh:'中文'}
+                  const hasSections = (order.result_json?.[lang]?.sections?.length ?? 0) > 0
+                  return (
+                    <button key={lang} type="button" disabled={!hasSections} onClick={() => setMultiLangTab(lang)}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border transition-all ${
+                        multiLangTab === lang
+                          ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-lg'
+                          : hasSections
+                            ? 'bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:shadow-sm'
+                            : 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
+                      }`}>
+                      {FLAG[lang]} {LABEL[lang]}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Conversion Predictor */}
           {order.result_json?.multi_lang && seoReport && (() => {
             const score = seoReport.score
             const cat = order.category ?? ''
@@ -2377,15 +1968,15 @@ export default function OrderResultPage() {
               zh: { title: '📊 转化率预测', sub: '各市场预计转化率（基于SEO评分）', note: '基于SEO评分和品类数据的预测值' },
             }[uiLang]
             return (
-              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl p-5 mb-5">
+              <div className="bg-gradient-to-br from-[#1e1b4b] to-[#312e81] rounded-2xl p-5 mb-5 text-white">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="text-sm font-black text-indigo-900">{LABEL.title}</h3>
-                    <p className="text-xs text-indigo-500 font-medium mt-0.5">{LABEL.sub}</p>
+                    <h3 className="text-sm font-black text-white">{LABEL.title}</h3>
+                    <p className="text-xs text-indigo-300 font-medium mt-0.5">{LABEL.sub}</p>
                   </div>
-                  <div className="bg-white border border-indigo-200 rounded-xl px-3 py-1.5 text-center shrink-0">
-                    <div className="text-lg font-black text-indigo-700">{score}</div>
-                    <div className="text-[10px] font-bold text-indigo-400">SEO</div>
+                  <div className="bg-white/10 border border-white/20 rounded-xl px-3 py-1.5 text-center shrink-0">
+                    <div className="text-lg font-black text-white">{score}</div>
+                    <div className="text-[10px] font-bold text-indigo-300">SEO</div>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
@@ -2416,191 +2007,389 @@ export default function OrderResultPage() {
             )
           })()}
 
-          {/* PDF 타겟 */}
-          <div
-            ref={previewRef}
-            className="mx-auto bg-white overflow-hidden"
-            style={{
-              maxWidth: '390px',
-              borderRadius: '24px',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 20px 60px -10px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.02)',
-            }}
-          >
-            {order.image_urls && order.image_urls.length > 0 && (
-              <div>
-                {order.image_urls.map((url, i) => (
-                  // eslint-disable-next-line @next/next/no-img-element -- dynamic URLs + crossOrigin for html2pdf canvas
-                  <img key={i} src={url} alt={p.imgAlt(i)} className="w-full object-cover" crossOrigin="anonymous" />
-                ))}
-              </div>
-            )}
-
+          {/* PDF target — section cards */}
+          <div ref={previewRef} className="space-y-3">
             {sections.map((section, i) => (
-              <div
-                key={section.id}
-                id={`section-${i}`}
-                className={`px-6 py-10 cursor-pointer transition-all ${editingId === section.id ? 'ring-2 ring-inset' : 'hover:brightness-95'}`}
-                style={{
-                  backgroundColor: BG_COLORS[i % BG_COLORS.length],
-                  borderTop: i > 0 ? '1px solid #f3f4f6' : 'none',
-                  ...(editingId === section.id ? { outline: `2px solid ${ACCENT_COLORS[i % ACCENT_COLORS.length]}` } : {}),
-                }}
+              <div key={section.id} id={`section-${i}`}
+                className={`bg-white rounded-2xl border overflow-hidden shadow-sm transition-all duration-200 cursor-pointer group ${
+                  editingId === section.id
+                    ? 'border-blue-400 shadow-lg shadow-blue-500/10 ring-2 ring-blue-400/20'
+                    : 'border-gray-100 hover:border-gray-300 hover:shadow-md'
+                }`}
                 onClick={() => setEditingId(editingId === section.id ? null : section.id)}
               >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-4 rounded-full" style={{ backgroundColor: ACCENT_COLORS[i % ACCENT_COLORS.length] }} />
-                    <span className="text-xs font-black uppercase tracking-widest" style={{ color: ACCENT_COLORS[i % ACCENT_COLORS.length] }}>
-                      {section.name}
-                    </span>
+                {/* Section accent bar */}
+                <div className="h-1 w-full" style={{ background: `linear-gradient(90deg, ${ACCENT_COLORS[i % ACCENT_COLORS.length]}, ${ACCENT_COLORS[(i+1) % ACCENT_COLORS.length]}40)` }} />
+
+                <div className="px-6 py-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ACCENT_COLORS[i % ACCENT_COLORS.length] }} />
+                      <span className="text-[11px] font-black uppercase tracking-[0.12em]" style={{ color: ACCENT_COLORS[i % ACCENT_COLORS.length] }}>
+                        {section.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {editingId === section.id
+                        ? <span className="text-[10px] text-blue-600 font-black bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full">{p.editing}</span>
+                        : <span className="text-[10px] text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">✎ Click to edit</span>
+                      }
+                    </div>
                   </div>
-                  {editingId === section.id && (
-                    <span className="text-xs text-gray-400 font-medium bg-white border border-gray-200 px-2 py-0.5 rounded-full">{p.editing}</span>
+
+                  {editingId === section.id ? (
+                    <input value={section.title}
+                      onChange={e => updateSection(section.id, 'title', e.target.value)}
+                      onClick={e => e.stopPropagation()}
+                      className="w-full text-xl md:text-2xl font-black text-gray-900 mb-4 bg-gray-50 border border-blue-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 leading-tight tracking-tight transition-all"
+                    />
+                  ) : (
+                    <h2 className="text-xl md:text-2xl font-black text-gray-900 mb-4 leading-tight tracking-tight">{section.title}</h2>
+                  )}
+
+                  {editingId === section.id ? (
+                    <textarea value={section.body}
+                      onChange={e => updateSection(section.id, 'body', e.target.value)}
+                      onClick={e => e.stopPropagation()}
+                      rows={6}
+                      className="w-full text-sm text-gray-600 bg-gray-50 border border-blue-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none leading-relaxed transition-all"
+                    />
+                  ) : (
+                    <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{section.body}</p>
                   )}
                 </div>
-
-                {editingId === section.id ? (
-                  <input
-                    value={section.title}
-                    onChange={e => updateSection(section.id, 'title', e.target.value)}
-                    onClick={e => e.stopPropagation()}
-                    className="w-full text-xl font-black text-gray-900 mb-3 bg-white border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black leading-tight tracking-tight"
-                  />
-                ) : (
-                  <h2 className="text-xl font-black text-gray-900 mb-3 leading-tight tracking-tight">{section.title}</h2>
-                )}
-
-                {editingId === section.id ? (
-                  <textarea
-                    value={section.body}
-                    onChange={e => updateSection(section.id, 'body', e.target.value)}
-                    onClick={e => e.stopPropagation()}
-                    rows={5}
-                    className="w-full text-sm text-gray-600 bg-white border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black resize-none leading-relaxed"
-                  />
-                ) : (
-                  <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{section.body}</p>
-                )}
               </div>
             ))}
 
-            <div className="px-6 py-8 bg-gray-50 text-center border-t border-gray-100">
-              <p className="text-gray-300 text-xs font-medium">{p.footerAi}</p>
+            <div className="bg-white rounded-2xl border border-gray-100 px-6 py-5 text-center shadow-sm">
+              <p className="text-gray-400 text-xs font-medium">{p.footerAi}</p>
             </div>
           </div>
 
-          {/* 하단 버튼 */}
-          <div className="mt-8 flex flex-wrap justify-center gap-3 print:hidden">
-            <button type="button" onClick={() => router.push('/order/new')} className="border border-gray-200 text-gray-400 px-6 py-3 rounded-xl text-sm hover:bg-white transition-all">
-              {p.newOrder}
-            </button>
-            <button type="button" onClick={handleRegenerate} disabled={regenLoading} className="border border-gray-200 text-gray-700 px-6 py-3 rounded-xl text-sm font-semibold hover:bg-white transition-all disabled:opacity-40">
-              {p.regenBottom}
-            </button>
-            <button
-              type="button"
-              onClick={handleNaverCopy}
-              className={`${primStyle.bg} ${primStyle.hover} text-white px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2`}
-            >
-              <span className="font-black">{primaryRow?.icon}</span>
-              {copyDone ? t.mobileCopyDone : t.bottomCopyLabel}
-            </button>
-            <button type="button" onClick={handleDownloadPDF} disabled={pdfLoading} className="bg-black text-white px-10 py-3 rounded-xl text-sm font-bold hover:bg-gray-800 transition-all disabled:opacity-40">
-              {pdfLoading ? p.pdfGen : p.pdfBottom}
-            </button>
-            {sections.length > 0 && (
-              <button
-                type="button"
-                onClick={handleDownloadTxt}
-                className="border border-gray-300 text-gray-600 px-6 py-3 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all"
-              >
-                {p.txtDownload}
-              </button>
-            )}
-            {sections.length > 0 && (
-              <button
-                type="button"
-                onClick={handleCopyShareLink}
-                className="border border-amber-200 bg-amber-50 text-amber-900 px-6 py-3 rounded-xl text-sm font-bold hover:bg-amber-100 transition-all"
-              >
-                {p.shareLinkBtn}
-              </button>
-            )}
-          </div>
-          <p className="text-center text-xs text-gray-300 mt-4">{p.bottomHint}</p>
-        </div>
-      </div>
-
-      {/* SEO 분석 모달 */}
-      {showSeo && seoReport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowSeo(false)}>
-          <div className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
-            {/* 점수 헤더 */}
-            <div className="flex items-start justify-between mb-6">
-              <div>
-                <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">{p.seoModalTitle}</p>
-                <div className="flex items-end gap-2">
-                  <span className={`text-6xl font-black ${scoreColor}`}>{seoReport.score}</span>
-                  <span className="text-gray-400 text-sm mb-2 font-medium">{p.scoreOf}</span>
-                </div>
-                <p className={`text-sm font-bold mt-1 ${scoreColor}`}>
-                  {seoLevelMessage(uiLang, seoReport.score)}
-                </p>
+          {/* Bottom action bar */}
+          <div className="mt-8 pb-24 md:pb-8 print:hidden">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-wrap gap-3 items-center justify-between">
+              <div className="flex gap-2 flex-wrap">
+                <button type="button" onClick={() => router.push('/order/new')}
+                  className="border border-gray-200 text-gray-500 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-all">
+                  {p.newOrder}
+                </button>
+                <button type="button" onClick={handleRegenerate} disabled={regenLoading}
+                  className="border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all disabled:opacity-40 flex items-center gap-1.5">
+                  {regenLoading ? <span className="w-3 h-3 border-2 border-gray-300 border-t-gray-700 rounded-full animate-spin" /> : '↺'}
+                  {p.regenBottom}
+                </button>
+                {sections.length > 0 && (
+                  <button type="button" onClick={handleCopyShareLink}
+                    className="border border-amber-200 bg-amber-50 text-amber-800 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-amber-100 transition-all">
+                    🔗 {p.shareLinkBtn}
+                  </button>
+                )}
               </div>
-              <button onClick={() => setShowSeo(false)} className="text-gray-300 hover:text-black text-2xl leading-none mt-1">×</button>
+              <div className="flex gap-2 flex-wrap">
+                {sections.length > 0 && (
+                  <button type="button" onClick={handleDownloadTxt}
+                    className="border border-gray-200 text-gray-600 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">
+                    {p.txtDownload}
+                  </button>
+                )}
+                <button type="button" onClick={handleDownloadPDF} disabled={pdfLoading}
+                  className="bg-[#0F172A] hover:bg-gray-800 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-40 flex items-center gap-1.5">
+                  {pdfLoading ? <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
+                  {pdfLoading ? p.pdfGen : p.pdfBottom}
+                </button>
+                <button type="button"
+                  onClick={() => { setPlatform(primaryPlatform); setShowBlogPreview(true) }}
+                  className={`${primStyle.bg} ${primStyle.hover} text-white px-6 py-2.5 rounded-xl text-sm font-black transition-all hover:shadow-lg flex items-center gap-2`}>
+                  <span>{primaryRow?.icon}</span>
+                  {copyDone ? t.mobileCopyDone : t.bottomCopyLabel}
+                </button>
+              </div>
             </div>
+            <p className="text-center text-xs text-gray-400 mt-3">{p.bottomHint}</p>
+          </div>
 
-            {/* 체크리스트 */}
-            <div className="space-y-3 mb-6">
-              {seoReport.items.map((item, i) => (
-                <div key={i} className={`flex items-start gap-3 p-3 rounded-xl ${item.ok ? 'bg-green-50' : 'bg-red-50'}`}>
-                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-black shrink-0 mt-0.5 ${item.ok ? 'bg-green-500 text-white' : 'bg-red-400 text-white'}`}>
-                    {item.ok ? '✓' : '!'}
-                  </span>
-                  <div>
-                    <p className={`text-sm font-bold ${item.ok ? 'text-green-800' : 'text-red-700'}`}>{item.label}</p>
-                    {!item.ok && <p className="text-xs text-red-500 mt-0.5">{item.tip}</p>}
-                  </div>
-                </div>
+        </div>{/* end main */}
+
+        {/* ── RIGHT PANEL: AI Tools ──────────────────────────── */}
+        <aside className="hidden xl:flex flex-col w-80 shrink-0 border-l border-[#E2E8F0] bg-white print:hidden">
+          <div className="sticky top-14 overflow-y-auto max-h-[calc(100vh-56px)]">
+
+            {/* Tab bar */}
+            <div className="flex border-b border-gray-100 bg-gray-50/50">
+              {([['publish', uiLang==='ko'?'발행':'Publish'], ['copy', 'A/B'], ['tools', uiLang==='ko'?'분석':'Analytics']] as [typeof rightTab, string][]).map(([tab, label]) => (
+                <button key={tab} type="button" onClick={() => setRightTab(tab)}
+                  className={`flex-1 py-3 text-xs font-black transition-all border-b-2 ${
+                    rightTab === tab ? 'border-[#0F172A] text-[#0F172A] bg-white' : 'border-transparent text-gray-400 hover:text-gray-600'
+                  }`}>
+                  {label}
+                </button>
               ))}
             </div>
 
-            {/* 추천 태그 */}
-            <div className="mb-6">
-              <p className="text-xs font-black text-gray-400 uppercase tracking-wider mb-2">{p.recoTags}</p>
-              <div className="flex flex-wrap gap-2">
-                {seoReport.tags.map((tag, i) => (
-                  <span key={i} className="text-xs font-bold bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full">#{tag}</span>
+            <div className="p-4 space-y-3">
+              {/* PUBLISH TAB */}
+              {rightTab === 'publish' && (
+                <>
+                  <ComplianceScanPanel findings={complianceFindings} disclosurePack={complianceDisclosurePack}
+                    open={complianceOpen} onToggle={() => setComplianceOpen(o => !o)} ui={t} industryBadge={complianceIndustryBadge} />
+                  {channelKitContent && (
+                    <ChannelPublishKitPanel platforms={PLATFORMS} platform={platform} setPlatform={setPlatform}
+                      kit={channelKitContent} ui={t} open={channelKitOpen} onToggle={() => setChannelKitOpen(o => !o)}
+                      onCopyHook={line => navigator.clipboard.writeText(line).then(() => toast.success(t.channelKitToastHook)).catch(() => toast.error(t.toastCopyFail))}
+                      pasteBundle={listingPasteBundle}
+                      onCopyPasteBundle={() => { if (!listingPasteBundle.trim()) return; navigator.clipboard.writeText(listingPasteBundle).then(() => toast.success(t.channelKitToastPasteBundle)).catch(() => toast.error(t.toastCopyFail)) }}
+                    />
+                  )}
+                  {metaExportBlocks && (
+                    <MetaOgExportPanel htmlBlock={metaExportBlocks.html} jsonBlock={metaExportBlocks.json} ui={t}
+                      open={metaOgOpen} onToggle={() => setMetaOgOpen(o => !o)}
+                      onCopyHtml={() => navigator.clipboard.writeText(metaExportBlocks.html).then(() => toast.success(t.metaOgToastHtml)).catch(() => toast.error(t.toastCopyFail))}
+                      onCopyJson={() => navigator.clipboard.writeText(metaExportBlocks.json).then(() => toast.success(t.metaOgToastJson)).catch(() => toast.error(t.toastCopyFail))}
+                    />
+                  )}
+                  <OrderWritingWidgets uiLang={uiLang} />
+                </>
+              )}
+
+              {/* A/B COPY TAB */}
+              {rightTab === 'copy' && abCopySet && (
+                <ConversionAbPanel titles={abCopySet.titles} openers={abCopySet.openers} ctas={abCopySet.ctas}
+                  recommendation={abCopySet.recommendation} runnerUp={abCopySet.runnerUp}
+                  utmRecommendedQuery={abCopySet.utmRecommendedQuery} ui={t}
+                  open={abCopyOpen} onToggle={() => setAbCopyOpen(o => !o)}
+                  hasFirst={sections.length > 0} lastSectionId={lastSectionId}
+                  onCopyLine={line => navigator.clipboard.writeText(line).then(() => toast.success(t.abCopyToast)).catch(() => toast.error(t.toastCopyFail))}
+                  onApplyTitle={idx => { const s0=sections[0]; if(!s0||!abCopySet) return; updateSection(s0.id,'title',abCopySet.titles[idx]); toast.success(t.abCopyToastApplyTitle) }}
+                  onApplyOpener={idx => { const s0=sections[0]; if(!s0||!abCopySet) return; updateSection(s0.id,'body',`${abCopySet.openers[idx]}\n\n${s0.body}`); toast.success(t.abCopyToastApplyOpener) }}
+                  onApplyCta={idx => { if(!abCopySet||lastSectionId===null) return; const last=sections.find(s=>s.id===lastSectionId); if(!last) return; updateSection(last.id,'body',`${last.body}\n\n${abCopySet.ctas[idx]}`); toast.success(t.abCopyToastApplyCta) }}
+                  onApplyCombo={applyAbCombo}
+                  onCopyUtm={() => navigator.clipboard.writeText(abCopySet.utmRecommendedQuery).then(() => toast.success(t.abCopyToastUtm)).catch(() => toast.error(t.toastCopyFail))}
+                  onCopyExperimentSheet={() => navigator.clipboard.writeText(abCopySet.experimentSheet).then(() => toast.success(t.abCopyToastExperimentSheet)).catch(() => toast.error(t.toastCopyFail))}
+                />
+              )}
+
+              {/* ANALYTICS TAB */}
+              {rightTab === 'tools' && (
+                <>
+                  {/* Competitor */}
+                  {sections.length > 0 && (
+                    <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+                      <button type="button" onClick={() => setCompetitorOpen(o => !o)}
+                        className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center gap-2.5">
+                          <span>🔍</span>
+                          <div className="text-left">
+                            <p className="text-sm font-black text-gray-900">
+                              {uiLang==='ko'?'경쟁사 분석':uiLang==='ja'?'競合分析':uiLang==='zh'?'竞品分析':'Competitor Analysis'}
+                            </p>
+                            <p className="text-[10px] text-gray-400 mt-0.5">
+                              {uiLang==='ko'?'URL → AI 즉시 비교':uiLang==='ja'?'URL→即時比較':uiLang==='zh'?'URL→即时对比':'URL → AI instant comparison'}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-gray-300 text-xs">{competitorOpen ? '▲' : '▼'}</span>
+                      </button>
+                      {competitorOpen && (
+                        <div className="border-t border-gray-100 p-4 space-y-3">
+                          <div className="flex gap-2">
+                            <input type="url" value={competitorUrl} onChange={e => setCompetitorUrl(e.target.value)}
+                              placeholder={uiLang==='ko'?'경쟁사 상품 URL...':uiLang==='ja'?'競合URL...':uiLang==='zh'?'竞品URL...':'Competitor URL...'}
+                              className="flex-1 min-w-0 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-gray-200"
+                              onKeyDown={e => { if (e.key==='Enter') handleCompetitorAnalysis() }} />
+                            <button type="button" onClick={handleCompetitorAnalysis}
+                              disabled={competitorLoading || !competitorUrl.trim()}
+                              className="shrink-0 bg-[#0F172A] text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-gray-700 transition-all disabled:opacity-40 flex items-center gap-1">
+                              {competitorLoading ? <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
+                              {uiLang==='ko'?'분석':uiLang==='ja'?'分析':uiLang==='zh'?'分析':'Go'}
+                            </button>
+                          </div>
+                          {competitorResult && (
+                            <div className="space-y-2.5">
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center">
+                                  <div className="text-2xl font-black text-emerald-700">{competitorResult.my_score}</div>
+                                  <div className="text-[10px] font-bold text-emerald-600 mt-0.5">{uiLang==='ko'?'내 페이지':uiLang==='ja'?'自分':uiLang==='zh'?'我的页面':'My Page'}</div>
+                                  {competitorResult.my_score > competitorResult.competitor_score && <div className="text-[9px] font-black text-emerald-500 mt-0.5">🏆</div>}
+                                </div>
+                                <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-center">
+                                  <div className="text-2xl font-black text-gray-700">{competitorResult.competitor_score}</div>
+                                  <div className="text-[10px] font-bold text-gray-500 mt-0.5 truncate">{competitorResult.competitor_name||'vs'}</div>
+                                </div>
+                              </div>
+                              <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-3 py-2.5">
+                                <p className="text-xs font-bold text-indigo-700">💡 {competitorResult.verdict}</p>
+                              </div>
+                              {competitorResult.my_strengths.length > 0 && (
+                                <div className="space-y-1">
+                                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">{uiLang==='ko'?'내 강점':uiLang==='ja'?'強み':uiLang==='zh'?'优势':'Strengths'}</p>
+                                  {competitorResult.my_strengths.map((s,i) => <div key={i} className="flex gap-2 text-xs text-gray-700"><span className="text-emerald-500 font-black">✓</span><span>{s}</span></div>)}
+                                </div>
+                              )}
+                              {competitorResult.my_weaknesses.length > 0 && (
+                                <div className="space-y-1">
+                                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">{uiLang==='ko'?'개선 필요':uiLang==='ja'?'改善点':uiLang==='zh'?'待改进':'Improvements'}</p>
+                                  {competitorResult.my_weaknesses.map((w,i) => <div key={i} className="flex gap-2 text-xs text-gray-700"><span className="text-amber-500 font-black">△</span><span>{w}</span></div>)}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {evidencePack && <EvidencePackPanel pack={evidencePack} ui={t} open={evidenceOpen} onToggle={() => setEvidenceOpen(o => !o)} />}
+                  {assetKit && <AssetKitPanel kit={assetKit} ui={t} open={assetKitOpen} onToggle={() => setAssetKitOpen(o => !o)} />}
+                  {intelPack && <MarketIntelPanel pack={intelPack} ui={t} open={intelOpen} onToggle={() => setIntelOpen(o => !o)} />}
+                </>
+              )}
+            </div>
+          </div>
+        </aside>
+
+      </div>{/* end 3-col layout */}
+
+      {/* ══ MOBILE TOOLS DRAWER ══════════════════════════════════ */}
+      {mobileToolsOpen && (
+        <div className="fixed inset-0 z-50 xl:hidden">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setMobileToolsOpen(false)} />
+          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[80vh] flex flex-col shadow-2xl">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <p className="font-black text-sm text-gray-900">
+                {uiLang==='ko'?'AI 도구':uiLang==='ja'?'AIツール':uiLang==='zh'?'AI工具':'AI Tools'}
+              </p>
+              <button onClick={() => setMobileToolsOpen(false)} className="text-gray-400 hover:text-black text-xl">×</button>
+            </div>
+            <div className="flex border-b border-gray-100">
+              {([['publish', uiLang==='ko'?'발행':'Publish'], ['copy','A/B'], ['tools', uiLang==='ko'?'분석':'Analytics']] as [typeof rightTab, string][]).map(([tab,label]) => (
+                <button key={tab} type="button" onClick={() => setRightTab(tab)}
+                  className={`flex-1 py-3 text-xs font-black transition-all border-b-2 ${rightTab===tab?'border-[#0F172A] text-[#0F172A]':'border-transparent text-gray-400'}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="overflow-y-auto flex-1 p-4 space-y-3">
+              {rightTab === 'publish' && (
+                <>
+                  <ComplianceScanPanel findings={complianceFindings} disclosurePack={complianceDisclosurePack} open={complianceOpen} onToggle={() => setComplianceOpen(o=>!o)} ui={t} industryBadge={complianceIndustryBadge} />
+                  {channelKitContent && <ChannelPublishKitPanel platforms={PLATFORMS} platform={platform} setPlatform={setPlatform} kit={channelKitContent} ui={t} open={channelKitOpen} onToggle={() => setChannelKitOpen(o=>!o)} onCopyHook={line => navigator.clipboard.writeText(line).then(() => toast.success(t.channelKitToastHook)).catch(() => toast.error(t.toastCopyFail))} pasteBundle={listingPasteBundle} onCopyPasteBundle={() => { if(!listingPasteBundle.trim()) return; navigator.clipboard.writeText(listingPasteBundle).then(() => toast.success(t.channelKitToastPasteBundle)).catch(() => toast.error(t.toastCopyFail)) }} />}
+                  {metaExportBlocks && <MetaOgExportPanel htmlBlock={metaExportBlocks.html} jsonBlock={metaExportBlocks.json} ui={t} open={metaOgOpen} onToggle={() => setMetaOgOpen(o=>!o)} onCopyHtml={() => navigator.clipboard.writeText(metaExportBlocks.html).then(() => toast.success(t.metaOgToastHtml)).catch(() => toast.error(t.toastCopyFail))} onCopyJson={() => navigator.clipboard.writeText(metaExportBlocks.json).then(() => toast.success(t.metaOgToastJson)).catch(() => toast.error(t.toastCopyFail))} />}
+                  <OrderWritingWidgets uiLang={uiLang} />
+                </>
+              )}
+              {rightTab === 'copy' && abCopySet && (
+                <ConversionAbPanel titles={abCopySet.titles} openers={abCopySet.openers} ctas={abCopySet.ctas} recommendation={abCopySet.recommendation} runnerUp={abCopySet.runnerUp} utmRecommendedQuery={abCopySet.utmRecommendedQuery} ui={t} open={abCopyOpen} onToggle={() => setAbCopyOpen(o=>!o)} hasFirst={sections.length>0} lastSectionId={lastSectionId}
+                  onCopyLine={line => navigator.clipboard.writeText(line).then(() => toast.success(t.abCopyToast)).catch(() => toast.error(t.toastCopyFail))}
+                  onApplyTitle={idx => { const s0=sections[0]; if(!s0||!abCopySet) return; updateSection(s0.id,'title',abCopySet.titles[idx]); toast.success(t.abCopyToastApplyTitle) }}
+                  onApplyOpener={idx => { const s0=sections[0]; if(!s0||!abCopySet) return; updateSection(s0.id,'body',`${abCopySet.openers[idx]}\n\n${s0.body}`); toast.success(t.abCopyToastApplyOpener) }}
+                  onApplyCta={idx => { if(!abCopySet||lastSectionId===null) return; const last=sections.find(s=>s.id===lastSectionId); if(!last) return; updateSection(last.id,'body',`${last.body}\n\n${abCopySet.ctas[idx]}`); toast.success(t.abCopyToastApplyCta) }}
+                  onApplyCombo={applyAbCombo}
+                  onCopyUtm={() => navigator.clipboard.writeText(abCopySet.utmRecommendedQuery).then(() => toast.success(t.abCopyToastUtm)).catch(() => toast.error(t.toastCopyFail))}
+                  onCopyExperimentSheet={() => navigator.clipboard.writeText(abCopySet.experimentSheet).then(() => toast.success(t.abCopyToastExperimentSheet)).catch(() => toast.error(t.toastCopyFail))}
+                />
+              )}
+              {rightTab === 'tools' && (
+                <>
+                  {evidencePack && <EvidencePackPanel pack={evidencePack} ui={t} open={evidenceOpen} onToggle={() => setEvidenceOpen(o=>!o)} />}
+                  {assetKit && <AssetKitPanel kit={assetKit} ui={t} open={assetKitOpen} onToggle={() => setAssetKitOpen(o=>!o)} />}
+                  {intelPack && <MarketIntelPanel pack={intelPack} ui={t} open={intelOpen} onToggle={() => setIntelOpen(o=>!o)} />}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile sticky bottom bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 xl:hidden bg-white border-t border-gray-200 px-4 py-3 flex gap-2 shadow-2xl print:hidden">
+        <button type="button" onClick={() => setMobileToolsOpen(true)}
+          className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5">
+          🛠 {uiLang==='ko'?'도구':uiLang==='ja'?'ツール':uiLang==='zh'?'工具':'Tools'}
+        </button>
+        <button type="button" onClick={() => { setPlatform(primaryPlatform); setShowBlogPreview(true) }}
+          className={`flex-1 ${primStyle.bg} ${primStyle.hover} text-white py-3 rounded-xl text-sm font-black flex items-center justify-center gap-1.5`}>
+          <span>{primaryRow?.icon}</span>
+          {t.primaryPublishLabel}
+        </button>
+        <button type="button" onClick={handleDownloadPDF} disabled={pdfLoading}
+          className="flex-1 bg-[#0F172A] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40 flex items-center justify-center gap-1.5">
+          {pdfLoading ? <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
+          PDF
+        </button>
+      </div>
+
+      {/* ══ SEO MODAL ════════════════════════════════════════════ */}
+      {showSeo && seoReport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowSeo(false)}>
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+            {/* Score header */}
+            <div className="bg-[#0F172A] px-8 py-7 text-white">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.15em] mb-2">{p.seoModalTitle}</p>
+                  <div className="flex items-end gap-3">
+                    <span className={`text-7xl font-black leading-none ${
+                      seoReport.score >= 80 ? 'text-emerald-400' : seoReport.score >= 60 ? 'text-amber-400' : 'text-red-400'
+                    }`}>{seoReport.score}</span>
+                    <span className="text-gray-600 text-lg mb-1 font-medium">{p.scoreOf}</span>
+                  </div>
+                  <p className={`text-sm font-bold mt-2 ${seoReport.score >= 80 ? 'text-emerald-400' : seoReport.score >= 60 ? 'text-amber-400' : 'text-red-400'}`}>
+                    {seoLevelMessage(uiLang, seoReport.score)}
+                  </p>
+                </div>
+                <button onClick={() => setShowSeo(false)} className="text-gray-600 hover:text-white text-2xl leading-none transition-colors mt-1">×</button>
+              </div>
+              <div className="mt-4 h-2 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-full rounded-full transition-all duration-1000"
+                  style={{ width: `${seoReport.score}%`, background: seoReport.score>=80 ? '#10b981' : seoReport.score>=60 ? '#f59e0b' : '#ef4444' }} />
+              </div>
+            </div>
+
+            <div className="p-6 space-y-5">
+              {/* Checklist */}
+              <div className="space-y-2">
+                {seoReport.items.map((item, i) => (
+                  <div key={i} className={`flex items-start gap-3 p-3.5 rounded-2xl ${item.ok ? 'bg-emerald-50 border border-emerald-100' : 'bg-red-50 border border-red-100'}`}>
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-black shrink-0 mt-0.5 ${item.ok ? 'bg-emerald-500 text-white' : 'bg-red-400 text-white'}`}>
+                      {item.ok ? '✓' : '!'}
+                    </span>
+                    <div>
+                      <p className={`text-sm font-bold ${item.ok ? 'text-emerald-800' : 'text-red-700'}`}>{item.label}</p>
+                      {!item.ok && <p className="text-xs text-red-500 mt-0.5">{item.tip}</p>}
+                    </div>
+                  </div>
                 ))}
               </div>
-            </div>
 
-            {/* 메타 정보 */}
-            <div className="bg-gray-50 rounded-2xl p-4 space-y-3">
-              <p className="text-xs font-black text-gray-400 uppercase tracking-wider">{p.blogRec}</p>
+              {/* Tags */}
               <div>
-                <p className="text-xs font-bold text-gray-500 mb-1">{p.metaTitleLbl}</p>
-                <p className="text-sm text-gray-800 font-medium">{seoReport.metaTitle}</p>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">{p.recoTags}</p>
+                <div className="flex flex-wrap gap-2">
+                  {seoReport.tags.map((tag, i) => (
+                    <span key={i} className="text-xs font-bold bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full hover:bg-gray-200 transition-colors cursor-default">#{tag}</span>
+                  ))}
+                </div>
               </div>
-              <div>
-                <p className="text-xs font-bold text-gray-500 mb-1">{p.metaDescLbl}</p>
-                <p className="text-xs text-gray-600 leading-relaxed">{seoReport.metaDesc}</p>
-              </div>
-            </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                setShowSeo(false)
-                setPlatform(primaryPlatform)
-                setShowBlogPreview(true)
-              }}
-              className={`w-full mt-5 ${primStyle.bg} ${primStyle.hover} text-white py-4 rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2`}
-            >
-              <span className="font-black text-base">{primaryRow?.icon}</span>
-              {t.openBlogPreview}
-            </button>
+              {/* Meta */}
+              <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 space-y-3">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">{p.blogRec}</p>
+                <div>
+                  <p className="text-[10px] font-bold text-gray-500 mb-1">{p.metaTitleLbl}</p>
+                  <p className="text-sm text-gray-800 font-semibold">{seoReport.metaTitle}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-gray-500 mb-1">{p.metaDescLbl}</p>
+                  <p className="text-xs text-gray-600 leading-relaxed">{seoReport.metaDesc}</p>
+                </div>
+              </div>
+
+              <button type="button" onClick={() => { setShowSeo(false); setPlatform(primaryPlatform); setShowBlogPreview(true) }}
+                className={`w-full ${primStyle.bg} ${primStyle.hover} text-white py-4 rounded-2xl font-black text-sm transition-all hover:shadow-lg flex items-center justify-center gap-2`}>
+                <span className="text-base">{primaryRow?.icon}</span>
+                {t.openBlogPreview}
+              </button>
+            </div>
           </div>
         </div>
       )}
