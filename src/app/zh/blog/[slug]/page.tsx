@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getMultilangPost, getMultilangPosts } from '@/lib/blogMultilang'
@@ -21,8 +22,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 function renderContent(content: string) {
   const lines = content.split('\n')
-  const elements: React.ReactNode[] = []
-  let tableRows: React.ReactNode[] = []
+  const elements: ReactNode[] = []
+  let tableRows: ReactNode[] = []
   let inTable = false
 
   lines.forEach((line, i) => {
