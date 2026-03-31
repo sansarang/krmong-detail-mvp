@@ -13,16 +13,30 @@ export async function POST(req: NextRequest) {
     let fetchUrl = url.trim()
     if (!/^https?:\/\//i.test(fetchUrl)) fetchUrl = 'https://' + fetchUrl
 
+    const hostname = new URL(fetchUrl).hostname
     const pageRes = await fetch(fetchUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml',
-        'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7,ja;q=0.6,zh;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Referer': `https://${hostname}/`,
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Upgrade-Insecure-Requests': '1',
       },
-      signal: AbortSignal.timeout(12000),
+      signal: AbortSignal.timeout(14000),
     })
 
-    if (!pageRes.ok) throw new Error(`페이지 응답 오류 (${pageRes.status})`)
+    if (!pageRes.ok) {
+      if (pageRes.status === 429 || pageRes.status === 403) {
+        throw new Error(`이 사이트는 자동 수집이 제한되어 있습니다. URL 대신 제품명과 설명을 직접 입력해 주세요.`)
+      }
+      throw new Error(`페이지 응답 오류 (${pageRes.status})`)
+    }
 
     const html = await pageRes.text()
     const cleanText = html

@@ -316,7 +316,7 @@ const UI: Record<UiLang, {
     tmplTitleLabel: '문서 제목', tmplTitlePlaceholder: '예: 2025 스마트시티 사업계획서',
     tmplTitleRequired: '문서 제목을 입력해주세요',
     urlLabel: '제품 URL로 자동 입력', urlPlaceholder: '예: https://smartstore.naver.com/...',
-    urlBtn: '🔍 AI 자동 입력', urlLoading: '분석 중...',
+    urlBtn: '⚡ 자동 입력', urlLoading: '분석 중...',
     crossborderToggle: '🌏 크로스보더 모드', crossborderLabel: '판매할 플랫폼 선택',
   },
   en: {
@@ -698,7 +698,14 @@ export default function NewOrderPage() {
       }))
       toast.success('제품 정보를 자동으로 가져왔습니다!')
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'URL 분석 실패')
+      const msg = err instanceof Error ? err.message : 'URL 분석 실패'
+      const isBlocked = msg.includes('제한') || msg.includes('429') || msg.includes('403')
+      toast.error(
+        isBlocked
+          ? '이 사이트는 자동 수집이 제한되어 있어요.\n제품명과 설명을 직접 입력해 주세요.'
+          : msg,
+        { duration: 5000 }
+      )
     } finally {
       setUrlLoading(false)
     }
