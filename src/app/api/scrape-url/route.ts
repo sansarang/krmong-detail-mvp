@@ -261,40 +261,77 @@ function parsePlatformSpecific(html: string, hostname: string): Partial<ScrapeRe
 
   // ── 쿠팡 ──────────────────────────────────────────────────
   if (hostname.includes('coupang')) {
-    // 제품명
+    // 제품명 — 25개 이상 패턴으로 최대한 포착
     result.product_name =
-      get(/<h2[^>]+class="[^"]*prod-buy-header__title[^"]*"[^>]*>([^<]+)/i) ??
-      get(/<h1[^>]+class="[^"]*title[^"]*"[^>]*>([^<]+)/i) ??
-      get(/"productTitle"\s*:\s*"([^"]+)"/i) ??
-      get(/"name"\s*:\s*"([^"]+)"/i)
+      // 1) HTML 구조 패턴
+      get(/<h2[^>]+class="[^"]*prod-buy-header__title[^"]*"[^>]*>([\s\S]*?)<\/h2>/i)?.replace(/<[^>]+>/g,'').trim() ??
+      get(/<h1[^>]+class="[^"]*title[^"]*"[^>]*>([\s\S]*?)<\/h1>/i)?.replace(/<[^>]+>/g,'').trim() ??
+      get(/<span[^>]+class="[^"]*__titleArea[^"]*"[^>]*>([\s\S]*?)<\/span>/i)?.replace(/<[^>]+>/g,'').trim() ??
+      get(/<div[^>]+class="[^"]*product-title[^"]*"[^>]*>([\s\S]*?)<\/div>/i)?.replace(/<[^>]+>/g,'').trim() ??
+      get(/<p[^>]+class="[^"]*prod-name[^"]*"[^>]*>([\s\S]*?)<\/p>/i)?.replace(/<[^>]+>/g,'').trim() ??
+      // 2) JSON 데이터 패턴 (쿠팡 내장 JS 변수)
+      get(/"productTitle"\s*:\s*"([^"]{5,})"/i) ??
+      get(/"name"\s*:\s*"([^"]{5,})",\s*"(?:brand|price|url)"/i) ??
+      get(/"itemName"\s*:\s*"([^"]{5,})"/i) ??
+      get(/"displayName"\s*:\s*"([^"]{5,})"/i) ??
+      get(/data-product-name=["']([^"']{5,})["']/i) ??
+      get(/data-item-name=["']([^"']{5,})["']/i) ??
+      // 3) OG / meta 태그 (쿠팡이 종종 og:title에 제품명 넣음)
+      get(/<meta[^>]+property=["']og:title["'][^>]*content=["']([^"'|–]{5,})["']/i) ??
+      get(/<title[^>]*>([^<|–]{5,}?)\s*[-|–|·]/i) ??
+      get(/<title[^>]*>([^<]{5,}?)\s*\|/i)
+
+    // 제품명 클린업 (쿠팡 브랜드 suffix 제거)
+    if (result.product_name) {
+      result.product_name = result.product_name
+        .replace(/\s*[-|–|·|｜]\s*쿠팡.*/gi, '')
+        .replace(/\s*\|\s*COUPANG.*/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+    }
 
     // 가격 — 쿠팡 특유의 패턴
     const salePrice =
       get(/<strong[^>]+class="[^"]*sale-price[^"]*"[^>]*>\s*([0-9,]+)/i) ??
       get(/<span[^>]+class="[^"]*price-value[^"]*"[^>]*>([0-9,]+)/i) ??
+      get(/<em[^>]+class="[^"]*total-price[^"]*"[^>]*>([\s\S]*?)<\/em>/i)?.replace(/[^0-9,]/g,'') ??
       get(/"finalPrice"\s*:\s*([0-9]+)/i) ??
-      get(/"salePrice"\s*:\s*([0-9]+)/i)
+      get(/"salePrice"\s*:\s*([0-9]+)/i) ??
+      get(/"price"\s*:\s*([0-9]+)/i)
     if (salePrice) result.price = salePrice.replace(/,/g, '') + '원'
 
     const origPrice =
       get(/<del[^>]+class="[^"]*base-price[^"]*"[^>]*>\s*([0-9,]+)/i) ??
-      get(/"originalPrice"\s*:\s*([0-9]+)/i)
+      get(/<span[^>]+class="[^"]*origin-price[^"]*"[^>]*>([0-9,]+)/i) ??
+      get(/"originalPrice"\s*:\s*([0-9]+)/i) ??
+      get(/"listPrice"\s*:\s*([0-9]+)/i)
     if (origPrice) result.original_price = origPrice.replace(/,/g, '') + '원'
 
     // 브랜드
     result.brand =
       get(/<span[^>]+class="[^"]*brand[^"]*"[^>]*>([^<]+)/i) ??
+      get(/<a[^>]+class="[^"]*brand[^"]*"[^>]*>([^<]+)/i) ??
+      get(/"brand"\s*:\s*\{"name"\s*:\s*"([^"]+)"/i) ??
       get(/"brand"\s*:\s*"([^"]+)"/i) ??
       get(/<a[^>]+href="[^"]*brand[^"]*"[^>]*>([^<]+)/i)
 
+    // 특징 (bullet points)
+    const bulletMatches = [...html.matchAll(/<li[^>]+class="[^"]*prod-description-attribute[^"]*"[^>]*>([\s\S]*?)<\/li>/gi)]
+      .map(m => m[1].replace(/<[^>]+>/g, '').trim()).filter(s => s.length > 3).slice(0, 6)
+    if (bulletMatches.length) result.features = bulletMatches
+
     // 카테고리 breadcrumb
-    const cats = [...html.matchAll(/<li[^>]+class="[^"]*breadcrumb[^"]*"[^>]*>([^<]+)/gi)]
-      .map(m => m[1].trim()).filter(Boolean)
+    const cats = [
+      ...[...html.matchAll(/<li[^>]+class="[^"]*breadcrumb[^"]*"[^>]*>([\s\S]*?)<\/li>/gi)].map(m => m[1].replace(/<[^>]+>/g,'').trim()),
+      ...[...html.matchAll(/"breadcrumb"[^:]*:\s*\[([^\]]+)\]/gi)].map(m => m[1]),
+    ].filter(Boolean).slice(0, 5)
     if (cats.length) result.keywords = cats
 
     // 이미지
-    const imgs = [...html.matchAll(/https:\/\/thumbnail\d*\.coupangcdn\.com\/thumbnails\/remote\/[^"'\s]+(?:jpg|jpeg|png|webp)/gi)]
-      .map(m => m[0]).filter((v, i, a) => a.indexOf(v) === i).slice(0, 5)
+    const imgs = [
+      ...[...html.matchAll(/https:\/\/thumbnail\d*\.coupangcdn\.com\/thumbnails\/remote\/[^"'\s]+(?:jpg|jpeg|png|webp)/gi)].map(m => m[0]),
+      ...[...html.matchAll(/https:\/\/[^"'\s]+\.coupangcdn\.com\/[^"'\s]+(?:jpg|jpeg|png|webp)/gi)].map(m => m[0]),
+    ].filter((v, i, a) => a.indexOf(v) === i).filter(u => !u.includes('icon') && !u.includes('logo')).slice(0, 5)
     if (imgs.length) result.image_urls = imgs
   }
 
@@ -463,6 +500,37 @@ function htmlToCleanText(html: string): string {
     .slice(0, 14000)
 }
 
+// ── 블록/리다이렉트 페이지 감지 ──────────────────────────────
+function isBlockedOrRedirectPage(html: string, hostname: string): boolean {
+  if (!html || html.length < 2000) return true
+  const lower = html.slice(0, 5000).toLowerCase()
+  // 공통 블록 패턴
+  if (lower.includes('access denied') || lower.includes('403 forbidden')
+    || lower.includes('captcha') || lower.includes('robot check')
+    || lower.includes('just a moment') || lower.includes('ddos-guard')
+    || lower.includes('checking your browser')) return true
+  // 쿠팡 전용: 로그인 리다이렉트
+  if (hostname.includes('coupang')) {
+    if (lower.includes('login') && (lower.includes('redirect') || lower.includes('returnurl'))) return true
+    if (lower.includes('로그인이 필요') || lower.includes('회원 전용')) return true
+    // 쿠팡 정상 제품 페이지는 prod-buy-header 등 특정 클래스 포함
+    const hasProductContent = html.includes('prod-buy-header') || html.includes('productTitle')
+      || html.includes('vp-product-') || html.includes('data-product-')
+    if (!hasProductContent && html.length < 50000) return true
+  }
+  return false
+}
+
+// ── 제품명 신뢰도 계산 ────────────────────────────────────────
+function computeProductNameConfidence(name: string): 'high' | 'medium' | 'low' {
+  if (!name || name.length < 3) return 'low'
+  const lower = name.toLowerCase()
+  const errorWords = ['access', 'denied', 'forbidden', 'login', 'redirect', 'captcha', 'error', '로그인', '오류', 'just a moment', 'cloudflare']
+  if (errorWords.some(w => lower.includes(w))) return 'low'
+  if (name.length > 10 && !lower.includes('page not found') && !lower.includes('404')) return 'high'
+  return 'medium'
+}
+
 // ── 플랫폼 힌트 ──────────────────────────────────────────────
 function getPlatformHint(hostname: string): string {
   if (hostname.includes('smartstore.naver.com')) return '이것은 네이버 스마트스토어 제품 페이지입니다.'
@@ -480,43 +548,62 @@ function getPlatformHint(hostname: string): string {
   return ''
 }
 
-// ── AI 추출 (강화된 프롬프트) ────────────────────────────────
+// ── AI 추출 (강화된 프롬프트 + 제품명 잠금) ──────────────────
 async function extractWithAI(
   url: string,
   text: string,
   prefilled: Partial<ScrapeResult>,
   htmlAvailable: boolean,
+  lockedProductName?: string, // HTML에서 확실히 추출된 제품명 — AI가 절대 바꾸면 안 됨
 ): Promise<ScrapeResult> {
   const hostname = new URL(url).hostname
   const platformHint = getPlatformHint(hostname)
 
   const prefilledStr = Object.entries(prefilled)
-    .filter(([, v]) => v && (Array.isArray(v) ? v.length > 0 : String(v).length > 0))
+    .filter(([k, v]) => k !== 'product_name' && v && (Array.isArray(v) ? v.length > 0 : String(v).length > 0))
     .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
     .join('\n')
 
+  // 제품명 잠금 여부 결정
+  const nameConfidence = prefilled.product_name ? computeProductNameConfidence(prefilled.product_name) : 'low'
+  const confirmedName = lockedProductName ?? (nameConfidence === 'high' ? prefilled.product_name : undefined)
+
+  const nameLockInstruction = confirmedName
+    ? `\n🔒 CONFIRMED PRODUCT NAME (DO NOT CHANGE): "${confirmedName}"\n   → The product_name field MUST be exactly: "${confirmedName}"\n   → Do NOT replace this with any other name. Do NOT hallucinate a different product.\n`
+    : htmlAvailable
+    ? '\n⚠️ Extract the product_name ONLY from the actual page text provided. DO NOT guess or invent a product name.\n'
+    : '\n⚠️ Page content unavailable. If you cannot determine the product name with high confidence, set product_name to "" (empty string). NEVER guess or hallucinate a product name.\n'
+
   const systemPrompt = `You are an elite product data extraction specialist. Your job: extract maximum accurate product information from any e-commerce page.
 
-Rules:
-- NEVER include error messages ("Access Denied", "Forbidden", "로봇" etc.) in product fields
-- ALWAYS infer intelligently — if HTML is blocked, use URL structure + brand knowledge
-- product_name: exact full product name with model/variant if available
-- description: 250-400 chars, sales-focused, includes benefits, features, target customer
-- features: 4-6 specific bullet points about product advantages
+CRITICAL ANTI-HALLUCINATION RULES:
+1. NEVER make up or guess a product name you are not sure about
+2. NEVER confuse the product with a different category (e.g., do not call a wireless device a "wallet")
+3. If product_name is confirmed/locked (shown below), use it EXACTLY — do not modify it
+4. If you cannot determine product_name from the text, leave it as "" (empty)
+5. NEVER include error messages ("Access Denied", "Forbidden", "로봇" etc.) in any field
+
+Extraction rules:
+- product_name: exact full product name with model/variant. If unsure, leave empty.
+- description: 250-400 chars, based ONLY on actual product information found in text
+- features: 4-6 specific bullet points extracted from actual page content
 - keywords: 8-12 SEO keywords in the product's primary language
 - category MUST be one of: food/beauty/living/fashion/electronics/health/pet/sports/saas/other
-- If price info exists, include currency symbol (원, ¥, $, ¥)
+- Infer category from the product_name and description text — electronics/gadgets go to "electronics"
+- If price info exists, include currency symbol (원, ¥, $)
 - Return ONLY valid JSON. No markdown. No explanation.`
 
   const userPrompt = `Extract product info from this ${platformHint ? `[${platformHint}]` : 'e-commerce'} page.
-
+${nameLockInstruction}
 URL: ${url}
-${prefilledStr ? `\nAlready extracted:\n${prefilledStr}` : ''}
-${htmlAvailable ? `\nPage text (truncated):\n${text.slice(0, 9000)}` : `\nNote: Page could not be fetched directly. Use URL structure and domain knowledge to infer product details.`}
+${prefilledStr ? `\nSupporting data already extracted:\n${prefilledStr}` : ''}
+${htmlAvailable
+  ? `\nPage text (truncated to 8000 chars):\n${text.slice(0, 8000)}`
+  : `\n⚠️ WARNING: Page could not be fetched. Only use URL structure for category hints. Set product_name to "" if unknown.`}
 
 Return this exact JSON:
 {
-  "product_name": "",
+  "product_name": "${confirmedName ?? ''}",
   "brand": "",
   "category": "",
   "description": "",
@@ -549,15 +636,20 @@ Return this exact JSON:
 
   const parsed = JSON.parse(jsonMatch[0]) as ScrapeResult
 
-  // 이미지 복원 (AI가 지웠을 경우)
-  if ((!parsed.image_urls || !parsed.image_urls.length) && prefilled.image_urls?.length) {
-    parsed.image_urls = prefilled.image_urls
+  // 제품명 잠금 강제 적용 (AI가 무시한 경우 복원)
+  if (confirmedName && (!parsed.product_name || parsed.product_name !== confirmedName)) {
+    parsed.product_name = confirmedName
   }
 
   // 에러 메시지가 제품명에 들어간 경우 제거
-  const errorKeywords = ['access denied', 'forbidden', 'captcha', 'just a moment', 'robot', '로봇', 'error']
+  const errorKeywords = ['access denied', 'forbidden', 'captcha', 'just a moment', 'robot', '로봇', 'error', 'cloudflare', '로그인', 'login required']
   if (parsed.product_name && errorKeywords.some(k => parsed.product_name.toLowerCase().includes(k))) {
-    parsed.product_name = prefilled.product_name ?? ''
+    parsed.product_name = confirmedName ?? prefilled.product_name ?? ''
+  }
+
+  // 이미지 복원 (AI가 지웠을 경우)
+  if ((!parsed.image_urls || !parsed.image_urls.length) && prefilled.image_urls?.length) {
+    parsed.image_urls = prefilled.image_urls
   }
 
   return parsed
@@ -578,14 +670,33 @@ export async function POST(req: NextRequest) {
     const hostname = parsed.hostname
 
     // ── 1단계: HTML 수집 (다중 전략) ──────────────────────────
-    const { html, ok: fetchOk } = await fetchHtml(fetchUrl)
+    const { html, ok: fetchOk, strategy } = await fetchHtml(fetchUrl)
+    const pageBlocked = isBlockedOrRedirectPage(html, hostname)
+    const effectiveHtml = pageBlocked ? '' : html
+    const htmlIsUsable = fetchOk && !pageBlocked && html.length > 2000
 
     // ── 2단계: 구조화 데이터 파싱 ─────────────────────────────
-    const jsonLdData  = html ? parseJsonLd(html)  : {}
-    const metaData    = html ? parseMeta(html)    : {}
-    const platformData = html ? parsePlatformSpecific(html, hostname) : {}
-    const priceData   = html ? parsePrice(html, hostname)  : {}
-    const pageImages  = html && fetchOk ? parseImages(html, hostname) : []
+    const jsonLdData   = effectiveHtml ? parseJsonLd(effectiveHtml)  : {}
+    const metaData     = effectiveHtml ? parseMeta(effectiveHtml)    : {}
+    const platformData = effectiveHtml ? parsePlatformSpecific(effectiveHtml, hostname) : {}
+    const priceData    = effectiveHtml ? parsePrice(effectiveHtml, hostname) : {}
+    const pageImages   = htmlIsUsable  ? parseImages(effectiveHtml, hostname) : []
+
+    // 제품명 신뢰도 체계: 높은 소스 우선
+    // 1순위: 플랫폼 전용 파서 (가장 신뢰 높음)
+    // 2순위: JSON-LD (공식 구조화 데이터)
+    // 3순위: OG/meta title (일반적으로 제품명 포함)
+    const candidateNames = [
+      platformData.product_name,
+      jsonLdData.product_name,
+      metaData.product_name,
+    ].filter((n): n is string => !!n && n.length > 3)
+
+    const bestName = candidateNames[0] ?? ''
+    const nameConf = computeProductNameConfidence(bestName)
+
+    // 확실한 제품명이면 AI에게 잠금 전달 (hallucination 완전 방지)
+    const lockedName = (nameConf === 'high' && bestName.length > 5) ? bestName : undefined
 
     // 이미지 우선순위 병합 (플랫폼 > JSON-LD > OG > 본문)
     const allImages = [
@@ -597,7 +708,7 @@ export async function POST(req: NextRequest) {
 
     // prefilled 데이터 병합 (플랫폼 파서 우선)
     const prefilled: Partial<ScrapeResult> = {
-      product_name: platformData.product_name ?? jsonLdData.product_name ?? metaData.product_name ?? '',
+      product_name: bestName,
       brand:        platformData.brand ?? jsonLdData.brand ?? metaData.brand ?? '',
       description:  jsonLdData.description ?? metaData.description ?? '',
       price:        platformData.price ?? jsonLdData.price ?? metaData.price ?? priceData.price ?? '',
@@ -611,12 +722,21 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 3단계: AI 보강 ─────────────────────────────────────────
-    const cleanText = html ? htmlToCleanText(html) : ''
-    const result = await extractWithAI(fetchUrl, cleanText, prefilled, fetchOk && html.length > 500)
+    const cleanText = effectiveHtml ? htmlToCleanText(effectiveHtml) : ''
+    const result = await extractWithAI(fetchUrl, cleanText, prefilled, htmlIsUsable, lockedName)
 
-    const isPartial = !fetchOk || !result.product_name
+    // 후처리: 제품명이 여전히 비어 있으면 메타 title 일부라도 사용
+    if (!result.product_name && metaData.product_name && computeProductNameConfidence(metaData.product_name) !== 'low') {
+      result.product_name = metaData.product_name
+        .replace(/\s*[-|–|·|｜]\s*(쿠팡|네이버|스마트스토어|Coupang|Amazon|Rakuten).*/gi, '')
+        .trim()
+    }
 
-    return NextResponse.json({ ...result, partial: isPartial })
+    const isPartial = pageBlocked || !htmlIsUsable || !result.product_name
+
+    console.log(`[scrape-url] strategy=${strategy} blocked=${pageBlocked} name="${result.product_name}" locked=${!!lockedName}`)
+
+    return NextResponse.json({ ...result, partial: isPartial, _debug: { strategy, blocked: pageBlocked } })
 
   } catch (err: unknown) {
     console.error('Scrape URL error:', err)

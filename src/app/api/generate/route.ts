@@ -662,42 +662,83 @@ SEO: 天猫热搜关键词自然融入标题前20字和各卖点描述中
       : ''
 
     // ── 제품 앵커 블록 (hallucination 방지 핵심) ─────────────
-    // 카테고리별 "이것이 아니다" negative 힌트
-    const NEGATIVE_HINTS: Record<string, string> = {
-      beauty:      'NOT a food, clothing, electronics, or furniture product.',
-      fashion:     'NOT a beauty product, electronics, food, or home appliance.',
-      electronics: 'NOT a clothing, food, beauty, or furniture product.',
-      food:        'NOT a beauty product, clothing, electronics, or furniture.',
-      living:      'NOT a beauty product, clothing, or electronics product.',
-      health:      'NOT a food brand, clothing, or electronics product.',
-      sports:      'NOT a beauty product, food, or home appliance.',
-      saas:        'NOT a physical product. This is a software/digital service.',
+
+    // 카테고리별 정적 "이것이 아니다" negative 힌트
+    const STATIC_NEGATIVE_HINTS: Record<string, string> = {
+      beauty:      '지갑/가방/신발/의류/전자기기/식품이 아님.',
+      fashion:     '뷰티/전자기기/식품/가전제품이 아님.',
+      electronics: '의류/식품/뷰티/가구/지갑/신발이 아님.',
+      food:        '뷰티/의류/전자기기/가구가 아님.',
+      living:      '뷰티/의류/전자기기가 아님.',
+      health:      '식품 브랜드/의류/전자기기가 아님.',
+      sports:      '뷰티/식품/가전제품이 아님.',
+      saas:        '물리적 제품이 아닌 소프트웨어/디지털 서비스.',
+      pet:         '인간용 제품이 아닌 반려동물 관련 제품.',
       other:       '',
     }
-    const negativeHint = NEGATIVE_HINTS[order.category] ?? ''
+
+    // 동적 negative hint — 설명에서 키워드 분석해 반대 카테고리 명시
+    function buildDynamicNegative(name: string, desc: string, category: string): string {
+      const text = (name + ' ' + desc).toLowerCase()
+      const negatives: string[] = []
+
+      // 통신/전자 기기 관련 키워드 감지
+      if (/통신|무선|블루투스|wireless|bluetooth|earphone|이어폰|headset|헤드셋|radio|라디오|walkie|워키|talkie|receiver|발신기|수신기|송신|speaker|스피커|microphone|마이크/.test(text)) {
+        negatives.push('지갑·가방·신발·의류가 절대 아님 — 이것은 전자/통신 장치임')
+      }
+      // 신발 관련
+      if (/신발|운동화|슬리퍼|부츠|loafer|sneaker|shoes|footwear|sole|insole|밑창/.test(text)) {
+        negatives.push('지갑·가방·전자기기가 절대 아님 — 이것은 신발/풋웨어 제품임')
+      }
+      // 지갑/가방
+      if (/지갑|wallet|purse|handbag|백|bag|파우치|pouch|clutch|클러치/.test(text)) {
+        negatives.push('신발·전자기기·의류가 절대 아님 — 이것은 가방/지갑 제품임')
+      }
+      // 식품
+      if (/식품|음료|원두|커피|tea|차|snack|과자|건강식|supplement|비타민/.test(text)) {
+        negatives.push('전자기기·의류·가방이 절대 아님 — 이것은 식품/건강식품 제품임')
+      }
+
+      const staticHint = STATIC_NEGATIVE_HINTS[category] ?? ''
+      const allHints = [staticHint, ...negatives].filter(Boolean)
+      return allHints.join('\n⛔ ')
+    }
+
+    const dynamicNegative = buildDynamicNegative(order.product_name, cleanDescription, order.category)
 
     const buildProductAnchor = (lang: string) => {
+      const descSnippet = cleanDescription.slice(0, 600)
       if (lang === 'ko' || lang === 'all') {
-        return `🔒 제품 앵커 (절대 지켜야 할 사실):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-제품명: ${order.product_name}
-카테고리: ${order.category}
-핵심 설명: ${cleanDescription.slice(0, 500)}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚠️ 이 제품은 반드시 위의 제품명과 카테고리를 기반으로 작성해야 한다.
-⚠️ 절대 다른 제품이나 브랜드로 착각하거나 다른 제품에 대한 내용을 쓰지 마라.${negativeHint ? `\n⚠️ ${negativeHint}` : ''}
-⚠️ 입력된 제품명 "${order.product_name}"을 3개 이상 섹션에서 반드시 언급할 것.
+        return `
+╔══════════════════════════════════════════════════════╗
+║  🔒 제품 앵커 — 절대 진실 (위반 금지)                ║
+╠══════════════════════════════════════════════════════╣
+║  제품명 : ${order.product_name}
+║  카테고리: ${order.category}
+║  핵심설명: ${descSnippet}
+╠══════════════════════════════════════════════════════╣
+║  ⛔ 이것은 반드시 "${order.product_name}"에 관한 글이어야 한다.
+${dynamicNegative ? `║  ⛔ ${dynamicNegative}` : ''}
+║  ⛔ 제품명을 다른 제품이나 카테고리로 착각하지 마라.
+║  ⛔ 위 제품명을 최소 3개 이상 섹션에서 반드시 언급할 것.
+║  ⛔ 제품명: "${order.product_name}" — 이것이 유일한 제품명이다.
+╚══════════════════════════════════════════════════════╝
 `
       }
-      return `🔒 PRODUCT ANCHOR (ABSOLUTE TRUTH — DO NOT DEVIATE):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Product Name: ${order.product_name}
-Category: ${order.category}
-Core Description: ${cleanDescription.slice(0, 500)}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚠️ CRITICAL: You are writing about THIS SPECIFIC PRODUCT: "${order.product_name}"
-⚠️ DO NOT confuse this with any other product or brand.${negativeHint ? `\n⚠️ ${negativeHint}` : ''}
-⚠️ MUST mention the product name "${order.product_name}" in at least 3 sections.
+      return `
+╔══════════════════════════════════════════════════════╗
+║  🔒 PRODUCT ANCHOR — ABSOLUTE TRUTH (DO NOT DEVIATE) ║
+╠══════════════════════════════════════════════════════╣
+║  Product Name : ${order.product_name}
+║  Category     : ${order.category}
+║  Core Desc    : ${descSnippet}
+╠══════════════════════════════════════════════════════╣
+║  ⛔ You MUST write ONLY about this product: "${order.product_name}"
+${dynamicNegative ? `║  ⛔ ${dynamicNegative}` : ''}
+║  ⛔ DO NOT confuse with any other product or category.
+║  ⛔ Mention "${order.product_name}" in at least 3 separate sections.
+║  ⛔ This product name is LOCKED — do not change or generalize it.
+╚══════════════════════════════════════════════════════╝
 `
     }
     // ──────────────────────────────────────────────────────────

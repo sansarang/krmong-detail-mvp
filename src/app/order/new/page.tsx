@@ -610,9 +610,10 @@ export default function NewOrderPage() {
   const [urlLoading, setUrlLoading]         = useState(false)
   const [urlLoadingStep, setUrlLoadingStep] = useState('')
   const [scrapedExtra, setScrapedExtra]     = useState<{
-    brand?: string; price?: string; original_price?: string
+    product_name?: string; brand?: string; price?: string; original_price?: string
     features?: string[]; keywords?: string[]; image_urls?: string[]
     colors?: string[]; sizes?: string[]; material?: string; target_customer?: string
+    partial?: boolean
   } | null>(null)
   const [crossborderMode, setCrossborderMode] = useState(false)
   const [crossborderPlatforms, setCrossborderPlatforms] = useState<string[]>([])
@@ -1715,6 +1716,49 @@ export default function NewOrderPage() {
                     </p>
                     <button type="button" onClick={() => setScrapedExtra(null)} className="text-gray-400 hover:text-gray-600 text-xs">✕</button>
                   </div>
+
+                  {/* ── 제품명 크게 강조 표시 (hallucination 방지 확인) ── */}
+                  {scrapedExtra.product_name && (
+                    <div className={`rounded-xl px-3 py-2.5 border ${
+                      scrapedExtra.partial
+                        ? 'bg-amber-50 border-amber-200'
+                        : 'bg-emerald-50 border-emerald-200'
+                    }`}>
+                      <div className="flex items-start gap-2">
+                        <span className="text-base shrink-0">{scrapedExtra.partial ? '⚠️' : '🔒'}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-[9px] font-black uppercase tracking-wider mb-0.5 ${scrapedExtra.partial ? 'text-amber-600' : 'text-emerald-600'}`}>
+                            {scrapedExtra.partial
+                              ? (uiLang === 'ko' ? '제품명 (낮은 신뢰도 — 확인 필요)' : 'Product Name (low confidence — please verify)')
+                              : (uiLang === 'ko' ? '✓ 제품명 확인됨 (AI가 이 이름으로 작성합니다)' : '✓ Product name locked (AI will write about this)')}
+                          </p>
+                          <p className={`text-sm font-black leading-snug ${scrapedExtra.partial ? 'text-amber-800' : 'text-emerald-800'}`}>
+                            {scrapedExtra.product_name}
+                          </p>
+                        </div>
+                      </div>
+                      {scrapedExtra.partial && (
+                        <p className="text-[10px] text-amber-600 mt-1.5 leading-relaxed">
+                          {uiLang === 'ko'
+                            ? '페이지를 완전히 가져오지 못했습니다. 오른쪽 "제품명" 필드에서 정확한 이름을 직접 입력해주세요.'
+                            : 'Page partially fetched. Please verify the product name in the form field on the right.'}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {!scrapedExtra.product_name && (
+                    <div className="rounded-xl bg-red-50 border border-red-200 px-3 py-2.5">
+                      <p className="text-xs font-black text-red-700 mb-1">
+                        {uiLang === 'ko' ? '⚠️ 제품명을 자동 추출하지 못했습니다' : '⚠️ Could not extract product name'}
+                      </p>
+                      <p className="text-[10px] text-red-500 leading-relaxed">
+                        {uiLang === 'ko'
+                          ? '쿠팡 등 일부 사이트는 자동 분석이 어렵습니다. 오른쪽 폼에 제품명을 직접 입력해주세요. 그래야 AI가 올바른 제품을 작성합니다.'
+                          : 'Some sites block automatic analysis. Please enter the product name manually in the form to prevent incorrect AI generation.'}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Badges row */}
                   <div className="flex flex-wrap gap-1.5">
