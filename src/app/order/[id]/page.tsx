@@ -1908,25 +1908,38 @@ export default function OrderResultPage() {
           {/* Multi-lang tabs */}
           {order.result_json?.multi_lang && (
             <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-5 shadow-sm print:hidden">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-sm">🌏</span>
-                <p className="text-xs font-black text-gray-500 uppercase tracking-wider">4-Language Result</p>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🌏</span>
+                  <p className="text-xs font-black text-gray-700 uppercase tracking-wider">4-Language Simultaneous Output</p>
+                </div>
+                <span className="text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded-full">동시 생성 완료</span>
               </div>
               <div className="flex gap-2 flex-wrap">
                 {(['ko','en','ja','zh'] as const).map(lang => {
-                  const FLAG: Record<string,string> = {ko:'🇰🇷',en:'🇺🇸',ja:'🇯🇵',zh:'🇨🇳'}
-                  const LABEL: Record<string,string> = {ko:'한국어',en:'English',ja:'日本語',zh:'中文'}
+                  const META: Record<string,{flag:string;label:string;tone:string;market:string}> = {
+                    ko: { flag:'🇰🇷', label:'한국어', tone:'감성·신뢰 스토리텔링', market:'스마트스토어·쿠팡' },
+                    en: { flag:'🇺🇸', label:'English', tone:'Benefit-first · Premium', market:'Amazon · Shopify' },
+                    ja: { flag:'🇯🇵', label:'日本語', tone:'丁寧語 · 品質重視', market:'楽天 · Amazon JP' },
+                    zh: { flag:'🇨🇳', label:'中文', tone:'爆款公式 · 社会认同', market:'天猫 · 京东' },
+                  }
+                  const m = META[lang]
                   const hasSections = (order.result_json?.[lang]?.sections?.length ?? 0) > 0
                   return (
                     <button key={lang} type="button" disabled={!hasSections} onClick={() => setMultiLangTab(lang)}
-                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border transition-all ${
+                      className={`flex flex-col items-start px-3 py-2.5 rounded-xl text-left border transition-all ${
                         multiLangTab === lang
                           ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-lg'
                           : hasSections
                             ? 'bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:shadow-sm'
                             : 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
                       }`}>
-                      {FLAG[lang]} {LABEL[lang]}
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className="text-sm">{m.flag}</span>
+                        <span className="text-xs font-black">{m.label}</span>
+                      </div>
+                      <span className={`text-[10px] font-medium ${multiLangTab === lang ? 'text-white/70' : 'text-gray-400'}`}>{m.tone}</span>
+                      <span className={`text-[10px] font-bold ${multiLangTab === lang ? 'text-emerald-300' : 'text-blue-500'}`}>{m.market}</span>
                     </button>
                   )
                 })}
@@ -1934,74 +1947,90 @@ export default function OrderResultPage() {
             </div>
           )}
 
-          {/* Conversion Predictor */}
+          {/* Conversion Predictor — stable calculation, no Math.random */}
           {order.result_json?.multi_lang && seoReport && (() => {
             const score = seoReport.score
             const cat = order.category ?? ''
-            // 카테고리별 기본 전환율 베이스
-            const BASE: Record<string, number> = {
-              beauty: 3.2, food: 4.1, electronics: 2.8, fashion: 3.5, health: 3.8,
-              living: 2.9, pet: 4.4, sports: 3.1, saas: 2.1, default: 3.0,
+            // Stable base CVR by category × platform (no randomness)
+            const CVR_BASE: Record<string, Record<string, number>> = {
+              en: { beauty:5.3, food:3.9, electronics:3.8, fashion:4.9, health:5.2, living:3.6, pet:5.1, saas:3.2, sports:4.1, default:4.5 },
+              ja: { beauty:4.7, food:5.0, electronics:3.5, fashion:4.3, health:4.8, living:3.7, pet:4.9, saas:3.0, sports:3.8, default:3.8 },
+              zh: { beauty:6.9, food:6.3, electronics:4.8, fashion:6.1, health:6.5, living:4.9, pet:5.8, saas:3.8, sports:5.4, default:5.2 },
+              ko: { beauty:4.1, food:4.5, electronics:2.9, fashion:3.8, health:4.2, living:3.1, pet:4.6, saas:2.8, sports:3.4, default:3.2 },
             }
-            const base = BASE[cat] ?? BASE.default
-            // SEO 점수 보정 (50점 기준 ±)
-            const seoBoost = ((score - 50) / 50) * 1.5
+            const seoBoost = ((score - 60) / 100) * 0.8
             const PLATFORMS = [
-              { name: 'Amazon JP',   flag: '🇯🇵', boost: 0.3,  color: '#FF9900' },
-              { name: 'Tmall CN',    flag: '🇨🇳', boost: 0.5,  color: '#E53E3E' },
-              { name: 'Rakuten',     flag: '🇯🇵', boost: 0.15, color: '#BF0000' },
-              { name: 'Shopify',     flag: '🌐', boost: 0.2,  color: '#96BF48' },
-              { name: 'Lazada',      flag: '🇸🇬', boost: 0.25, color: '#0F146D' },
-              { name: 'Qoo10',       flag: '🇯🇵', boost: 0.1,  color: '#FF6B35' },
+              { key:'amazon',  name:'Amazon JP',  flag:'🇯🇵', lang:'en', mult:1.18, color:'#FF9900', accentBg:'#FFF7ED' },
+              { key:'tmall',   name:'Tmall CN',   flag:'🇨🇳', lang:'zh', mult:1.22, color:'#E53E3E', accentBg:'#FFF5F5' },
+              { key:'rakuten', name:'Rakuten',    flag:'🇯🇵', lang:'ja', mult:1.14, color:'#BF0000', accentBg:'#FFF5F5' },
+              { key:'shopify', name:'Shopify',    flag:'🌐',  lang:'en', mult:1.16, color:'#5C6BC0', accentBg:'#EEF2FF' },
+              { key:'lazada',  name:'Lazada',     flag:'🇸🇬', lang:'en', mult:1.10, color:'#0F146D', accentBg:'#EFF6FF' },
+              { key:'qoo10',   name:'Qoo10',      flag:'🇯🇵', lang:'ja', mult:1.12, color:'#FF6B35', accentBg:'#FFF7ED' },
             ]
             const predictions = PLATFORMS.map(pl => {
-              const raw = base + seoBoost + pl.boost + (Math.random() * 0.4 - 0.2)
-              const cvr = Math.max(1.0, Math.min(9.9, raw)).toFixed(1)
-              const uplift = Math.round((seoBoost + pl.boost) / base * 100)
-              return { ...pl, cvr, uplift: Math.max(5, uplift) }
+              const base = CVR_BASE[pl.lang]?.[cat] ?? CVR_BASE[pl.lang]?.default ?? 3.5
+              const cvr = Math.max(1.0, Math.min(9.9, base * pl.mult + seoBoost))
+              const uplift = Math.round((pl.mult - 1) * 100 + seoBoost * 5)
+              return { ...pl, cvr: cvr.toFixed(1), uplift: Math.max(8, uplift) }
             })
             const LABEL = {
-              ko: { title: '📊 Conversion Predictor', sub: '시장별 예상 전환율 (SEO 점수 기반)', note: 'SEO 점수와 카테고리 데이터 기반 예측치입니다' },
-              en: { title: '📊 Conversion Predictor', sub: 'Estimated CVR by Market (SEO-based)', note: 'Predictions based on SEO score & category benchmarks' },
-              ja: { title: '📊 転換率予測', sub: '市場別予測転換率（SEOスコア基準）', note: 'SEOスコアとカテゴリデータに基づく予測値' },
-              zh: { title: '📊 转化率预测', sub: '各市场预计转化率（基于SEO评分）', note: '基于SEO评分和品类数据的预测值' },
+              ko: { title: 'Conversion Predictor', sub: '플랫폼별 예상 전환율', note: 'SEO 점수 + 카테고리 벤치마크 기반 예측' },
+              en: { title: 'Conversion Predictor', sub: 'Estimated CVR by Platform', note: 'Based on SEO score & category benchmarks' },
+              ja: { title: '転換率予測レポート', sub: 'プラットフォーム別予測CVR', note: 'SEOスコア・カテゴリデータ基準の予測値' },
+              zh: { title: '转化率预测报告', sub: '各平台预计转化率', note: '基于SEO评分和品类基准数据' },
             }[uiLang]
+            const maxCvr = Math.max(...predictions.map(p => parseFloat(p.cvr)))
             return (
-              <div className="bg-gradient-to-br from-[#1e1b4b] to-[#312e81] rounded-2xl p-5 mb-5 text-white">
+              <div className="bg-gradient-to-br from-[#0F172A] via-[#1e1b4b] to-[#1a1654] rounded-2xl p-5 mb-5 text-white shadow-xl">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="text-sm font-black text-white">{LABEL.title}</h3>
-                    <p className="text-xs text-indigo-300 font-medium mt-0.5">{LABEL.sub}</p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-base">📊</span>
+                      <h3 className="text-sm font-black text-white">{LABEL.title}</h3>
+                    </div>
+                    <p className="text-xs text-indigo-300 font-medium">{LABEL.sub}</p>
                   </div>
-                  <div className="bg-white/10 border border-white/20 rounded-xl px-3 py-1.5 text-center shrink-0">
-                    <div className="text-lg font-black text-white">{score}</div>
-                    <div className="text-[10px] font-bold text-indigo-300">SEO</div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="bg-white/10 border border-white/20 rounded-xl px-3 py-1.5 text-center">
+                      <div className="text-lg font-black text-white leading-none">{score}</div>
+                      <div className="text-[10px] font-bold text-indigo-300">SEO</div>
+                    </div>
+                    <div className="bg-emerald-500/20 border border-emerald-500/30 rounded-xl px-3 py-1.5 text-center">
+                      <div className="text-lg font-black text-emerald-300 leading-none">{maxCvr}%</div>
+                      <div className="text-[10px] font-bold text-emerald-400">Best CVR</div>
+                    </div>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                  {predictions.map((pl) => (
-                    <div key={pl.name} className="bg-white rounded-xl p-3 border border-white shadow-sm">
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <span className="text-sm">{pl.flag}</span>
-                        <span className="text-xs font-bold text-gray-700 truncate">{pl.name}</span>
+                  {predictions.map((pl) => {
+                    const pct = Math.min(100, parseFloat(pl.cvr) / 9.9 * 100)
+                    const isBest = pl.cvr === maxCvr.toString()
+                    return (
+                      <div key={pl.key}
+                        className={`rounded-xl p-3 border transition-all ${isBest ? 'bg-white shadow-lg shadow-white/10 border-white/40' : 'bg-white/95 border-white/20'}`}
+                        style={{ background: isBest ? 'white' : pl.accentBg }}
+                      >
+                        <div className="flex items-center justify-between mb-1.5">
+                          <div className="flex items-center gap-1">
+                            <span className="text-sm">{pl.flag}</span>
+                            <span className="text-xs font-bold text-gray-700">{pl.name}</span>
+                          </div>
+                          {isBest && <span className="text-[9px] font-black bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded-full">BEST</span>}
+                        </div>
+                        <div className="flex items-end gap-1 mb-1.5">
+                          <span className="text-2xl font-black leading-none" style={{ color: pl.color }}>{pl.cvr}%</span>
+                          <span className="text-[10px] text-gray-400 font-medium pb-0.5">CVR</span>
+                        </div>
+                        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-1">
+                          <div className="h-full rounded-full transition-all duration-1000"
+                            style={{ width: `${pct}%`, background: pl.color }} />
+                        </div>
+                        <div className="text-[10px] font-black" style={{ color: pl.color }}>+{pl.uplift}% vs industry avg</div>
                       </div>
-                      <div className="flex items-end gap-1">
-                        <span className="text-xl font-black" style={{ color: pl.color }}>{pl.cvr}%</span>
-                        <span className="text-[10px] text-gray-400 font-medium pb-0.5">CVR</span>
-                      </div>
-                      <div className="mt-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-1000"
-                          style={{ width: `${Math.min(100, parseFloat(pl.cvr) * 10)}%`, background: pl.color }}
-                        />
-                      </div>
-                      <div className="text-[10px] font-bold mt-1" style={{ color: pl.color }}>
-                        +{pl.uplift}% vs avg
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
-                <p className="text-[10px] text-indigo-300 font-medium mt-3 text-right">* {LABEL.note}</p>
+                <p className="text-[10px] text-indigo-300/70 font-medium mt-3 text-right">* {LABEL.note}</p>
               </div>
             )
           })()}

@@ -254,29 +254,36 @@ ${templateContent}
 
     // ── 타겟 마켓 문화 로컬라이징 ────────────────────────────
     const CULTURAL_CONTEXT: Record<string, string> = {
-      ko: `[한국 내수 시장 최적화]
-- 감성적 스토리텔링 (사용 전/후, 고민 공감)
-- 신뢰 구축: 인증, 수상이력, 언론보도, 누적 판매수 언급
-- 구매 촉진 키워드: 한정수량, 오늘만특가, 무료배송, 당일출고
-- 스마트스토어·쿠팡·11번가 SEO 최적화 키워드 밀도 높게`,
-      en: `[Global/Amazon Market Optimization]
-- Benefit-first structure with quantified, specific claims
-- Amazon A+ Content style: 5 concise feature bullets + comparison table hints
-- Problem → Solution → Result framework in every section
-- Trust signals: verified reviews count, certifications, stats (e.g. "4.8★ from 12,000+ reviews")
-- SEO: high keyword density for English-language search intent`,
-      ja: `[日本市場（楽天・Yahooショッピング）特化]
-- 丁寧語・敬語を徹底し、礼儀正しく誠実なトーン
-- 品質・精度・職人技・細部へのこだわりを強調
-- 季節・シーン・用途別の具体的な使用シーン提案
-- 信頼シグナル: 品質保証、検査済み、○○年実績、お客様の声
-- 楽天SEOキーワードを自然に含める`,
-      zh: `[中国市场（天猫/淘宝/京东）特化优化]
-- 天猫A+详情页结构：主图文案 + 卖点图 + 场景图
-- 强调社交认可：销量XX件、好评率99%、达人推荐
-- 突出品质感或性价比（根据定位选择一个方向）
-- 促销信息：限时优惠、满减活动、包邮、7天退换
-- 关键词：正品保障、品牌直营、顺丰发货`,
+      ko: `[🇰🇷 한국 내수 시장 — 스마트스토어 / 쿠팡 / 무신사 최적화]
+TONE: 감성적 스토리텔링 + 구매 심리 자극 + 신뢰 구축
+- 고객의 핵심 고민에 먼저 공감하고 "이 제품이 정확한 해결책"임을 자연스럽게 연결
+- 신뢰 요소 필수 포함: 누적 판매량, 언론보도/수상내역, 실구매자 후기 (구체적 수치 포함)
+- 구매 촉진 트리거: 한정수량, 오늘만 특가, 무료배송+당일출고, 첫 구매 특별 혜택
+- 스마트스토어 SEO: 제품 핵심 키워드를 제목/첫 문단에 자연스럽게 2~3회 반복
+- CTA: "지금 바로", "오늘 안에", "선착순 마감" 패턴으로 즉각 행동 유도`,
+      en: `[🇺🇸🌎 Global English Market — Amazon A+ / Shopify Premium Optimization]
+TONE: Bold benefit-first, premium lifestyle brand storytelling, direct & punchy
+- OPEN with a specific, quantified benefit claim (e.g. "Cuts drying time by 40% — proven by 12,000 buyers")
+- Amazon A+ Content structure: Hook → Problem Agitation → Solution Reveal → 5 Feature Bullets → Social Proof → CTA
+- Feature bullets MUST start with a CAPITALIZED benefit keyword (e.g. "ULTRA-LIGHTWEIGHT:", "CLINICALLY PROVEN:")
+- Trust signals: "4.8★ from 12,000+ verified reviews", FDA/CE certifications, before/after statistics
+- Urgency & FOMO: "Only 47 left in stock", "Ships within 24 hours", "30-Day money-back guarantee"
+- Zero passive voice — every sentence must be active, direct, and conversion-optimized`,
+      ja: `[🇯🇵 日本市場 — 楽天市場 / Yahoo!ショッピング / Amazon.co.jp プレミアム最適化]
+TONE: 丁寧語・敬語を徹底、礼儀正しく誠実、品質と職人技を強調
+- 品質・精度・職人技・細部へのこだわりを具体的数値で表現（例：「0.1mmの精密加工」）
+- 季節感と使用シーンを必ず明記：「乾燥が気になる季節に」「大切な方へのギフトにも最適」
+- 実績と信頼の証拠：「累計○万本突破」「お客様満足度98.7%」「楽天デイリーランキング1位獲得」
+- 安心保証を強調：「全品検品済み」「品質保証付き」「お問い合わせ24時間対応」「返品・交換無料」
+- 楽天SEO: 商品名＋用途＋特徴を自然に組み合わせ、「レビュー高評価」「人気」等の長尾キーワードを活用`,
+      zh: `[🇨🇳 中国市场 — 天猫 / 淘宝 / 京东 A+详情页爆款公式]
+TONE: 高端品质感 × 社会认同 × 限时紧迫 = 爆款三角公式
+- 开篇必须用5字以内的高冲击力标题（如"轻奢爆款"、"全网热销"、"国货之光"）
+- 社交证明硬数据：「已售XX万件」「好评率99.8%」「XX位达人种草推荐」「微博热搜话题」
+- 场景化痛点描述：在具体日常场景（通勤、约会、送礼、自用犒劳）中展示产品使用价值
+- 品质与正品背书：「正品保障」「官方旗舰店直营」「7天无理由退换」「顺丰快递包邮」
+- 限时促销必须出现：「限时秒杀」「今日特惠」「满减优惠」「新品首发价」
+- 关键词埋点：将天猫/淘宝热搜词自然融入各卖点标题和描述中`,
     }
     const culturalContext = !isDocType ? (CULTURAL_CONTEXT[outputLang] ?? '') : ''
 
@@ -317,41 +324,50 @@ ${templateContent}
 
       const buildMultiPrompt = (lang: string) => {
         const lInst = lang !== 'ko'
-          ? `\n⚠️ IMPORTANT: Write ALL output content entirely in ${LANG_NAMES_ALL[lang]}. Do NOT use Korean anywhere.`
+          ? `\n⚠️ CRITICAL: Write ALL output (section name, title, body) ENTIRELY in ${LANG_NAMES_ALL[lang]}. Zero Korean characters allowed.`
           : ''
         const cCtx = !isDocType ? (CULTURAL_CONTEXT[lang] ?? '') : ''
         const dCtx = !isDocType
           ? buildDataContextBlock(lang as 'ko' | 'en' | 'ja' | 'zh', order.product_name, order.category, cleanDescription)
           : ''
-        return `당신은 ${roleDesc}입니다.${lInst}
+        const langLabel: Record<string,string> = {
+          ko: '한국어 카피라이터',
+          en: 'English premium copywriter (Amazon A+ / Shopify specialist)',
+          ja: '日本語カピーライター（楽天・Amazon.co.jp専門）',
+          zh: '中文电商文案专家（天猫A+详情页专业）',
+        }
+        return `You are a world-class ${langLabel[lang] ?? roleDesc}.${lInst}
 
-카테고리: ${order.category}
-제목/이름: ${order.product_name}
-내용: ${cleanDescription}
-${dCtx}${cCtx ? '\n' + cCtx : ''}${platformGuide ? '\n' + platformGuide : ''}
+Product: ${order.product_name}
+Category: ${order.category}
+Description: ${cleanDescription}
+${dCtx}
+${cCtx ? `\n=== CULTURAL MARKET OPTIMIZATION ===\n${cCtx}\n=== END ===\n` : ''}${platformGuide ? '\n' + platformGuide : ''}
 ${sectionGuide}
 
-반드시 지켜야 할 규칙:
-1. 각 섹션 본문 100자 이상
-2. 카테고리 업종에 맞는 전문 용어 사용
+QUALITY RULES (all mandatory):
+1. Each section body: minimum 150 characters, rich with specific details
+2. Use culturally appropriate vocabulary and tone for the target market
+3. Include quantified claims, social proof, and trust signals
+4. Never use generic filler text — every sentence must be persuasive and specific
 ${docRules}
 
-JSON만 출력 (다른 텍스트 없이):
+Output JSON only (no other text):
 {"sections": [
-  {"id": 1, "name": "섹션명", "title": "제목", "body": "본문", "bg_color": "#FFFFFF"},
-  {"id": 2, "name": "섹션명", "title": "제목", "body": "본문", "bg_color": "#F8F9FA"},
-  {"id": 3, "name": "섹션명", "title": "제목", "body": "본문", "bg_color": "#FFFFFF"},
-  {"id": 4, "name": "섹션명", "title": "제목", "body": "본문", "bg_color": "#F0F7FF"},
-  {"id": 5, "name": "섹션명", "title": "제목", "body": "본문", "bg_color": "#FFFFFF"},
-  {"id": 6, "name": "섹션명", "title": "제목", "body": "본문", "bg_color": "#FFF8E7"}
+  {"id": 1, "name": "Section Name", "title": "Title", "body": "Body 150+ chars", "bg_color": "#FFFFFF"},
+  {"id": 2, "name": "Section Name", "title": "Title", "body": "Body 150+ chars", "bg_color": "#F8F9FA"},
+  {"id": 3, "name": "Section Name", "title": "Title", "body": "Body 150+ chars", "bg_color": "#FFFFFF"},
+  {"id": 4, "name": "Section Name", "title": "Title", "body": "Body 150+ chars", "bg_color": "#F0F7FF"},
+  {"id": 5, "name": "Section Name", "title": "Title", "body": "Body 150+ chars", "bg_color": "#FFFFFF"},
+  {"id": 6, "name": "Section Name", "title": "Title", "body": "Body 150+ chars", "bg_color": "#FFF8E7"}
 ]}`
       }
 
       const langResults = await Promise.all(
         LANGS_ALL.map(async (lang) => {
           const msg = await anthropic.messages.create({
-            model: 'claude-haiku-4-5',
-            max_tokens: 2500,
+            model: 'claude-sonnet-4-5',
+            max_tokens: 3000,
             messages: [{ role: 'user', content: buildMultiPrompt(lang) }],
           })
           const c = msg.content[0]
