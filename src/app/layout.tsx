@@ -13,16 +13,56 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://pagebeer.beer'),
-  title: '페이지AI — AI 상세페이지 자동 생성',
-  description: '제품 정보 30초 입력하고 AI가 전환율 높은 스마트스토어 상세페이지를 5분 만에 완성해드립니다.',
-  keywords: '상세페이지, AI, 스마트스토어, 쿠팡, 자동생성, 카피라이팅',
-  openGraph: {
-    title: '페이지AI — 압도적 퀄리티 상세페이지, AI로 5분 완성',
-    description: '제품 정보만 입력하면 AI가 전환율 높은 상세페이지를 자동으로 만들어드립니다.',
-    url: 'https://pagebeer.beer',
-    locale: 'ko_KR',
-    type: 'website',
+  title: {
+    default: 'PageAI — AI Document & Product Page Generator in 4 Languages | 양식·URL → 5분 완성',
+    template: '%s | PageAI',
   },
+  description: 'Upload any form or URL — AI completes professional documents in 5 minutes, in 4 languages (KR/EN/JP/CN). Auto-optimized for Amazon JP, Tmall, Rakuten, Shopify, Smartstore, Coupang. Business plans, proposals, reports, product pages — any template, expert level.',
+  keywords: [
+    'AI document generator', 'AI form auto-fill', 'multilingual product page', '4 language AI content',
+    'Amazon JP listing AI', 'Tmall description AI', 'Rakuten product page', 'Shopify SEO content',
+    'cross-border ecommerce AI', '상세페이지 AI 자동생성', '스마트스토어 상세페이지', '사업계획서 AI',
+    '4개국어 동시생성', '양식 자동작성 AI', 'global seller AI tool', 'PageAI', 'pagebeer',
+  ],
+  authors: [{ name: 'PageAI', url: 'https://pagebeer.beer' }],
+  creator: 'PageAI',
+  publisher: 'PageAI',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, 'max-video-preview': -1, 'max-image-preview': 'large', 'max-snippet': -1 },
+  },
+  alternates: {
+    canonical: 'https://pagebeer.beer',
+    languages: {
+      'ko': 'https://pagebeer.beer',
+      'en': 'https://pagebeer.beer/en',
+      'ja': 'https://pagebeer.beer/ja',
+      'zh': 'https://pagebeer.beer/zh',
+      'x-default': 'https://pagebeer.beer/en',
+    },
+  },
+  openGraph: {
+    title: 'PageAI — Upload Any Form or URL · AI Completes in 5 Min · 4 Languages',
+    description: 'Business plans, proposals, reports, product pages — AI auto-fills any template at expert level. Optimized for Amazon JP, Tmall, Rakuten, Shopify, Smartstore. Free to start.',
+    url: 'https://pagebeer.beer',
+    siteName: 'PageAI',
+    locale: 'en_US',
+    alternateLocale: ['ko_KR', 'ja_JP', 'zh_CN'],
+    type: 'website',
+    images: [{ url: 'https://pagebeer.beer/og-image.png', width: 1200, height: 630, alt: 'PageAI — AI Document Generator in 4 Languages' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'PageAI — AI Completes Any Document in 4 Languages in 5 Minutes',
+    description: 'Upload form or URL → AI auto-fills at expert level. Amazon JP, Tmall, Rakuten, Shopify, Smartstore optimized.',
+    images: ['https://pagebeer.beer/og-image.png'],
+    creator: '@pageai_app',
+  },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+  },
+  category: 'technology',
 }
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID

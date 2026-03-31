@@ -1,5 +1,19 @@
 export type HomeLang = 'ko' | 'en' | 'ja' | 'zh'
 
+// ── Use Case Personas (언어 무관 공통 아이콘·컬러) ─────────────────────────
+export const USE_CASE_META = [
+  { icon: '🛒', color: '#FF9900', accent: 'from-orange-500/20 to-amber-500/10',  border: 'border-orange-500/20' },
+  { icon: '📋', color: '#6366F1', accent: 'from-indigo-500/20 to-violet-500/10', border: 'border-indigo-500/20' },
+  { icon: '🎓', color: '#10B981', accent: 'from-emerald-500/20 to-teal-500/10',  border: 'border-emerald-500/20' },
+  { icon: '🏢', color: '#3B82F6', accent: 'from-blue-500/20 to-cyan-500/10',     border: 'border-blue-500/20' },
+  { icon: '✍️', color: '#EC4899', accent: 'from-pink-500/20 to-rose-500/10',     border: 'border-pink-500/20' },
+  { icon: '🌏', color: '#8B5CF6', accent: 'from-violet-500/20 to-purple-500/10', border: 'border-violet-500/20' },
+]
+
+// ── Comparison Table ────────────────────────────────────────────────────────
+export const COMPARISON_COLS = ['outsource', 'chatgpt', 'pageai'] as const
+export type CompareCol = typeof COMPARISON_COLS[number]
+
 export const PLATFORMS = [
   { name: 'Amazon JP', color: '#FF9900' },
   { name: 'Tmall', color: '#E43226' },
@@ -115,6 +129,34 @@ export const HOME_COPY = {
         { q: '외주 비용과 비교하면 얼마나 절약되나요?', a: '다국어 외주 제작비: 월 100~320만원. PageAI Pro(월 3만9천원) = 무제한 생성. 95% 이상 비용 절감입니다.' },
       ],
     },
+    useCases: {
+      label: '누가 사용하나요',
+      h2a: '셀러부터 대학원생까지',
+      h2b: '모두가 5분을 되찾습니다.',
+      items: [
+        { title: '크로스보더 셀러', role: 'Amazon JP · Tmall · Rakuten', pain: '플랫폼별 상세페이지를 각각 외주 맡기느라 월 수백만원', gain: '1번 입력 → 4개국어 플랫폼 최적화 동시 완성. 외주비 95% 절감.' },
+        { title: '사업계획서·제안서 작성자', role: '스타트업 창업자 · 컨설턴트', pain: '사업계획서 빈칸 채우는 데 며칠씩 소요', gain: '양식 업로드 → AI가 모든 항목을 논리적으로 자동 완성.' },
+        { title: '대학생·대학원생', role: '과제·시험·논문 작성', pain: '과제 양식 이해하고 채우는 데 반나절', gain: 'PDF 과제 업로드 → AI가 학술적 스타일로 전 항목 완성.' },
+        { title: '기업 마케터·담당자', role: 'B2B 제안서 · IR 덱', pain: 'IR 피칭 덱, RFP 제안서를 처음부터 작성하는 부담', gain: '기존 양식 첨부 → AI가 설득력 있는 내용으로 채워줌.' },
+        { title: '콘텐츠 크리에이터', role: '네이버 블로그 · SNS 마케팅', pain: 'SEO 최적화 리뷰 글 작성에 시간 과다 투입', gain: 'URL만 입력 → 플랫폼 스타일에 맞는 자연스러운 리뷰 자동 생성.' },
+        { title: '글로벌 브랜드 담당자', role: '4개국 동시 런칭 캠페인', pain: '언어별 에이전시 관리 + 번역 QA로 수주일 소요', gain: '1번 작성 → 4개 언어 문화 현지화 동시 완성. 수주를 하루로.' },
+      ],
+    },
+    comparison: {
+      label: '왜 PageAI인가',
+      h2a: '외주·ChatGPT와',
+      h2b: '직접 비교해봤습니다.',
+      rows: [
+        { feature: '4개 언어 동시 생성', outsource: false, chatgpt: '△ 직접 반복', pageai: true },
+        { feature: '플랫폼별 자동 포맷 (Amazon A+, Tmall 등)', outsource: true, chatgpt: false, pageai: true },
+        { feature: '양식·PDF 자동 분석 & 완성', outsource: '△ 수동 전달', chatgpt: false, pageai: true },
+        { feature: 'URL → 자동 제품정보 추출', outsource: false, chatgpt: false, pageai: true },
+        { feature: '문화적 현지화 (번역 아님)', outsource: '△ 비용 별도', chatgpt: '△ 프롬프트 수동', pageai: true },
+        { feature: '비용', outsource: '월 100~320만원', chatgpt: '$20/월 (수동)', pageai: '무료로 시작' },
+        { feature: '완성까지 시간', outsource: '3~14일', chatgpt: '1~3시간', pageai: '5분 이내' },
+      ],
+      cols: { outsource: '외주 에이전시', chatgpt: 'ChatGPT·Claude', pageai: 'PageAI ✓' },
+    },
     finalCta: {
       label: '지금 바로 시작하세요',
       h2a: '첫 번째 문서는',
@@ -228,6 +270,34 @@ export const HOME_COPY = {
         { q: 'How long does it take to create one full set?', a: '30 sec input + 60 sec generation = under 2 minutes total. Compare to 2+ weeks for multilingual outsourcing.' },
         { q: 'How much does it cost compared to outsourcing?', a: 'Multilingual outsourcing: $800–$2,400/month. PageAI Pro ($29/mo) = unlimited generations. That\'s a 95%+ cost reduction.' },
       ],
+    },
+    useCases: {
+      label: 'Who uses PageAI',
+      h2a: 'From global sellers',
+      h2b: 'to grad students — everyone saves 5 minutes.',
+      items: [
+        { title: 'Cross-Border Sellers', role: 'Amazon JP · Tmall · Rakuten', pain: 'Paying agencies thousands per month for per-platform listings', gain: 'One input → 4-language platform-optimized outputs. 95% cost cut.' },
+        { title: 'Business Plan Writers', role: 'Startup founders · Consultants', pain: 'Days spent filling business plan templates from scratch', gain: 'Upload template → AI fills every field with logical, data-driven content.' },
+        { title: 'Students', role: 'Assignments · Reports · Theses', pain: 'Half a day understanding and filling out assignment forms', gain: 'Upload PDF assignment → AI completes every section in academic style.' },
+        { title: 'Corporate Marketers', role: 'RFP Proposals · IR Decks', pain: 'Writing IR pitch decks and RFP responses from scratch', gain: 'Attach existing template → AI fills with persuasive, structured content.' },
+        { title: 'Content Creators', role: 'Naver Blog · Social Media', pain: 'Hours writing SEO-optimized review content per platform', gain: 'Paste URL → AI generates platform-native natural review copy.' },
+        { title: 'Global Brand Managers', role: '4-Country Simultaneous Launch', pain: 'Managing per-language agencies + translation QA for weeks', gain: 'One draft → 4-language cultural localization done in one day.' },
+      ],
+    },
+    comparison: {
+      label: 'Why PageAI',
+      h2a: 'PageAI vs Outsourcing',
+      h2b: 'vs ChatGPT — side by side.',
+      rows: [
+        { feature: '4-language simultaneous generation', outsource: false, chatgpt: '△ manual repeats', pageai: true },
+        { feature: 'Platform-specific auto-format (Amazon A+, Tmall…)', outsource: true, chatgpt: false, pageai: true },
+        { feature: 'Form/PDF auto-analysis & completion', outsource: '△ manual briefing', chatgpt: false, pageai: true },
+        { feature: 'URL → auto product info extraction', outsource: false, chatgpt: false, pageai: true },
+        { feature: 'Cultural localization (not just translation)', outsource: '△ extra cost', chatgpt: '△ manual prompting', pageai: true },
+        { feature: 'Cost', outsource: '$800–$2,400/mo', chatgpt: '$20/mo (manual)', pageai: 'Free to start' },
+        { feature: 'Time to completion', outsource: '3–14 days', chatgpt: '1–3 hours', pageai: 'Under 5 min' },
+      ],
+      cols: { outsource: 'Agency Outsourcing', chatgpt: 'ChatGPT / Claude', pageai: 'PageAI ✓' },
     },
     finalCta: {
       label: 'Start for free today',
@@ -343,6 +413,34 @@ export const HOME_COPY = {
         { q: '外注費用と比較するとどのくらい節約できますか？', a: '多言語外注費：月10～30万円。PageAI Pro（月4,480円）で無制限生成。95%以上のコスト削減です。' },
       ],
     },
+    useCases: {
+      label: '利用シーン',
+      h2a: '越境セラーから大学院生まで',
+      h2b: '5分を取り戻します。',
+      items: [
+        { title: '越境セラー', role: 'Amazon JP · 天猫 · 楽天', pain: 'プラットフォームごとに外注費が月数十万円', gain: '1回入力 → 4言語プラットフォーム最適化を同時完成。外注費95%削減。' },
+        { title: '事業計画書・提案書作成者', role: 'スタートアップ · コンサルタント', pain: '事業計画書の空欄を埋めるのに数日かかる', gain: '書式をアップロード → AIがすべての項目を論理的に自動完成。' },
+        { title: '大学生・大学院生', role: '課題・試験・論文', pain: '課題書式の理解と記入に半日かかる', gain: 'PDF課題をアップロード → AIが学術スタイルで全項目を完成。' },
+        { title: '企業マーケター', role: '提案書・IRデック', gain: '既存の書式を添付 → AIが説得力ある内容で記入。', pain: 'IRピッチデック・RFP提案書をゼロから作成する負担' },
+        { title: 'コンテンツクリエイター', role: 'ネイバーブログ · SNS', pain: 'SEO最適化レビュー記事の執筆に多大な時間', gain: 'URLを入力 → プラットフォームスタイルに合った自然なレビューを自動生成。' },
+        { title: 'グローバルブランド担当者', role: '4カ国同時ローンチ', pain: '言語別エージェンシー管理＋翻訳QAで数週間', gain: '1回作成 → 4言語の文化的ローカライズを同日完了。' },
+      ],
+    },
+    comparison: {
+      label: 'なぜPageAI？',
+      h2a: '外注・ChatGPTと',
+      h2b: '直接比較しました。',
+      rows: [
+        { feature: '4言語同時生成', outsource: false, chatgpt: '△ 手動繰り返し', pageai: true },
+        { feature: 'プラットフォーム別自動フォーマット', outsource: true, chatgpt: false, pageai: true },
+        { feature: '書類・PDF自動分析＆完成', outsource: '△ 手動ブリーフィング', chatgpt: false, pageai: true },
+        { feature: 'URL → 商品情報自動抽出', outsource: false, chatgpt: false, pageai: true },
+        { feature: '文化的ローカライズ（翻訳ではない）', outsource: '△ 追加費用', chatgpt: '△ 手動プロンプト', pageai: true },
+        { feature: '費用', outsource: '月10〜30万円', chatgpt: '$20/月（手動）', pageai: '無料で開始' },
+        { feature: '完成までの時間', outsource: '3〜14日', chatgpt: '1〜3時間', pageai: '5分以内' },
+      ],
+      cols: { outsource: '外注エージェンシー', chatgpt: 'ChatGPT / Claude', pageai: 'PageAI ✓' },
+    },
     finalCta: {
       label: 'グローバル展開の準備はできていますか？',
       h2a: '最初の4言語',
@@ -456,6 +554,34 @@ export const HOME_COPY = {
         { q: '制作一套内容需要多长时间？', a: '输入30秒 + 生成60秒 = 总计2分钟以内。与多语言外包需要等待2周以上相比，效率天壤之别。' },
         { q: '与外包相比能节省多少费用？', a: '多语言外包费用：每月5,000~20,000元以上。PageAI专业版（¥210/月）可无限次生成。节省95%以上的费用。' },
       ],
+    },
+    useCases: {
+      label: '适用场景',
+      h2a: '从跨境卖家到研究生',
+      h2b: '都能找回那5分钟。',
+      items: [
+        { title: '跨境卖家', role: 'Amazon JP · 天猫 · 楽天', pain: '每个平台分别外包，每月花费数千元', gain: '一次输入 → 4语言平台优化同时完成。外包费用减少95%。' },
+        { title: '商业计划书·提案书撰写者', role: '创业者 · 顾问', pain: '填写商业计划书模板需要好几天', gain: '上传模板 → AI自动以逻辑性强的内容填写所有项目。' },
+        { title: '学生', role: '作业·考试·论文', pain: '理解并填写作业表格耗费半天时间', gain: '上传PDF作业 → AI以学术风格完成所有栏目。' },
+        { title: '企业营销人员', role: '提案书 · IR路演', pain: '从零开始撰写IR路演PPT和RFP提案书压力大', gain: '附上现有模板 → AI填充有说服力的结构化内容。' },
+        { title: '内容创作者', role: 'Naver博客 · 社交媒体', pain: 'SEO优化评测文章写作耗时过多', gain: '粘贴链接 → AI自动生成符合平台风格的自然评测内容。' },
+        { title: '全球品牌负责人', role: '4国同时上线', pain: '管理各语言机构+翻译QA耗费数周', gain: '一次撰写 → 4语言文化本地化当天完成。' },
+      ],
+    },
+    comparison: {
+      label: '为什么选PageAI',
+      h2a: '与外包和ChatGPT',
+      h2b: '直接对比。',
+      rows: [
+        { feature: '4语言同时生成', outsource: false, chatgpt: '△ 手动重复', pageai: true },
+        { feature: '平台专属自动格式（Amazon A+，天猫等）', outsource: true, chatgpt: false, pageai: true },
+        { feature: '表格/PDF自动分析与填写', outsource: '△ 手动说明', chatgpt: false, pageai: true },
+        { feature: '链接 → 自动提取产品信息', outsource: false, chatgpt: false, pageai: true },
+        { feature: '文化本地化（非翻译）', outsource: '△ 额外收费', chatgpt: '△ 手动提示', pageai: true },
+        { feature: '费用', outsource: '$800–$2,400/月', chatgpt: '$20/月（手动）', pageai: '免费开始' },
+        { feature: '完成时间', outsource: '3–14天', chatgpt: '1–3小时', pageai: '5分钟以内' },
+      ],
+      cols: { outsource: '外包机构', chatgpt: 'ChatGPT / Claude', pageai: 'PageAI ✓' },
     },
     finalCta: {
       label: '准备好进军全球了吗？',

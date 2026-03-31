@@ -9,7 +9,7 @@ import CountdownBanner from '@/components/CountdownBanner'
 import LangSwitcher from '@/components/LangSwitcher'
 import Logo from '@/components/Logo'
 import HomeJsonLd from '@/components/HomeJsonLd'
-import { PLATFORMS, LANG_TABS, HOME_COPY, type HomeLang } from '@/lib/homeData'
+import { PLATFORMS, LANG_TABS, HOME_COPY, USE_CASE_META, type HomeLang } from '@/lib/homeData'
 
 export default function HomePage({ lang }: { lang: HomeLang }) {
   const C = HOME_COPY[lang]
@@ -51,9 +51,9 @@ export default function HomePage({ lang }: { lang: HomeLang }) {
           <Link href={lang === 'ko' ? '/' : `/${lang}`} className="flex items-center shrink-0">
             <Logo size={30} />
           </Link>
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-5">
             {[C.nav.how, C.nav.features, C.nav.reviews, C.nav.pricing, C.nav.blog].map((label, i) => (
-              <a key={i} href={['#how','#features','#reviews','#pricing','/blog'][i]} className="text-gray-400 text-sm hover:text-white transition-colors font-medium">{label}</a>
+              <a key={i} href={['#how','#features','#use-cases','#compare','#reviews','#pricing','/blog'][i] ?? '#'} className="text-gray-400 text-sm hover:text-white transition-colors font-medium">{label}</a>
             ))}
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -159,10 +159,19 @@ export default function HomePage({ lang }: { lang: HomeLang }) {
             ))}
           </div>
 
-          {/* Trusted by */}
-          <div className="flex flex-wrap justify-center gap-3 opacity-40 hover:opacity-60 transition-opacity">
-            {['Amazon JP', 'Tmall', '楽天', 'Shopify', 'Smartstore', 'Qoo10'].map(p => (
-              <span key={p} className="text-gray-400 text-xs font-semibold">{p}</span>
+          {/* Trusted by platforms */}
+          <div className="flex flex-wrap justify-center gap-2 md:gap-3">
+            {[
+              { name: 'Amazon JP', color: '#FF9900' }, { name: 'Tmall 天猫', color: '#E43226' },
+              { name: '楽天 Rakuten', color: '#BF0000' }, { name: 'Shopify', color: '#96BF48' },
+              { name: 'Smartstore', color: '#03C75A' }, { name: 'Coupang', color: '#E5213D' },
+              { name: 'Temu', color: '#FF6900' }, { name: 'Lazada', color: '#0F146D' },
+            ].map(p => (
+              <span key={p.name}
+                className="flex items-center gap-1.5 text-[10px] font-semibold text-gray-700 bg-white/3 border border-white/6 px-2.5 py-1 rounded-full hover:text-gray-400 transition-colors">
+                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
+                {p.name}
+              </span>
             ))}
           </div>
         </div>
@@ -499,6 +508,109 @@ export default function HomePage({ lang }: { lang: HomeLang }) {
                 <span className="text-gray-600 font-bold text-xs">{p.name}</span>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══ USE CASES ══════════════════════════════════════ */}
+      <section id="use-cases" className="bg-[#080D16] py-24 md:py-32">
+        <div className="max-w-5xl mx-auto px-5 md:px-6">
+          <div className="text-center mb-14">
+            <p className="reveal text-[11px] font-black text-amber-400 uppercase tracking-[0.15em] mb-4">{C.useCases.label}</p>
+            <h2 className="reveal delay-100 text-3xl md:text-5xl font-black text-white tracking-tight leading-[1.1]">
+              {C.useCases.h2a}<br /><span className="text-gray-600">{C.useCases.h2b}</span>
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {C.useCases.items.map((item, i) => {
+              const m = USE_CASE_META[i]
+              return (
+                <article key={i}
+                  className={`reveal delay-${Math.min(i * 80, 400)} relative rounded-3xl p-6 border bg-gradient-to-br ${m.accent} ${m.border} hover:scale-[1.02] hover:shadow-xl transition-all duration-300 group`}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="text-3xl leading-none">{m.icon}</span>
+                    <div>
+                      <h3 className="text-white font-black text-sm leading-tight">{item.title}</h3>
+                      <p className="text-[10px] font-semibold mt-0.5" style={{ color: m.color }}>{item.role}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2.5">
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-600 text-xs shrink-0 mt-0.5">😓</span>
+                      <p className="text-gray-500 text-xs leading-relaxed">{item.pain}</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-emerald-400 text-xs shrink-0 mt-0.5">⚡</span>
+                      <p className="text-gray-300 text-xs leading-relaxed font-medium">{item.gain}</p>
+                    </div>
+                  </div>
+                </article>
+              )
+            })}
+          </div>
+          <div className="mt-10 text-center">
+            <Link href="/login"
+              className="inline-flex items-center gap-2 bg-white/5 border border-white/10 text-gray-300 text-sm font-bold px-6 py-3 rounded-xl hover:bg-white/10 hover:text-white transition-all">
+              {lang === 'ko' ? '나에게 맞는 사용법 알아보기 →' : lang === 'ja' ? '私の使い方を見る →' : lang === 'zh' ? '了解我的使用方式 →' : 'Find my use case →'}
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ COMPARISON ═════════════════════════════════════ */}
+      <section id="compare" className="bg-[#0F172A] py-24 md:py-32">
+        <div className="max-w-4xl mx-auto px-5 md:px-6">
+          <div className="text-center mb-14">
+            <p className="reveal text-[11px] font-black text-emerald-400 uppercase tracking-[0.15em] mb-4">{C.comparison.label}</p>
+            <h2 className="reveal delay-100 text-3xl md:text-5xl font-black text-white tracking-tight leading-[1.1]">
+              {C.comparison.h2a}<br /><span className="text-gray-600">{C.comparison.h2b}</span>
+            </h2>
+          </div>
+          <div className="reveal-scale overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className="text-left text-gray-600 text-xs font-black uppercase tracking-wider pb-4 pr-4 w-[40%]">
+                    {lang === 'ko' ? '항목' : lang === 'ja' ? '項目' : lang === 'zh' ? '项目' : 'Feature'}
+                  </th>
+                  <th className="text-center text-gray-600 text-xs font-black pb-4 px-3">{C.comparison.cols.outsource}</th>
+                  <th className="text-center text-gray-600 text-xs font-black pb-4 px-3">{C.comparison.cols.chatgpt}</th>
+                  <th className="text-center pb-4 px-3">
+                    <span className="bg-gradient-to-r from-blue-500 to-violet-600 text-white text-xs font-black px-3 py-1.5 rounded-full whitespace-nowrap">
+                      {C.comparison.cols.pageai}
+                    </span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {C.comparison.rows.map((row, i) => (
+                  <tr key={i} className={`border-t ${i % 2 === 0 ? 'border-white/5 bg-transparent' : 'border-white/5 bg-white/[0.015]'}`}>
+                    <td className="text-gray-300 text-sm py-4 pr-4 font-medium">{row.feature}</td>
+                    <td className="text-center py-4 px-3">
+                      {row.outsource === true ? <span className="text-emerald-400 text-lg">✓</span>
+                        : row.outsource === false ? <span className="text-gray-700 text-lg">✕</span>
+                        : <span className="text-amber-400 text-xs font-semibold">{row.outsource}</span>}
+                    </td>
+                    <td className="text-center py-4 px-3">
+                      {row.chatgpt === true ? <span className="text-emerald-400 text-lg">✓</span>
+                        : row.chatgpt === false ? <span className="text-gray-700 text-lg">✕</span>
+                        : <span className="text-amber-400 text-xs font-semibold">{row.chatgpt}</span>}
+                    </td>
+                    <td className="text-center py-4 px-3">
+                      {row.pageai === true
+                        ? <span className="w-6 h-6 bg-gradient-to-r from-blue-500 to-violet-600 rounded-full flex items-center justify-center text-white text-[11px] font-black mx-auto">✓</span>
+                        : <span className="text-blue-400 text-xs font-black">{row.pageai}</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-8 flex justify-center">
+            <Link href="/login"
+              className="bg-gradient-to-r from-blue-500 to-violet-600 text-white px-8 py-4 rounded-2xl text-sm font-black hover:opacity-90 transition-all hover:scale-[1.03] shadow-lg shadow-blue-500/20">
+              {lang === 'ko' ? 'PageAI 무료로 시작하기 →' : lang === 'ja' ? 'PageAIを無料で始める →' : lang === 'zh' ? '免费开始使用PageAI →' : 'Start PageAI Free →'}
+            </Link>
           </div>
         </div>
       </section>
