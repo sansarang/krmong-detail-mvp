@@ -510,6 +510,7 @@ export default function NewOrderPage() {
   const [outputLang, setOutputLang]         = useState<string>('ko')
   const [form, setForm]                     = useState({ product_name: '', category: '', description: '' })
   const [monthlyUsed, setMonthlyUsed]       = useState(0)
+  const [isAdminUser, setIsAdminUser]       = useState(false)
   const [showUpgrade, setShowUpgrade]       = useState(false)
   const [templateContent, setTemplateContent] = useState('')
   const [tmplTitle, setTmplTitle]           = useState('')
@@ -537,11 +538,24 @@ export default function NewOrderPage() {
     setOutputLang(detected)
   }, [])
 
-  // 이번 달 사용량 로드
+  // 이번 달 사용량 + 관리자 여부 로드
   useEffect(() => {
     async function loadUsage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
+
+      // 관리자 체크 (plan === 'admin' 또는 env의 ADMIN_EMAILS)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('plan')
+        .eq('id', user.id)
+        .single()
+      const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? '').split(',').map(e => e.trim()).filter(Boolean)
+      const isAdmin = profile?.plan === 'admin' || adminEmails.includes(user.email ?? '')
+      setIsAdminUser(isAdmin)
+
+      if (isAdmin) return // 관리자는 사용량 체크 불필요
+
       const now = new Date()
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
       const { count } = await supabase
@@ -567,7 +581,7 @@ export default function NewOrderPage() {
     imageFiles: File[],
     setThisLoading: (v: boolean) => void,
   ) {
-    if (monthlyUsed >= FREE_LIMIT) { setShowUpgrade(true); return }
+    if (!isAdminUser && monthlyUsed >= FREE_LIMIT) { setShowUpgrade(true); return }
     setThisLoading(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
