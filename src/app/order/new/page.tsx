@@ -590,6 +590,61 @@ const LANG_FOR_MARKET: Record<string, string> = {
   tmall:'zh',
 }
 
+// ── 양식 미리보기 렌더러 (order/new) ────────────────────────────────────────
+function TemplatePreviewRenderer({ content }: { content: string }) {
+  const lines = content.split('\n').slice(0, 120)  // cap lines for performance
+  const tableLines = lines.filter(l => l.includes('\t') || (l.match(/\|/g) ?? []).length >= 2)
+  const isTableLike = tableLines.length > lines.length * 0.3
+  const kvLines = lines.filter(l => /^[^:]{1,40}[:：]\s*.+/.test(l))
+  const isKVDoc = kvLines.length > lines.length * 0.25
+
+  if (isTableLike) {
+    const rows = lines.filter(l => l.trim())
+      .map(l => l.includes('\t') ? l.split('\t') : l.split(/\s{2,}/).filter(Boolean))
+      .filter(r => r.length > 1).slice(0, 30)
+    const header = rows[0]; const body = rows.slice(1)
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full text-[10px] border-collapse">
+          {header && <thead><tr className="bg-emerald-50">{header.map((h,i) => <th key={i} className="px-2 py-1.5 text-left font-black text-gray-600 border border-gray-200 whitespace-nowrap">{h.trim()}</th>)}</tr></thead>}
+          <tbody>{body.map((row,ri) => <tr key={ri} className={ri%2===0?'bg-white':'bg-gray-50/50'}>{row.map((cell,ci) => <td key={ci} className={`px-2 py-1 border border-gray-100 ${!cell.trim()||cell.trim()==='___'?'bg-amber-50/80 text-amber-400 italic':'text-gray-600'}`}>{cell.trim()||'(빈칸)'}</td>)}</tr>)}</tbody>
+        </table>
+      </div>
+    )
+  }
+
+  if (isKVDoc) {
+    return (
+      <div className="space-y-1.5">
+        {lines.filter(l => l.trim()).map((line, i) => {
+          const m = line.match(/^([^:：]{1,40})[：:]\s*(.*)/)
+          if (m) return (
+            <div key={i} className="flex gap-2 items-start">
+              <span className="shrink-0 text-[9px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md whitespace-nowrap mt-0.5">{m[1].trim()}</span>
+              <span className={`text-[10px] ${m[2].trim() ? 'text-gray-700' : 'text-amber-400 italic'}`}>{m[2].trim() || '(빈칸)'}</span>
+            </div>
+          )
+          const isHeader = /^\[.+\]$/.test(line.trim()) || /^#+\s/.test(line)
+          if (isHeader) return <p key={i} className="text-[9px] font-black text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md uppercase mt-2">{line.replace(/^\[|\]$/g,'').replace(/^#+\s*/,'')}</p>
+          return <p key={i} className="text-[10px] text-gray-500 px-1">{line}</p>
+        })}
+      </div>
+    )
+  }
+
+  // Default prose
+  return (
+    <div className="space-y-0.5">
+      {lines.map((line, i) => {
+        if (!line.trim()) return <div key={i} className="h-1.5" />
+        const isHeader = /^\[.+\]$/.test(line.trim()) || /^#+\s/.test(line)
+        if (isHeader) return <p key={i} className="text-[9px] font-black text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md uppercase mt-2">{line.replace(/^\[|\]$/g,'').replace(/^#+\s*/,'')}</p>
+        return <p key={i} className="text-[10px] text-gray-600 leading-relaxed px-1 whitespace-pre-wrap">{line}</p>
+      })}
+    </div>
+  )
+}
+
 // ── 생성 진행 상황 컴포넌트 ────────────────────────────────────────────────
 function GeneratingProgress({ elapsed, isMultiLang, langCount, uiLang }: {
   elapsed: number
@@ -909,6 +964,7 @@ export default function NewOrderPage() {
       reader.onload = ev => {
         const hint = getFileTypeHint()
         setTemplateContent((ev.target?.result as string) + hint)
+        setTmplPreviewOpen(true)
         toast.success(L.toastFile)
       }
       reader.readAsText(file)
@@ -936,6 +992,7 @@ export default function NewOrderPage() {
           : data.slides
           ? (uiLang === 'ko' ? `${data.slides}슬라이드` : `${data.slides} slides`)
           : ''
+        setTmplPreviewOpen(true)  // auto-expand preview after successful parse
         if (data.wasLarge) {
           toast.success(
             uiLang === 'ko'
@@ -1715,11 +1772,26 @@ export default function NewOrderPage() {
                       </div>
                       {/* Expandable preview */}
                       {tmplPreviewOpen && (
-                        <div className="bg-white rounded-xl border border-emerald-200 p-3 max-h-40 overflow-y-auto">
-                          <p className="text-[10px] text-gray-400 font-black uppercase mb-1.5">
-                            {uiLang === 'ko' ? '원본 양식 미리보기' : uiLang === 'ja' ? '元書式プレビュー' : uiLang === 'zh' ? '原始表格预览' : 'Original form preview'}
-                          </p>
-                          <pre className="text-[11px] text-gray-600 leading-relaxed whitespace-pre-wrap break-words font-mono">{templateContent.replace(/\[FILE_TYPE:.*?\]\n?/g, '').slice(0, 800)}{templateContent.length > 800 ? '…' : ''}</pre>
+                        <div className="rounded-xl border-2 border-emerald-200 overflow-hidden animate-in fade-in duration-200">
+                          <div className="px-3 py-2 flex items-center justify-between" style={{ background:'linear-gradient(135deg,#ecfdf5,#d1fae5)' }}>
+                            <div className="flex items-center gap-2">
+                              <span className="text-base">📄</span>
+                              <p className="text-[10px] font-black text-emerald-800 uppercase tracking-wider">
+                                {uiLang === 'ko' ? '원본 양식 미리보기' : uiLang === 'ja' ? '元書式プレビュー' : uiLang === 'zh' ? '原始表格预览' : 'Original Form Preview'}
+                              </p>
+                            </div>
+                            <span className="text-[9px] bg-emerald-100 text-emerald-700 font-black px-2 py-0.5 rounded-full">
+                              {(templateContent.replace(/\[FILE_TYPE:.*?\]\n?/g,'').length / 4).toFixed(0)} est. tokens
+                            </span>
+                          </div>
+                          <div className="bg-white p-3 max-h-64 overflow-y-auto">
+                            <TemplatePreviewRenderer content={templateContent.replace(/\[FILE_TYPE:.*?\]\n?/g, '')} />
+                          </div>
+                          <div className="px-3 py-2 bg-emerald-50 border-t border-emerald-100">
+                            <p className="text-[9px] text-emerald-600 font-medium">
+                              {uiLang === 'ko' ? '✓ AI가 이 구조를 분석하여 각 항목을 전문가 수준으로 작성합니다' : '✓ AI will analyze this structure and fill each field at expert level'}
+                            </p>
+                          </div>
                         </div>
                       )}
                     </div>

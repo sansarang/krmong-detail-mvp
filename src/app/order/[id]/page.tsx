@@ -1154,6 +1154,150 @@ function MetaOgExportPanel({
   )
 }
 
+// ── Smart form content renderer ──────────────────────────────────────────
+// Detects tables, question sheets, key-value pairs and renders them visually
+function FormContentRenderer({ content, mode }: { content: string; mode: 'original' | 'ai' }) {
+  const lines = content.split('\n')
+
+  // Detect if content is tabular (has | separators or consistent tab-separated columns)
+  const tableLines = lines.filter(l => l.includes('\t') || (l.match(/\|/g) ?? []).length >= 2)
+  const isTableLike = tableLines.length > lines.length * 0.3
+
+  // Detect question sheet (lines starting with numbers followed by . or ))
+  const questionLines = lines.filter(l => /^\s*\d+[\.\)]\s/.test(l))
+  const isQuestionSheet = questionLines.length >= 3
+
+  // Detect key:value or key — value pairs
+  const kvLines = lines.filter(l => /^[^:]{1,40}[:：]\s*.+/.test(l))
+  const isKVDoc = kvLines.length > lines.length * 0.25
+
+  const accentClass = mode === 'original'
+    ? 'bg-amber-50 border-amber-200 text-amber-800'
+    : 'bg-indigo-50 border-indigo-200 text-indigo-800'
+
+  if (isTableLike) {
+    // Render as table
+    const rows = lines
+      .filter(l => l.trim())
+      .map(l => l.includes('\t') ? l.split('\t') : l.split(/\s{2,}/).filter(Boolean))
+      .filter(r => r.length > 1)
+    const header = rows[0]
+    const body = rows.slice(1)
+    return (
+      <div className="overflow-x-auto rounded-xl border border-gray-200">
+        <table className="w-full text-xs border-collapse">
+          {header && (
+            <thead>
+              <tr className={mode === 'original' ? 'bg-amber-100' : 'bg-indigo-100'}>
+                {header.map((h, i) => (
+                  <th key={i} className="px-3 py-2 text-left font-black text-gray-700 border-b border-gray-200 whitespace-nowrap">{h.trim()}</th>
+                ))}
+              </tr>
+            </thead>
+          )}
+          <tbody>
+            {body.map((row, ri) => (
+              <tr key={ri} className={ri % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                {row.map((cell, ci) => (
+                  <td key={ci} className={`px-3 py-2 border-b border-gray-100 align-top ${
+                    cell.trim() === '' || cell.trim() === '___' || cell.trim() === '-'
+                      ? (mode === 'original' ? 'bg-amber-50/80 text-amber-300 italic' : 'bg-indigo-50/80 text-indigo-600 font-medium')
+                      : 'text-gray-700'
+                  }`}>
+                    {cell.trim() || (mode === 'original' ? '(빈칸)' : '')}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+
+  if (isQuestionSheet) {
+    // Render question sheet with per-question cards
+    const blocks: { num: string; text: string }[] = []
+    let cur: { num: string; text: string } | null = null
+    for (const line of lines) {
+      const m = line.match(/^(\s*\d+[\.\)])\s+(.*)/)
+      if (m) {
+        if (cur) blocks.push(cur)
+        cur = { num: m[1].trim(), text: m[2] }
+      } else if (cur) {
+        cur.text += '\n' + line
+      }
+    }
+    if (cur) blocks.push(cur)
+
+    return (
+      <div className="space-y-2">
+        {blocks.map((q, i) => (
+          <div key={i} className={`rounded-xl border p-3 ${accentClass}`}>
+            <div className="flex gap-2">
+              <span className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${
+                mode === 'original' ? 'bg-amber-200 text-amber-800' : 'bg-indigo-200 text-indigo-800'
+              }`}>{q.num}</span>
+              <p className={`text-xs leading-relaxed whitespace-pre-wrap ${mode === 'ai' ? 'text-gray-800 font-medium' : 'text-gray-600'}`}>{q.text.trim()}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (isKVDoc) {
+    // Render as key-value cards
+    const kvPairs: { key: string; value: string }[] = []
+    let lastKey = ''
+    for (const line of lines) {
+      const m = line.match(/^([^:：]{1,40})[：:]\s*(.*)/)
+      if (m) {
+        kvPairs.push({ key: m[1].trim(), value: m[2].trim() })
+        lastKey = m[1].trim()
+      } else if (line.trim() && kvPairs.length > 0 && lastKey) {
+        const last = kvPairs[kvPairs.length - 1]
+        if (last) last.value += '\n' + line.trim()
+      }
+    }
+    return (
+      <div className="space-y-2">
+        {kvPairs.map((kv, i) => (
+          <div key={i} className="bg-white rounded-xl border border-gray-100 px-4 py-2.5 flex gap-3 items-start">
+            <span className={`shrink-0 text-[10px] font-black px-2 py-0.5 rounded-lg whitespace-nowrap mt-0.5 ${
+              mode === 'original' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'
+            }`}>{kv.key}</span>
+            <p className={`text-xs leading-relaxed whitespace-pre-wrap ${
+              !kv.value || kv.value === '___' || kv.value === '-'
+                ? (mode === 'original' ? 'text-amber-300 italic' : 'text-indigo-600')
+                : 'text-gray-700'
+            }`}>{kv.value || (mode === 'original' ? '(빈칸)' : '')}</p>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  // Default: prose with section headers highlighted
+  return (
+    <div className="space-y-1">
+      {lines.map((line, i) => {
+        const isHeader = /^\[.+\]$/.test(line.trim()) || /^#+\s/.test(line) || /^={3,}/.test(line)
+        const isBlank = !line.trim()
+        if (isBlank) return <div key={i} className="h-2" />
+        if (isHeader) return (
+          <div key={i} className={`rounded-lg px-3 py-1.5 text-[11px] font-black uppercase tracking-wide ${
+            mode === 'original' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'
+          }`}>{line.replace(/^\[|\]$/g, '').replace(/^#+\s*/, '')}</div>
+        )
+        return (
+          <p key={i} className="text-xs text-gray-700 leading-relaxed px-1 whitespace-pre-wrap">{line}</p>
+        )
+      })}
+    </div>
+  )
+}
+
 export default function OrderResultPage() {
   const { id } = useParams()
   const orderId = Array.isArray(id) ? id[0] : id
@@ -1210,6 +1354,7 @@ export default function OrderResultPage() {
   const [photoProcessing, setPhotoProcessing] = useState<string | null>(null)
   const [deployOpen, setDeployOpen] = useState(false)
   const [showOriginalForm, setShowOriginalForm] = useState(false)
+  const [formViewTab, setFormViewTab] = useState<'ai'|'original'|'split'>('ai')
 
   const PLATFORMS = platformsForLang(uiLang)
   const t = ORDER_RESULT_UI[uiLang]
@@ -2350,78 +2495,119 @@ export default function OrderResultPage() {
             )
           })()}
 
-          {/* ── TEMPLATE MODE: Document-style section cards ──────── */}
+          {/* ── TEMPLATE MODE: 3-tab view (원본 / AI완성 / 나란히) ─── */}
           {order.result_json?.template_mode && (() => {
-            // Extract original form from order.description
             const origMatch = (order.description ?? '').match(/\[TEMPLATE_FORM\]([\s\S]*?)\[\/TEMPLATE_FORM\]/)
             const originalForm = origMatch ? origMatch[1].trim() : null
 
+            const TAB_LABELS: Record<typeof formViewTab, { ko:string; en:string; ja:string; zh:string; icon:string }> = {
+              ai:       { ko:'AI 완성 양식', en:'AI Completed', ja:'AI完成版',    zh:'AI填写版',  icon:'✨' },
+              original: { ko:'원본 양식',   en:'Original Form', ja:'元のフォーム', zh:'原始表格', icon:'📄' },
+              split:    { ko:'나란히 비교',  en:'Side by Side',  ja:'並べて比較',  zh:'对比查看',  icon:'⚡' },
+            }
+            const tabs: (typeof formViewTab)[] = originalForm ? ['ai','original','split'] : ['ai']
+
             return (
               <div className="mb-5 print:hidden">
-                {/* Info banner */}
-                <div className="relative overflow-hidden rounded-2xl border border-indigo-200/60 px-5 py-4 flex items-center gap-4 mb-3"
+                {/* ── Tab selector bar ── */}
+                <div className="relative overflow-hidden rounded-2xl border border-indigo-200/60 mb-4"
                   style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%)' }}>
-                  <div className="w-10 h-10 rounded-2xl bg-indigo-500/15 border border-indigo-500/20 flex items-center justify-center text-xl shrink-0">📋</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-black text-indigo-700 uppercase tracking-wider mb-0.5">
-                      {uiLang==='ko'?'양식 자동 완성 결과':uiLang==='ja'?'書類自動完成結果':uiLang==='zh'?'表格自动填写结果':'Form Auto-Fill Result'}
-                    </p>
-                    <p className="text-xs text-indigo-500 leading-relaxed">
-                      {uiLang==='ko'?'AI가 업로드한 양식의 구조를 분석하고 각 항목을 전문가 수준으로 작성했습니다. 항목을 클릭하면 직접 수정할 수 있습니다.':
-                       uiLang==='ja'?'AIがアップロードされた書類の構造を分析し、各項目をプロレベルで作成しました。':
-                       uiLang==='zh'?'AI已分析上传表格结构，并以专家水准填写了每个字段。点击字段可直接编辑。':
-                       'AI analyzed your uploaded form structure and filled every field at expert level. Click any field to edit.'}
-                    </p>
-                  </div>
-                  <div className="shrink-0 flex flex-col gap-1 items-end">
-                    <span className="text-[10px] font-black bg-emerald-500 text-white px-2.5 py-1 rounded-full">
-                      {sections.length} {uiLang==='ko'?'항목':'fields'}
+                  {/* Header row */}
+                  <div className="flex items-center gap-4 px-5 py-3 border-b border-indigo-100/70">
+                    <div className="w-8 h-8 rounded-xl bg-indigo-500/15 border border-indigo-500/20 flex items-center justify-center text-base shrink-0">📋</div>
+                    <div className="flex-1">
+                      <p className="text-xs font-black text-indigo-800">
+                        {uiLang==='ko'?'양식 자동 완성 결과':uiLang==='ja'?'書類自動完成':uiLang==='zh'?'表格自动填写结果':'Form Auto-Fill Result'}
+                      </p>
+                      <p className="text-[10px] text-indigo-500">
+                        {uiLang==='ko'?`${sections.length}개 항목 · 클릭해서 수정 가능`:`${sections.length} fields · Click to edit`}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-[10px] font-black bg-emerald-500 text-white px-2.5 py-1 rounded-full">
+                      ✓ {uiLang==='ko'?'완성':'Done'}
                     </span>
-                    {originalForm && (
-                      <button
-                        onClick={() => setShowOriginalForm(v => !v)}
-                        className={`text-[10px] font-black px-2.5 py-1 rounded-full border transition-all ${
-                          showOriginalForm
-                            ? 'bg-indigo-600 text-white border-indigo-600'
-                            : 'bg-indigo-100 text-indigo-600 border-indigo-200 hover:bg-indigo-200'
-                        }`}
-                      >
-                        {showOriginalForm
-                          ? (uiLang==='ko'?'AI 결과 보기':'Show AI Result')
-                          : (uiLang==='ko'?'원본 양식 비교':'Compare Original')}
-                      </button>
-                    )}
+                  </div>
+                  {/* Tab row */}
+                  <div className="flex px-4 py-2 gap-1.5">
+                    {tabs.map(tab => {
+                      const lbl = TAB_LABELS[tab]
+                      const isActive = formViewTab === tab
+                      return (
+                        <button key={tab} type="button"
+                          onClick={() => setFormViewTab(tab)}
+                          className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black transition-all flex-1 justify-center ${
+                            isActive
+                              ? tab === 'original'
+                                ? 'bg-amber-500 text-white shadow-md'
+                                : tab === 'split'
+                                  ? 'bg-violet-600 text-white shadow-md'
+                                  : 'bg-indigo-600 text-white shadow-md'
+                              : 'bg-white/70 text-gray-500 hover:bg-white hover:text-gray-700 border border-white/80'
+                          }`}>
+                          <span>{lbl.icon}</span>
+                          <span>{lbl[uiLang as 'ko'|'en'|'ja'|'zh'] ?? lbl.en}</span>
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
 
-                {/* Original form comparison panel */}
-                {showOriginalForm && originalForm && (
-                  <div className="rounded-2xl border-2 border-amber-200 overflow-hidden mb-3 animate-in fade-in duration-200">
-                    <div className="px-4 py-3 flex items-center gap-2" style={{ background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)' }}>
+                {/* ── Split view ── */}
+                {formViewTab === 'split' && originalForm && (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
+                    {/* Left: original */}
+                    <div className="rounded-2xl border-2 border-amber-200 overflow-hidden">
+                      <div className="px-4 py-2.5 flex items-center gap-2" style={{ background:'linear-gradient(135deg,#fffbeb,#fef3c7)' }}>
+                        <span>📄</span>
+                        <p className="text-xs font-black text-amber-800">
+                          {uiLang==='ko'?'원본 양식':uiLang==='ja'?'元のフォーム':uiLang==='zh'?'原始表格':'Original Form'}
+                        </p>
+                      </div>
+                      <div className="p-4 bg-white max-h-[600px] overflow-y-auto">
+                        <FormContentRenderer content={originalForm} mode="original" />
+                      </div>
+                    </div>
+                    {/* Right: AI completed */}
+                    <div className="rounded-2xl border-2 border-indigo-200 overflow-hidden">
+                      <div className="px-4 py-2.5 flex items-center gap-2" style={{ background:'linear-gradient(135deg,#eef2ff,#f5f3ff)' }}>
+                        <span>✨</span>
+                        <p className="text-xs font-black text-indigo-800">
+                          {uiLang==='ko'?'AI 완성 양식':uiLang==='ja'?'AI完成版':uiLang==='zh'?'AI填写版':'AI Completed Form'}
+                        </p>
+                      </div>
+                      <div className="p-4 bg-white max-h-[600px] overflow-y-auto space-y-3">
+                        {sections.map(s => (
+                          <div key={s.id} className="rounded-xl border border-indigo-100 bg-indigo-50/30 px-4 py-3">
+                            <p className="text-[10px] font-black text-indigo-500 uppercase tracking-wider mb-1">{s.name ?? s.title}</p>
+                            <p className="text-xs text-gray-800 leading-relaxed whitespace-pre-wrap">{s.body}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Original tab ── */}
+                {formViewTab === 'original' && originalForm && (
+                  <div className="rounded-2xl border-2 border-amber-200 overflow-hidden mb-4 animate-in fade-in duration-200">
+                    <div className="px-4 py-3 flex items-center gap-2" style={{ background:'linear-gradient(135deg,#fffbeb,#fef3c7)' }}>
                       <span className="text-lg">📄</span>
                       <div>
-                        <p className="text-xs font-black text-amber-800 uppercase tracking-wider">
-                          {uiLang==='ko'?'원본 양식 (업로드된 내용)':uiLang==='ja'?'元のフォーム（アップロード内容）':uiLang==='zh'?'原始表格（上传内容）':'Original Form (Uploaded Content)'}
+                        <p className="text-xs font-black text-amber-800">
+                          {uiLang==='ko'?'원본 양식 — 업로드한 파일 그대로':uiLang==='ja'?'元のフォーム（アップロードされたまま）':uiLang==='zh'?'原始表格（上传原件）':'Original Uploaded Form'}
                         </p>
-                        <p className="text-[10px] text-amber-600">
-                          {uiLang==='ko'?'AI가 이 원본 양식을 기반으로 완성된 문서를 작성했습니다.':'AI completed the document based on this original form.'}
+                        <p className="text-[10px] text-amber-600 mt-0.5">
+                          {uiLang==='ko'?'아래는 업로드한 양식의 원본 내용입니다. AI가 이 구조를 분석해 완성했습니다.':'Below is your original form. AI analyzed this structure to complete it.'}
                         </p>
                       </div>
                     </div>
-                    <div className="p-4 bg-white">
-                      <pre className="text-xs text-gray-600 whitespace-pre-wrap font-mono leading-relaxed max-h-80 overflow-y-auto">
-                        {originalForm}
-                      </pre>
+                    <div className="p-5 bg-white max-h-[70vh] overflow-y-auto">
+                      <FormContentRenderer content={originalForm} mode="original" />
                     </div>
-                    <div className="px-4 py-2.5 bg-amber-50 border-t border-amber-200 flex justify-between items-center">
-                      <span className="text-[10px] text-amber-600 font-medium">
-                        {uiLang==='ko'?'↓ AI가 채운 완성 문서는 아래에서 확인하세요':'↓ See AI-filled completed document below'}
-                      </span>
-                      <button
-                        onClick={() => setShowOriginalForm(false)}
-                        className="text-[10px] font-black text-amber-700 hover:text-amber-900 underline"
-                      >
-                        {uiLang==='ko'?'닫기':'Close'}
+                    <div className="px-4 py-2.5 bg-amber-50 border-t border-amber-200">
+                      <button type="button" onClick={() => setFormViewTab('ai')}
+                        className="text-[11px] font-black text-amber-700 hover:text-amber-900 flex items-center gap-1.5">
+                        ✨ {uiLang==='ko'?'AI 완성 양식 보기 →':'View AI Completed Form →'}
                       </button>
                     </div>
                   </div>
@@ -2430,8 +2616,9 @@ export default function OrderResultPage() {
             )
           })()}
 
-          {/* PDF target — section cards */}
-          <div ref={previewRef} className={order.result_json?.template_mode ? 'space-y-3' : 'space-y-5'}>
+          {/* PDF target — section cards (template: hide when original/split tab active) */}
+          <div ref={previewRef} className={order.result_json?.template_mode ? 'space-y-3' : 'space-y-5'}
+            style={order.result_json?.template_mode && (formViewTab === 'original' || formViewTab === 'split') ? { display:'none' } : undefined}>
             {sections.map((section, i) => {
               const accent = ACCENT_COLORS[i % ACCENT_COLORS.length]
               const accentNext = ACCENT_COLORS[(i + 1) % ACCENT_COLORS.length]
