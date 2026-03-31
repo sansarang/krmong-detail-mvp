@@ -67,76 +67,102 @@ export default function HomePage({ lang }: { lang: HomeLang }) {
       </nav>
 
       {/* ══ HERO ══════════════════════════════════════════ */}
-      <section className="relative bg-[#0F172A] min-h-[87vh] sm:min-h-[90vh] flex items-center overflow-hidden">
+      <section className="relative bg-[#0A0F1A] min-h-[92vh] flex items-center overflow-hidden">
+        {/* Background glows */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-600/14 rounded-full blur-[140px]" />
-          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-violet-700/14 rounded-full blur-[120px]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-indigo-900/18 rounded-full blur-[100px]" />
+          <div className="absolute top-[-10%] right-[-5%] w-[700px] h-[700px] bg-blue-600/10 rounded-full blur-[160px]" />
+          <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] bg-violet-700/10 rounded-full blur-[140px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-indigo-900/12 rounded-full blur-[120px]" />
+          {/* Subtle center accent */}
+          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[400px] h-[2px] bg-gradient-to-r from-transparent via-blue-500/20 to-transparent blur-sm" />
         </div>
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #94a3b8 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+        {/* Grid texture */}
+        <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage: 'radial-gradient(circle, #94a3b8 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
 
-        <div className="relative z-10 w-full max-w-5xl mx-auto px-5 py-16 md:py-28 text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-white/6 border border-white/12 text-gray-300 text-xs font-semibold px-4 py-2.5 rounded-full backdrop-blur-sm mb-8">
+        <div className="relative z-10 w-full max-w-5xl mx-auto px-5 py-20 md:py-32 text-center">
+
+          {/* Social proof badge */}
+          <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 text-gray-300 text-xs font-bold px-4 py-2.5 rounded-full backdrop-blur-md mb-10 hover:bg-white/8 transition-colors">
             <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shrink-0" />
-            <span className="hidden sm:inline">{C.hero.badge}</span>
-            <span className="sm:hidden">1,247 sellers · 4 lang · 6 platforms</span>
+            {C.hero.badge}
           </div>
 
-          {/* Headline */}
-          <h1 className="text-[40px] sm:text-[58px] md:text-[80px] lg:text-[92px] font-black leading-[0.88] tracking-[-0.04em] mb-6 md:mb-8" style={{ fontFamily: "'Satoshi','Pretendard','Inter',sans-serif" }}>
-            <span className="text-white block">{C.hero.h1a}</span>
-            <span className="block bg-gradient-to-r from-blue-400 via-violet-400 to-pink-400 bg-clip-text text-transparent">{C.hero.h1b}</span>
-            <span className="text-gray-500 block">{C.hero.h1c}</span>
+          {/* Headline — 3 lines, strong hierarchy */}
+          <h1 className="font-black tracking-[-0.04em] mb-6 md:mb-8 leading-[0.9]"
+            style={{ fontFamily: "'Satoshi','Pretendard','Inter',sans-serif" }}>
+            <span className="block text-white text-[36px] sm:text-[52px] md:text-[68px] lg:text-[78px]">
+              {C.hero.h1a}
+            </span>
+            <span className="block bg-gradient-to-r from-blue-400 via-violet-400 to-pink-400 bg-clip-text text-transparent text-[40px] sm:text-[56px] md:text-[74px] lg:text-[86px]">
+              {C.hero.h1b}
+            </span>
+            <span className="block text-gray-500 text-[32px] sm:text-[44px] md:text-[58px] lg:text-[68px]">
+              {C.hero.h1c}
+            </span>
           </h1>
 
-          {/* Sub */}
-          <p className="text-gray-400 text-base md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed font-medium px-2">
-            {C.hero.sub1} <span className="text-white font-bold">{C.hero.sub1b}</span>
-            <br className="hidden sm:block" />
-            {C.hero.sub2}
-          </p>
+          {/* Sub headline */}
+          <div className="max-w-2xl mx-auto mb-10 px-2 space-y-2">
+            <p className="text-gray-300 text-base md:text-lg leading-relaxed font-medium">
+              {C.hero.sub1}
+              {C.hero.sub1b && <><br className="hidden sm:block" /><span className="text-white font-bold">{C.hero.sub1b}</span></>}
+            </p>
+            <p className="text-gray-500 text-sm md:text-base">{C.hero.sub2}</p>
+          </div>
 
-          {/* Language tabs */}
-          <div className="flex flex-wrap justify-center gap-2 md:gap-3 mb-10 px-2">
+          {/* Language flags — LARGE, animated */}
+          <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-12 px-2">
             {LANG_TABS.map((tab, i) => (
               <button key={tab.code} onClick={() => setActiveLang(i)}
-                className={`flex items-center gap-2 md:gap-3 px-4 md:px-5 py-2.5 md:py-3 rounded-2xl border transition-all duration-500 ${
+                className={`group flex items-center gap-2.5 md:gap-3.5 px-4 md:px-6 py-3 md:py-4 rounded-2xl border transition-all duration-400 ${
                   activeLang === i
-                    ? `bg-gradient-to-r ${tab.color} border-transparent shadow-xl ${tab.glow} scale-105`
-                    : 'bg-white/4 border-white/10 hover:bg-white/8'
+                    ? `bg-gradient-to-r ${tab.color} border-transparent shadow-2xl ${tab.glow} scale-[1.06]`
+                    : 'bg-white/4 border-white/10 hover:bg-white/8 hover:border-white/18 hover:scale-[1.02]'
                 }`}>
-                <span className="text-xl md:text-2xl">{tab.flag}</span>
+                <span className="text-3xl md:text-4xl leading-none">{tab.flag}</span>
                 <div className="text-left">
-                  <p className={`text-sm md:text-base font-black leading-none ${activeLang === i ? 'text-white' : 'text-gray-300'}`}>{tab.code}</p>
-                  <p className={`text-[10px] leading-none mt-0.5 ${activeLang === i ? 'text-white/70' : 'text-gray-600'}`}>{tab.name[lang]}</p>
+                  <p className={`text-sm md:text-base font-black leading-tight ${activeLang === i ? 'text-white' : 'text-gray-200'}`}>
+                    {tab.name[lang]}
+                  </p>
+                  <p className={`text-[10px] md:text-xs leading-none mt-0.5 font-medium ${activeLang === i ? 'text-white/75' : 'text-gray-600'}`}>
+                    {tab.platform}
+                  </p>
+                  {activeLang === i && (
+                    <p className="text-[10px] text-white/60 font-semibold mt-1 hidden md:block">
+                      {tab.style[lang]}
+                    </p>
+                  )}
                 </div>
-                {activeLang === i && (
-                  <span className="hidden lg:block text-[10px] font-semibold text-white/80 bg-white/15 px-2.5 py-1 rounded-full ml-1 max-w-[130px] truncate">
-                    {tab.style[lang]}
-                  </span>
-                )}
               </button>
             ))}
           </div>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-8 px-4 sm:px-0">
-            <Link href="/login" className="bg-gradient-to-r from-blue-500 to-violet-600 text-white px-8 md:px-14 py-4 md:py-5 rounded-2xl text-base md:text-lg font-black hover:opacity-90 transition-all hover:scale-[1.03] hover:shadow-2xl hover:shadow-blue-500/40 text-center">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center mb-10 px-4 sm:px-0">
+            <Link href="/login"
+              className="bg-gradient-to-r from-blue-500 to-violet-600 text-white px-10 md:px-16 py-4 md:py-5 rounded-2xl text-base md:text-lg font-black hover:opacity-92 transition-all hover:scale-[1.03] hover:shadow-2xl hover:shadow-blue-500/35 text-center shadow-lg shadow-blue-500/20">
               {C.hero.cta1}
             </Link>
-            <Link href="/login" className="border border-white/20 bg-white/3 text-white px-7 md:px-10 py-4 rounded-2xl text-base font-bold hover:bg-white/10 transition-all text-center flex items-center justify-center gap-2">
-              <span className="text-sm opacity-70">▶</span> {C.hero.cta2}
+            <Link href="/order/new"
+              className="border border-white/20 bg-white/4 text-white px-7 md:px-10 py-4 rounded-2xl text-base font-bold hover:bg-white/10 hover:border-white/30 transition-all text-center flex items-center justify-center gap-2">
+              {C.hero.cta2}
             </Link>
           </div>
 
-          {/* Mini stats */}
-          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm">
+          {/* Stats row */}
+          <div className="flex flex-wrap justify-center gap-x-8 gap-y-3 mb-6">
             {C.hero.stats.map(([v, l]) => (
-              <div key={l} className="flex items-center gap-1.5">
-                <span className="text-white font-black">{v}</span>
-                <span className="text-gray-600">{l}</span>
+              <div key={l} className="flex items-center gap-2">
+                <span className="text-white font-black text-base md:text-lg">{v}</span>
+                <span className="text-gray-600 text-sm">{l}</span>
               </div>
+            ))}
+          </div>
+
+          {/* Trusted by */}
+          <div className="flex flex-wrap justify-center gap-3 opacity-40 hover:opacity-60 transition-opacity">
+            {['Amazon JP', 'Tmall', '楽天', 'Shopify', 'Smartstore', 'Qoo10'].map(p => (
+              <span key={p} className="text-gray-400 text-xs font-semibold">{p}</span>
             ))}
           </div>
         </div>
@@ -274,13 +300,14 @@ export default function HomePage({ lang }: { lang: HomeLang }) {
       </section>
 
       {/* ══ PLATFORM BAR ═════════════════════════════════ */}
-      <section className="bg-[#080D16] border-b border-white/5 py-5">
-        <p className="text-center text-[10px] font-black text-gray-700 uppercase tracking-widest mb-4">{C.platformBar}</p>
-        <div className="flex flex-wrap gap-3 md:gap-6 justify-center px-5">
+      <section className="bg-[#080D16] border-y border-white/5 py-6">
+        <p className="text-center text-[10px] font-black text-gray-700 uppercase tracking-[0.2em] mb-5">{C.platformBar}</p>
+        <div className="flex flex-wrap gap-2 md:gap-3 justify-center px-5">
           {PLATFORMS.map(p => (
-            <div key={p.name} className="flex items-center gap-1.5 text-gray-600 hover:text-gray-300 transition-colors">
-              <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
-              <span className="text-xs font-bold">{p.name}</span>
+            <div key={p.name}
+              className="flex items-center gap-2 bg-white/3 border border-white/5 hover:bg-white/6 hover:border-white/10 transition-all px-4 py-2 rounded-xl cursor-default group">
+              <span className="w-2.5 h-2.5 rounded-full shrink-0 group-hover:scale-125 transition-transform" style={{ backgroundColor: p.color }} />
+              <span className="text-xs font-bold text-gray-500 group-hover:text-gray-300 transition-colors">{p.name}</span>
             </div>
           ))}
         </div>
@@ -290,25 +317,35 @@ export default function HomePage({ lang }: { lang: HomeLang }) {
       <section id="how" className="bg-[#0F172A] py-24 md:py-32">
         <div className="max-w-5xl mx-auto px-5 md:px-6">
           <div className="text-center mb-16">
-            <p className="reveal text-[11px] font-black text-blue-400 uppercase tracking-[0.15em] mb-4">{C.how.label}</p>
+            <p className="reveal text-[11px] font-black text-blue-400 uppercase tracking-[0.16em] mb-4">{C.how.label}</p>
             <h2 className="reveal delay-100 text-3xl md:text-5xl font-black text-white tracking-tight leading-[1.1]">
               {C.how.h2a}<br /><span className="text-gray-600">{C.how.h2b}</span>
             </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
             {C.how.steps.map((step, i) => (
-              <div key={i} className={`reveal delay-${i * 100} bg-white/[0.02] border border-white/[0.07] rounded-3xl p-7 md:p-8 hover:bg-white/[0.05] hover:border-white/15 transition-all group`}>
-                <div className="flex items-start justify-between mb-6">
-                  <span className="text-4xl">{step.icon}</span>
-                  <div className="text-right">
-                    <p className="text-[10px] font-black text-gray-700 tracking-widest">{step.n}</p>
-                    <span className="inline-block bg-blue-500/15 border border-blue-500/20 text-blue-400 text-[10px] font-black px-2.5 py-1 rounded-full mt-1">{step.badge}</span>
+              <div key={i} className={`reveal delay-${i * 100} relative rounded-3xl p-8 md:p-9 overflow-hidden group transition-all duration-300 hover:-translate-y-1`}
+                style={{ background: i === 0 ? 'linear-gradient(135deg, rgba(30,58,138,0.3), rgba(15,23,42,0.8))' : i === 1 ? 'linear-gradient(135deg, rgba(76,29,149,0.25), rgba(15,23,42,0.8))' : 'linear-gradient(135deg, rgba(6,78,59,0.25), rgba(15,23,42,0.8))', border: '1px solid rgba(255,255,255,0.07)' }}>
+                {/* Number */}
+                <div className="absolute top-6 right-6 text-[48px] font-black leading-none opacity-[0.06] text-white">{step.n}</div>
+                <div className="flex items-start gap-3 mb-6">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0"
+                    style={{ background: i === 0 ? 'rgba(59,130,246,0.15)' : i === 1 ? 'rgba(139,92,246,0.15)' : 'rgba(16,185,129,0.15)', border: i === 0 ? '1px solid rgba(59,130,246,0.2)' : i === 1 ? '1px solid rgba(139,92,246,0.2)' : '1px solid rgba(16,185,129,0.2)' }}>
+                    {step.icon}
                   </div>
+                  <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border mt-1 ${i === 0 ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : i === 1 ? 'bg-violet-500/10 border-violet-500/20 text-violet-400' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'}`}>
+                    {step.badge}
+                  </span>
                 </div>
-                <h3 className="text-lg md:text-xl font-black text-white mb-2.5 tracking-tight group-hover:text-blue-100 transition-colors">{step.title}</h3>
+                <h3 className="text-lg md:text-xl font-black text-white mb-3 tracking-tight leading-snug">{step.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">{step.desc}</p>
               </div>
             ))}
+          </div>
+
+          {/* Connecting arrow — desktop only */}
+          <div className="hidden md:flex items-center justify-center gap-8 mt-8 opacity-20">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
           </div>
         </div>
       </section>
@@ -526,18 +563,22 @@ export default function HomePage({ lang }: { lang: HomeLang }) {
       {/* ══ FINAL CTA ══════════════════════════════════════ */}
       <section className="mx-4 md:mx-6 mb-16">
         <div className="reveal-scale max-w-5xl mx-auto rounded-3xl p-12 md:p-24 text-center relative overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1a0533 40%, #0c1a35 70%, #0F172A 100%)' }}>
-          <div className="absolute inset-0 opacity-25" style={{ backgroundImage: 'radial-gradient(ellipse at 30% 50%, #3b82f6, transparent 50%), radial-gradient(ellipse at 70% 50%, #8b5cf6, transparent 50%)' }} />
-          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+          style={{ background: 'linear-gradient(135deg, #0c1a35 0%, #130c2e 40%, #0a1628 70%, #0F172A 100%)' }}>
+          <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(ellipse 60% 70% at 25% 50%, rgba(59,130,246,0.18), transparent), radial-gradient(ellipse 60% 70% at 75% 50%, rgba(139,92,246,0.18), transparent)' }} />
+          <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
           <div className="relative z-10">
-            <p className="text-[11px] font-black text-gray-600 uppercase tracking-[0.2em] mb-5">{C.finalCta.label}</p>
-            <h2 className="text-4xl md:text-6xl font-black text-white tracking-[-0.04em] leading-[0.92] mb-5" style={{ fontFamily: "'Satoshi','Pretendard','Inter',sans-serif" }}>
+            <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 text-gray-400 text-[11px] font-black px-4 py-2 rounded-full mb-7 uppercase tracking-wider">
+              <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+              {C.finalCta.label}
+            </div>
+            <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-white tracking-[-0.04em] leading-[0.9] mb-6" style={{ fontFamily: "'Satoshi','Pretendard','Inter',sans-serif" }}>
               {C.finalCta.h2a}<br />
               <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-pink-400 bg-clip-text text-transparent">{C.finalCta.h2b}</span>
             </h2>
-            <p className="text-gray-500 mb-2 text-base md:text-lg">{C.finalCta.sub1}</p>
-            <p className="text-gray-700 text-sm mb-10">{C.finalCta.sub2}</p>
-            <Link href="/login" className="inline-block bg-gradient-to-r from-blue-500 to-violet-600 text-white px-10 md:px-16 py-5 rounded-2xl text-base md:text-xl font-black hover:opacity-90 transition-all hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/30">
+            <p className="text-gray-400 mb-1.5 text-base md:text-lg font-medium">{C.finalCta.sub1}</p>
+            <p className="text-gray-600 text-sm mb-10 tracking-wide">{C.finalCta.sub2}</p>
+            <Link href="/login"
+              className="inline-block bg-gradient-to-r from-blue-500 to-violet-600 text-white px-12 md:px-20 py-5 md:py-6 rounded-2xl text-base md:text-xl font-black hover:opacity-92 transition-all hover:scale-[1.04] hover:shadow-2xl hover:shadow-blue-500/30 shadow-lg shadow-blue-500/15">
               {C.finalCta.cta}
             </Link>
           </div>
