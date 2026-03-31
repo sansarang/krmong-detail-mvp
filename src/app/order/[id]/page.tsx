@@ -63,6 +63,8 @@ interface Order {
       seo_tip: string
       all_markets?: { market: string; cvr: number }[]
     }
+    ref_url?: string
+    ref_title?: string
   } | null
 }
 
@@ -2253,6 +2255,39 @@ export default function OrderResultPage() {
               </div>
             )
           })()}
+
+          {/* ── REF URL REWRITE BADGE ──────────────────────────────── */}
+          {order.result_json?.ref_url && (
+            <div className="mb-4 rounded-2xl border border-orange-200 overflow-hidden print:hidden">
+              <div className="flex items-center gap-2.5 px-4 py-2.5 bg-gradient-to-r from-orange-50 to-amber-50">
+                <span className="text-sm">🔁</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] font-black text-orange-700 uppercase tracking-wider">
+                    {uiLang==='ko'?'참고 URL 기반 재작성':uiLang==='ja'?'参考URL再作成':uiLang==='zh'?'基于参考URL重写':'Reference URL Rewrite'}
+                  </span>
+                  <span className="text-[10px] text-orange-500 ml-2">
+                    {uiLang==='ko'?'원본 복제 아님 — 완전한 새 원본 콘텐츠':'Not a copy — 100% new original content'}
+                  </span>
+                </div>
+                <a
+                  href={order.result_json.ref_url as string}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 text-[10px] font-black text-orange-600 hover:text-orange-800 underline decoration-dotted"
+                >
+                  {uiLang==='ko'?'원본 글 보기 →':'View original →'}
+                </a>
+              </div>
+              {order.result_json?.ref_title && (
+                <div className="px-4 py-2 bg-white border-t border-orange-100">
+                  <p className="text-[11px] text-gray-500">
+                    <span className="font-bold text-gray-700">{uiLang==='ko'?'참고 글:':'Ref: '}</span>
+                    {order.result_json.ref_title as string}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* ── SEO TIP BANNER (platform_cvr 데이터 있을 시) ─────── */}
           {(() => {

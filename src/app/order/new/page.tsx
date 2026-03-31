@@ -628,6 +628,16 @@ export default function NewOrderPage() {
   const [tmplTranslate, setTmplTranslate] = useState(false)
   const [tmplFileName, setTmplFileName] = useState('')
   const [tmplPreviewOpen, setTmplPreviewOpen] = useState(false)
+
+  // ── 참고 URL (상위 노출 글 기반 재작성) ───────────────────────────────
+  const [refUrl, setRefUrl]               = useState('')
+  const [refUrlLoading, setRefUrlLoading] = useState(false)
+  const [refUrlData, setRefUrlData]       = useState<{
+    title?: string; summary?: string; structure?: string[]; keywords?: string[]
+    wordCount?: number; url?: string
+  } | null>(null)
+  const [showRefUrl, setShowRefUrl]       = useState(false)
+
   const docInputRef     = useRef<HTMLInputElement>(null)
   const templateFileRef = useRef<HTMLInputElement>(null)
 
@@ -986,6 +996,43 @@ export default function NewOrderPage() {
     })
   }
 
+  // 참고 URL 분석
+  async function handleAnalyzeRefUrl() {
+    const url = refUrl.trim()
+    if (!url || !url.startsWith('http')) { toast.error(uiLang === 'ko' ? '올바른 URL을 입력해주세요' : 'Enter a valid URL'); return }
+    setRefUrlLoading(true)
+    setRefUrlData(null)
+    try {
+      const res = await fetch('/api/scrape-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, mode: 'article' }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'Failed')
+
+      // Extract structure from full text
+      const text: string = json.text ?? json.description ?? ''
+      const lines = text.split('\n').map((l: string) => l.trim()).filter(Boolean)
+      const headings = lines.filter((l: string) => l.startsWith('#') || l.length < 60 && l.length > 4 && /^[A-Z가-힣]/.test(l)).slice(0, 8)
+      const wordCount = text.split(/\s+/).length
+
+      setRefUrlData({
+        title: json.product_name || json.title || lines[0]?.slice(0, 80) || url,
+        summary: lines.slice(1, 4).join(' ').slice(0, 200),
+        structure: headings,
+        keywords: json.keywords ?? [],
+        wordCount,
+        url,
+      })
+      toast.success(uiLang === 'ko' ? '참고 URL 분석 완료!' : 'Reference URL analyzed!')
+    } catch {
+      toast.error(uiLang === 'ko' ? 'URL 분석 실패. 다른 URL을 시도해보세요.' : 'Failed to analyze URL.')
+    } finally {
+      setRefUrlLoading(false)
+    }
+  }
+
   // 제품 모드 제출
   async function handleProductSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -993,6 +1040,22 @@ export default function NewOrderPage() {
     let combinedDesc = docText.trim()
       ? `${form.description}\n\n[첨부 문서 내용]\n${docText.trim()}`
       : form.description
+
+    // 참고 URL 기반 재작성 데이터 주입
+    if (refUrlData && refUrlData.url) {
+      const refBlock = [
+        `[REF_URL:${refUrlData.url}]`,
+        refUrlData.title ? `[REF_TITLE:${refUrlData.title}]` : '',
+        refUrlData.structure && refUrlData.structure.length > 0
+          ? `[REF_STRUCTURE:${refUrlData.structure.join(' | ')}]`
+          : '',
+        refUrlData.keywords && refUrlData.keywords.length > 0
+          ? `[REF_KEYWORDS:${refUrlData.keywords.slice(0, 10).join(', ')}]`
+          : '',
+        refUrlData.summary ? `[REF_SUMMARY:${refUrlData.summary}]` : '',
+      ].filter(Boolean).join('\n')
+      combinedDesc += `\n\n${refBlock}`
+    }
 
     // 선택된 마켓 정보 주입
     if (selectedMarkets.length > 0) {
@@ -1890,6 +1953,100 @@ export default function NewOrderPage() {
               <p className={`text-[10px] mt-1 text-right ${form.description.length > 50 ? 'text-emerald-600' : 'text-gray-300'}`}>
                 {form.description.length}자 {form.description.length > 50 ? '✓' : ''}
               </p>
+            </div>
+
+            {/* ── 참고 URL (상위 노출 글 기반 재작성) ── */}
+            <div className="border border-dashed border-orange-200 rounded-xl overflow-hidden">
+              <button type="button"
+                onClick={() => setShowRefUrl(v => !v)}
+                className="w-full flex items-center justify-between px-4 py-3 bg-orange-50 hover:bg-orange-100 transition-colors text-left">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">🔁</span>
+                  <span className="text-xs font-black text-orange-700">
+                    {uiLang === 'ko' ? '참고 URL로 재작성 (상위 글 기반)' : uiLang === 'ja' ? '参考URLで再作成' : uiLang === 'zh' ? '基于参考URL重写' : 'Rewrite from Reference URL'}
+                  </span>
+                  {refUrlData && (
+                    <span className="text-[9px] font-black bg-orange-500 text-white px-1.5 py-0.5 rounded-full">ON</span>
+                  )}
+                </div>
+                <span className="text-gray-400 text-xs">{showRefUrl ? '▲' : '▼'}</span>
+              </button>
+              {showRefUrl && (
+                <div className="p-4 bg-white space-y-3">
+                  <p className="text-[10px] text-orange-600 font-bold leading-relaxed">
+                    {uiLang === 'ko'
+                      ? '블로그, 논문, 상위 노출된 글의 URL을 입력하면 해당 글의 구조와 흐름을 분석해서 더 나은 새 글로 재작성합니다. 단순 복제 아닌 완전한 원본 생성.'
+                      : uiLang === 'ja' ? 'ブログや記事のURLを入力すると、その構造と流れを分析して、より良い新しい記事に再作成します。'
+                      : uiLang === 'zh' ? '输入博客或文章URL，AI分析其结构和流程，创作全新的原创内容。'
+                      : 'Enter a blog, article, or top-ranking URL. AI analyzes its structure and rewrites it as a completely new original — not a copy.'}
+                  </p>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      value={refUrl}
+                      onChange={e => { setRefUrl(e.target.value); if (refUrlData) setRefUrlData(null) }}
+                      placeholder="https://blog.naver.com/... or any article URL"
+                      className="flex-1 border border-orange-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-orange-400 bg-orange-50/50 placeholder-gray-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAnalyzeRefUrl}
+                      disabled={refUrlLoading || !refUrl.trim()}
+                      className="shrink-0 px-3 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white text-xs font-black rounded-xl transition-all flex items-center gap-1.5"
+                    >
+                      {refUrlLoading
+                        ? <><span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin block" />{uiLang==='ko'?'분석 중':'Analyzing...'}</>
+                        : <>{uiLang==='ko'?'🔍 분석':'🔍 Analyze'}</>
+                      }
+                    </button>
+                  </div>
+
+                  {/* 분석 결과 미리보기 */}
+                  {refUrlData && (
+                    <div className="rounded-xl border border-orange-200 bg-orange-50/60 p-3 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-[9px] font-black text-orange-600 uppercase tracking-wider mb-0.5">
+                            {uiLang==='ko'?'분석된 참고 글':'Analyzed Reference'}
+                          </p>
+                          <p className="text-xs font-bold text-gray-800 leading-snug">{refUrlData.title}</p>
+                          {refUrlData.wordCount && (
+                            <p className="text-[10px] text-gray-500 mt-0.5">≈ {refUrlData.wordCount.toLocaleString()} words</p>
+                          )}
+                        </div>
+                        <button type="button" onClick={() => { setRefUrlData(null); setRefUrl('') }} className="text-[10px] text-gray-400 hover:text-red-500 font-bold shrink-0">✕</button>
+                      </div>
+                      {refUrlData.summary && (
+                        <p className="text-[10px] text-gray-600 leading-relaxed border-t border-orange-200 pt-2">{refUrlData.summary}...</p>
+                      )}
+                      {refUrlData.structure && refUrlData.structure.length > 0 && (
+                        <div className="border-t border-orange-200 pt-2">
+                          <p className="text-[9px] font-black text-orange-600 uppercase tracking-wider mb-1">{uiLang==='ko'?'감지된 구조':'Detected Structure'}</p>
+                          <div className="flex flex-wrap gap-1">
+                            {refUrlData.structure.slice(0, 6).map((h, i) => (
+                              <span key={i} className="text-[10px] bg-white border border-orange-200 text-orange-700 px-2 py-0.5 rounded-full font-medium">{h.replace(/^#+\s*/, '').slice(0, 30)}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {refUrlData.keywords && refUrlData.keywords.length > 0 && (
+                        <div className="border-t border-orange-200 pt-2">
+                          <p className="text-[9px] font-black text-orange-600 uppercase tracking-wider mb-1">Keywords</p>
+                          <div className="flex flex-wrap gap-1">
+                            {refUrlData.keywords.slice(0, 8).map((k, i) => (
+                              <span key={i} className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">{k}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <div className="border-t border-orange-200 pt-2 flex items-center gap-1.5">
+                        <span className="text-[9px] font-black text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">✓ {uiLang==='ko'?'생성 시 이 구조 참고':'Will use this structure'}</span>
+                        <span className="text-[9px] text-gray-400">{uiLang==='ko'?'(단순 복제 아닌 완전 재작성)':'(full rewrite, not copy)'}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* ── Custom AI Instructions ── */}

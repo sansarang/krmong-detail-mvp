@@ -414,10 +414,60 @@ Write a complete, professional document based on the above form/data.
     const crossborderPlatforms = crossborderMatch
       ? crossborderMatch[1].split(',').map((s: string) => s.trim()).filter(Boolean)
       : []
+
+    // ── 참고 URL 재작성 모드 감지 ──────────────────────────────────────
+    const refUrlMatch      = (order.description ?? '').match(/\[REF_URL:([^\]]+)\]/)
+    const refTitleMatch    = (order.description ?? '').match(/\[REF_TITLE:([^\]]+)\]/)
+    const refStructMatch   = (order.description ?? '').match(/\[REF_STRUCTURE:([^\]]+)\]/)
+    const refKeywordsMatch = (order.description ?? '').match(/\[REF_KEYWORDS:([^\]]+)\]/)
+    const refSummaryMatch  = (order.description ?? '').match(/\[REF_SUMMARY:([^\]]+)\]/)
+
+    const refUrl       = refUrlMatch?.[1]?.trim() ?? null
+    const refTitle     = refTitleMatch?.[1]?.trim() ?? null
+    const refStructure = refStructMatch?.[1]?.trim() ?? null
+    const refKeywords  = refKeywordsMatch?.[1]?.trim() ?? null
+    const refSummary   = refSummaryMatch?.[1]?.trim() ?? null
+
     const cleanDescription = (order.description ?? '')
       .replace(/\[MARKETS:[^\]]+\]/g, '')
       .replace(/\[CROSSBORDER:[^\]]+\]/g, '')
+      .replace(/\[REF_URL:[^\]]+\]/g, '')
+      .replace(/\[REF_TITLE:[^\]]+\]/g, '')
+      .replace(/\[REF_STRUCTURE:[^\]]+\]/g, '')
+      .replace(/\[REF_KEYWORDS:[^\]]+\]/g, '')
+      .replace(/\[REF_SUMMARY:[^\]]+\]/g, '')
       .trim()
+
+    // 참고 URL 재작성 컨텍스트 블록
+    const buildRefUrlBlock = () => {
+      if (!refUrl) return ''
+      const lines = [
+        `╔══════════════════════════════════════════════════════════╗`,
+        `║  🔁 REFERENCE URL REWRITE MODE — ACTIVE                 ║`,
+        `╚══════════════════════════════════════════════════════════╝`,
+        ``,
+        `The user provided a reference article/blog URL to use as inspiration.`,
+        `CRITICAL RULES FOR THIS MODE:`,
+        `1. DO NOT copy, quote, or reproduce any text from the original`,
+        `2. ANALYZE the structure, flow, and persuasion techniques of the reference`,
+        `3. CREATE a completely original, new piece using the product info provided`,
+        `4. MATCH OR EXCEED the quality of the reference article`,
+        `5. Use the reference's keyword strategy and section flow as a guide`,
+        `6. The output must pass plagiarism checks — 100% new content`,
+        ``,
+        `Reference URL: ${refUrl}`,
+        refTitle     ? `Reference Title: ${refTitle}` : '',
+        refStructure ? `Reference Section Structure: ${refStructure}` : '',
+        refKeywords  ? `Reference Keywords: ${refKeywords}` : '',
+        refSummary   ? `Reference Summary: ${refSummary}` : '',
+        ``,
+        `→ Study the reference's structure and write a BETTER version using the product info below.`,
+        `→ Mirror the section flow where relevant, but with completely new sentences.`,
+        `→ Include a note in the output: [REF_REWRITE:${refUrl}]`,
+      ].filter(s => s !== null && s !== undefined && (s as string).length >= 0)
+       .join('\n')
+      return lines
+    }
 
     // ── 마켓별 특화 섹션 가이드 오버라이드 ───────────────────
     const MARKET_SECTION_GUIDES: Record<string, string> = {
@@ -861,8 +911,9 @@ ${dynamicNegative ? `║  ⛔ ${dynamicNegative}` : ''}
         const customBlock = customInstructions
           ? `\n\n🔴 USER'S CUSTOM INSTRUCTIONS (HIGHEST PRIORITY — override defaults if conflicting):\n${customInstructions}\n🔴 END CUSTOM INSTRUCTIONS\n`
           : ''
+        const refBlock = buildRefUrlBlock()
         const anchor = buildProductAnchor(lang)
-        return `${anchor}${customBlock}You are a world-class ${langLabel[lang] ?? roleDesc}.${lInst}
+        return `${anchor}${refBlock ? '\n' + refBlock + '\n' : ''}${customBlock}You are a world-class ${langLabel[lang] ?? roleDesc}.${lInst}
 
 Product: ${order.product_name}
 Category: ${order.category}
@@ -880,6 +931,7 @@ MANDATORY QUALITY STANDARDS:
 6. HUMAN FLOW: Each section must have a DIFFERENT tone, rhythm, and angle. Vary sentence length. Use storytelling, unexpected angles, sensory language. Never repeat the same structural pattern twice.
 7. DIVERSE TITLES: Section titles must each use a completely different style — interrogative, declarative, paradoxical, numerical, evocative — never two titles with the same structure
 8. ORGANIC TRANSITIONS: Content must flow naturally between sections like a human writer, not a template
+${refUrl ? `9. REFERENCE REWRITE: Study the reference structure above. Mirror its flow quality but write 100% new original content.` : ''}
 ${docRules}
 
 Output JSON only (no other text, no markdown):
@@ -918,6 +970,7 @@ Output JSON only (no other text, no markdown):
         multi_lang: true,
         output_lang: 'all',
         ...(platformCvrData ? { platform_cvr: platformCvrData } : {}),
+        ...(refUrl ? { ref_url: refUrl, ref_title: refTitle ?? undefined } : {}),
       }
       for (const { lang, sections } of langResults) {
         multiResult[lang] = { sections }
@@ -933,6 +986,7 @@ Output JSON only (no other text, no markdown):
       : ''
 
     const productAnchor = buildProductAnchor(outputLang)
+    const refBlock = buildRefUrlBlock()
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-5',
@@ -940,7 +994,7 @@ Output JSON only (no other text, no markdown):
       system: GLOBAL_SYSTEM_PROMPT,
       messages: [{
         role: 'user',
-        content: `${productAnchor}${customBlock}당신은 ${roleDesc}입니다.${langInstruction}
+        content: `${productAnchor}${refBlock ? '\n' + refBlock + '\n' : ''}${customBlock}당신은 ${roleDesc}입니다.${langInstruction}
 
 카테고리: ${order.category}
 제목/이름: ${order.product_name}
@@ -957,6 +1011,7 @@ ${sectionGuide}
 5. 마지막 섹션: 감정적 트리거 + 명확한 행동 유도 (긴박감, 독점성, 감성 연결 중 택일)
 6. 전체 섹션 본문 합계 1500자 이상
 7. 인간 작가처럼 자연스럽고 유기적인 흐름 — 섹션 간 패턴 반복 금지
+${refUrl ? `8. 참고 URL 재작성 모드: 위 참고 글의 구조를 학습하고 완전히 새로운 원본 문장으로 재작성` : ''}
 ${docRules}
 
 ⚠️ SEO + 인간화 동시 달성:
@@ -997,6 +1052,7 @@ JSON만 출력 (마크다운 없이, 앞뒤 텍스트 없이):
       sections: parsed.sections,
       output_lang: outputLang,
       ...(platformCvrData ? { platform_cvr: platformCvrData } : {}),
+      ...(refUrl ? { ref_url: refUrl, ref_title: refTitle ?? undefined } : {}),
     }
 
     await supabase
