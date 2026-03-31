@@ -51,7 +51,11 @@ export async function POST(req: NextRequest) {
 
       const plan = profile?.plan ?? 'free'
 
-      if (plan === 'free' && monthlyCount > FREE_LIMIT) {
+      // 관리자 이메일은 무제한 (ADMIN_EMAILS 환경변수 또는 기본 관리자)
+      const adminEmails = (process.env.ADMIN_EMAILS ?? '').split(',').map(e => e.trim()).filter(Boolean)
+      const isAdmin = adminEmails.includes(user.email ?? '') || plan === 'admin'
+
+      if (!isAdmin && plan === 'free' && monthlyCount > FREE_LIMIT) {
         return NextResponse.json(
           { error: 'LIMIT_EXCEEDED', message: `무료 플랜은 월 ${FREE_LIMIT}회까지 생성할 수 있어요.` },
           { status: 402 }
@@ -287,7 +291,7 @@ ${templateContent}
       : ''
 
     // ── 데이터 기반 카피 컨텍스트 ─────────────────────────────
-    const dataContext = !isDocType
+    const dataContext = !isDocType && outputLang !== 'all'
       ? buildDataContextBlock(
           outputLang as 'ko' | 'en' | 'ja' | 'zh',
           order.product_name,
@@ -296,6 +300,73 @@ ${templateContent}
         )
       : ''
     // ──────────────────────────────────────────────────────────
+
+    // ── 4개 언어 동시 생성 모드 ───────────────────────────────
+    if (outputLang === 'all') {
+      const LANGS_ALL = ['ko', 'en', 'ja', 'zh']
+      const LANG_NAMES_ALL: Record<string, string> = { ko: '한국어', en: 'English', ja: '日本語', zh: '中文' }
+
+      const buildMultiPrompt = (lang: string) => {
+        const lInst = lang !== 'ko'
+          ? `\n⚠️ IMPORTANT: Write ALL output content entirely in ${LANG_NAMES_ALL[lang]}. Do NOT use Korean anywhere.`
+          : ''
+        const cCtx = !isDocType ? (CULTURAL_CONTEXT[lang] ?? '') : ''
+        const dCtx = !isDocType
+          ? buildDataContextBlock(lang as 'ko' | 'en' | 'ja' | 'zh', order.product_name, order.category, cleanDescription)
+          : ''
+        return `당신은 ${roleDesc}입니다.${lInst}
+
+카테고리: ${order.category}
+제목/이름: ${order.product_name}
+내용: ${cleanDescription}
+${dCtx}${cCtx ? '\n' + cCtx : ''}${platformGuide ? '\n' + platformGuide : ''}
+${sectionGuide}
+
+반드시 지켜야 할 규칙:
+1. 각 섹션 본문 100자 이상
+2. 카테고리 업종에 맞는 전문 용어 사용
+${docRules}
+
+JSON만 출력 (다른 텍스트 없이):
+{"sections": [
+  {"id": 1, "name": "섹션명", "title": "제목", "body": "본문", "bg_color": "#FFFFFF"},
+  {"id": 2, "name": "섹션명", "title": "제목", "body": "본문", "bg_color": "#F8F9FA"},
+  {"id": 3, "name": "섹션명", "title": "제목", "body": "본문", "bg_color": "#FFFFFF"},
+  {"id": 4, "name": "섹션명", "title": "제목", "body": "본문", "bg_color": "#F0F7FF"},
+  {"id": 5, "name": "섹션명", "title": "제목", "body": "본문", "bg_color": "#FFFFFF"},
+  {"id": 6, "name": "섹션명", "title": "제목", "body": "본문", "bg_color": "#FFF8E7"}
+]}`
+      }
+
+      const langResults = await Promise.all(
+        LANGS_ALL.map(async (lang) => {
+          const msg = await anthropic.messages.create({
+            model: 'claude-haiku-4-5',
+            max_tokens: 2500,
+            messages: [{ role: 'user', content: buildMultiPrompt(lang) }],
+          })
+          const c = msg.content[0]
+          if (c.type !== 'text') throw new Error(`${lang} 응답 오류`)
+          const raw = c.text.trim()
+            .replace(/^```(?:json)?\s*/i, '')
+            .replace(/\s*```\s*$/i, '')
+            .trim()
+          const match = raw.match(/\{[\s\S]*\}/)
+          if (!match) throw new Error(`${lang} JSON 파싱 실패`)
+          const parsed = JSON.parse(match[0]) as { sections: unknown[] }
+          return { lang, sections: parsed.sections }
+        })
+      )
+
+      const multiResult: Record<string, unknown> = { multi_lang: true, output_lang: 'all' }
+      for (const { lang, sections } of langResults) {
+        multiResult[lang] = { sections }
+      }
+
+      await supabase.from('orders').update({ status: 'done', result_json: multiResult }).eq('id', orderId)
+      return NextResponse.json({ success: true, result: multiResult })
+    }
+    // ─────────────────────────────────────────────────────────
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-5',

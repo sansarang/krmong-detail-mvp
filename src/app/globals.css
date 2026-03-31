@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@700,800,900&display=swap');
 
 /* Pretendard 전역 적용 */
 *, *::before, *::after {
@@ -202,4 +203,77 @@
 }
 .animate-demo-marquee:hover {
   animation-play-state: paused;
+}
+
+/* ── 스크롤 reveal 애니메이션 ─────────────────────── */
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(36px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes reveal-left {
+  from { opacity: 0; transform: translateX(-28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes reveal-right {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes reveal-scale {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.reveal {
+  opacity: 0;
+}
+.reveal.visible {
+  animation: reveal-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.reveal-left.visible {
+  animation: reveal-left 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.reveal-right.visible {
+  animation: reveal-right 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.reveal-scale.visible {
+  animation: reveal-scale 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+/* 지연 유틸 */
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+
+/* ── 모바일 기본 폰트 16px 보장 ──────────────────── */
+@media (max-width: 640px) {
+  body { font-size: 16px; }
+  p, li, span { min-font-size: 14px; }
+}
+
+/* ── 스마트폰 프레임 ──────────────────────────────── */
+.phone-frame {
+  position: relative;
+  width: 280px;
+  min-height: 520px;
+  border-radius: 44px;
+  border: 8px solid #1a1a1a;
+  background: #fff;
+  box-shadow:
+    0 0 0 2px #333,
+    0 30px 80px rgba(0,0,0,0.5),
+    inset 0 0 0 1px rgba(255,255,255,0.05);
+  overflow: hidden;
+}
+.phone-frame::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 6px;
+  background: #1a1a1a;
+  border-radius: 99px;
+  z-index: 10;
 }

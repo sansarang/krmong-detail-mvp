@@ -6,10 +6,10 @@ import { loginPathForLang } from '@/lib/uiLocale'
 type Lang = 'ko' | 'en' | 'ja' | 'zh'
 
 const CURRENCY: Record<Lang, { symbol: string; pro: number; proY: number; biz: number; bizY: number }> = {
-  ko: { symbol: '₩', pro: 29000,  proY: 23200, biz: 79000,  bizY: 63200 },
-  en: { symbol: '$', pro: 21,     proY: 17,    biz: 57,     bizY: 46 },
-  ja: { symbol: '¥', pro: 2980,   proY: 2380,  biz: 7980,   bizY: 6380 },
-  zh: { symbol: '¥', pro: 148,    proY: 118,   biz: 398,    bizY: 318 },
+  ko: { symbol: '₩', pro: 39000,  proY: 31200, biz: 99000,  bizY: 79200 },
+  en: { symbol: '$', pro: 29,     proY: 23,    biz: 79,     bizY: 63 },
+  ja: { symbol: '¥', pro: 4480,   proY: 3580,  biz: 11900,  bizY: 9520 },
+  zh: { symbol: '¥', pro: 210,    proY: 168,   biz: 570,    bizY: 456 },
 }
 
 const LABELS: Record<Lang, {
@@ -25,10 +25,10 @@ const LABELS: Record<Lang, {
     plans: [
       { name: '무료', desc: '시작해보고 싶은 분', cta: '무료로 시작',
         features: ['월 5회 생성', 'PDF 다운로드', '인라인 편집', 'SEO 분석 ✗', '블로그 발행 ✗', 'A/B 자동 생성 ✗'] },
-      { name: '프로', desc: '매달 신제품을 출시하는 셀러', cta: '프로 시작하기', badge: '가장 인기',
-        features: ['무제한 생성', 'PDF 다운로드', '인라인 편집', 'SEO 분석 리포트', '4개 플랫폼 1클릭 발행', 'A/B 버전 자동 생성'] },
-      { name: '비즈니스', desc: '에이전시·팀', cta: '비즈니스 시작',
-        features: ['무제한 생성', 'PDF 다운로드', '인라인 편집', 'SEO 분석 리포트', '4개 플랫폼 1클릭 발행', '팀 3인 + API 액세스'] },
+      { name: '프로', desc: '글로벌 셀러 · 크로스보더', cta: '프로 시작하기', badge: '가장 인기',
+        features: ['무제한 생성', '🌏 4개 언어 동시 생성', '6개 플랫폼 자동 최적화', 'SEO 분석 리포트', '전환율 예측 리포트', 'A/B 버전 자동 생성'] },
+      { name: '비즈니스', desc: '에이전시·팀·브랜드', cta: '비즈니스 시작',
+        features: ['무제한 생성', '🌏 4개 언어 동시 생성', '6개 플랫폼 자동 최적화', 'SEO 분석 리포트', '전환율 예측 리포트', '팀 3인 + API 액세스'] },
     ],
   },
   en: {
@@ -39,10 +39,10 @@ const LABELS: Record<Lang, {
     plans: [
       { name: 'Free', desc: 'Try it out', cta: 'Start Free',
         features: ['5 generations/month', 'PDF download', 'Inline editing', 'SEO analysis ✗', 'Blog publishing ✗', 'A/B auto-generate ✗'] },
-      { name: 'Pro', desc: 'For active sellers', cta: 'Start Pro', badge: 'Most Popular',
-        features: ['Unlimited generations', 'PDF download', 'Inline editing', 'SEO analysis report', '4-platform 1-click publish', 'A/B version auto-generate'] },
-      { name: 'Business', desc: 'For agencies & teams', cta: 'Start Business',
-        features: ['Unlimited generations', 'PDF download', 'Inline editing', 'SEO analysis report', '4-platform 1-click publish', 'Team 3 seats + API access'] },
+      { name: 'Pro', desc: 'For cross-border sellers', cta: 'Start Pro', badge: 'Most Popular',
+        features: ['Unlimited generations', '🌏 4-language simultaneous output', '6-platform auto-optimization', 'SEO analysis report', 'Conversion rate predictor', 'A/B version auto-generate'] },
+      { name: 'Business', desc: 'For agencies & brands', cta: 'Start Business',
+        features: ['Unlimited generations', '🌏 4-language simultaneous output', '6-platform auto-optimization', 'SEO analysis report', 'Conversion rate predictor', 'Team 3 seats + API access'] },
     ],
   },
   ja: {
@@ -53,10 +53,10 @@ const LABELS: Record<Lang, {
     plans: [
       { name: '無料', desc: 'まずお試しに', cta: '無料で始める',
         features: ['月5回生成', 'PDFダウンロード', 'インライン編集', 'SEO分析 ✗', 'ブログ投稿 ✗', 'A/B自動生成 ✗'] },
-      { name: 'プロ', desc: '毎月新商品を出すセラー', cta: 'プロを始める', badge: '最人気',
-        features: ['無制限生成', 'PDFダウンロード', 'インライン編集', 'SEO分析レポート', '4プラットフォーム1クリック投稿', 'A/Bバージョン自動生成'] },
+      { name: 'プロ', desc: '越境セラー・グローバル展開', cta: 'プロを始める', badge: '最人気',
+        features: ['無制限生成', '🌏 4言語同時生成', '6プラットフォーム自動最適化', 'SEO分析レポート', '転換率予測レポート', 'A/Bバージョン自動生成'] },
       { name: 'ビジネス', desc: 'エージェンシー・チーム向け', cta: 'ビジネスを始める',
-        features: ['無制限生成', 'PDFダウンロード', 'インライン編集', 'SEO分析レポート', '4プラットフォーム1クリック投稿', 'チーム3名 + APIアクセス'] },
+        features: ['無制限生成', '🌏 4言語同時生成', '6プラットフォーム自動最適化', 'SEO分析レポート', '転換率予測レポート', 'チーム3名 + APIアクセス'] },
     ],
   },
   zh: {
@@ -67,10 +67,10 @@ const LABELS: Record<Lang, {
     plans: [
       { name: '免费版', desc: '先体验一下', cta: '免费开始',
         features: ['每月5次生成', 'PDF下载', '在线编辑', 'SEO分析 ✗', '博客发布 ✗', 'A/B自动生成 ✗'] },
-      { name: '专业版', desc: '活跃卖家专用', cta: '开始专业版', badge: '最受欢迎',
-        features: ['无限次生成', 'PDF下载', '在线编辑', 'SEO分析报告', '4平台一键发布', 'A/B版本自动生成'] },
-      { name: '商业版', desc: '代理机构·团队', cta: '开始商业版',
-        features: ['无限次生成', 'PDF下载', '在线编辑', 'SEO分析报告', '4平台一键发布', '3人团队 + API访问'] },
+      { name: '专业版', desc: '跨境卖家·全球展开', cta: '开始专业版', badge: '最受欢迎',
+        features: ['无限次生成', '🌏 4语言同时生成', '6平台自动优化', 'SEO分析报告', '转化率预测报告', 'A/B版本自动生成'] },
+      { name: '商业版', desc: '代理机构·品牌·团队', cta: '开始商业版',
+        features: ['无限次生成', '🌏 4语言同时生成', '6平台自动优化', 'SEO分析报告', '转化率预测报告', '3人团队 + API访问'] },
     ],
   },
 }

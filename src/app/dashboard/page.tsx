@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import ReferralWidget from '@/components/ReferralWidget'
 import TrendWidget from '@/components/TrendWidget'
 import Logo from '@/components/Logo'
+import BenchmarkWidget from '@/components/BenchmarkWidget'
 
 const TIPS = [
   {
@@ -216,6 +217,16 @@ export default async function DashboardPage() {
 
           {/* 오른쪽: 정보 사이드바 */}
           <div className="space-y-4">
+
+            {/* 글로벌 셀러 벤치마크 */}
+            <BenchmarkWidget
+              orders={(orders ?? []).map(o => ({
+                status: o.status,
+                result_json: o.result_json as { sections?: unknown[] } | null,
+                category: o.category as string | undefined,
+              }))}
+              doneCount={doneCount}
+            />
 
             {/* 래퍼럴 위젯 */}
             <ReferralWidget />

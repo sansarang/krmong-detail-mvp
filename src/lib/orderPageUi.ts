@@ -352,6 +352,8 @@ export type OrderPageUi = {
   txtDownload: string
   toastTxtOk: string
   txtFilename: (name: string) => string
+  zipDownload: string
+  toastZipOk: string
 }
 
 export const ORDER_PAGE_UI: Record<UiLang, OrderPageUi> = {
@@ -430,6 +432,8 @@ export const ORDER_PAGE_UI: Record<UiLang, OrderPageUi> = {
     txtDownload: '↓ TXT 다운로드',
     toastTxtOk: 'TXT 파일 다운로드 완료!',
     txtFilename: (name) => `작성결과_${name}.txt`,
+    zipDownload: '📦 Export Pack (ZIP)',
+    toastZipOk: '📦 ZIP 다운로드 완료!',
   },
   en: {
     brand: 'PageAI',
@@ -506,6 +510,8 @@ export const ORDER_PAGE_UI: Record<UiLang, OrderPageUi> = {
     txtDownload: '↓ Download TXT',
     toastTxtOk: 'TXT file downloaded!',
     txtFilename: (name) => `result_${name.replace(/\s+/g, '_')}.txt`,
+    zipDownload: '📦 Export Pack (ZIP)',
+    toastZipOk: '📦 ZIP downloaded!',
   },
   ja: {
     brand: 'PageAI',
@@ -582,6 +588,8 @@ export const ORDER_PAGE_UI: Record<UiLang, OrderPageUi> = {
     txtDownload: '↓ TXTダウンロード',
     toastTxtOk: 'TXTファイルをダウンロードしました！',
     txtFilename: (name) => `結果_${name}.txt`,
+    zipDownload: '📦 エクスポートパック (ZIP)',
+    toastZipOk: '📦 ZIPダウンロード完了！',
   },
   zh: {
     brand: 'PageAI',
@@ -658,6 +666,8 @@ export const ORDER_PAGE_UI: Record<UiLang, OrderPageUi> = {
     txtDownload: '↓ 下载 TXT',
     toastTxtOk: 'TXT 文件已下载！',
     txtFilename: (name) => `结果_${name}.txt`,
+    zipDownload: '📦 导出包 (ZIP)',
+    toastZipOk: '📦 ZIP 下载完成！',
   },
 }
 

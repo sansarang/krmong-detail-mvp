@@ -14,45 +14,46 @@ import TrendWidget from '@/components/TrendWidget'
 import PromoDemoWidget from '@/components/PromoDemoWidget'
 
 const HERO_WORDS = [
+  'Amazon JP',
+  'Tmall Global',
+  'Rakuten',
+  'Shopify',
   'Product Pages',
   'Press Releases',
   'Business Plans',
-  'Paper Summaries',
-  'Company Decks',
-  'IR Pitches',
-  'Policy Docs',
-  'Research Reports',
+  'Cross-Border',
 ]
 
 const GOODBYE_ITEMS = [
-  'Expensive agencies', 'Endless revisions', 'Slow delivery', 'Generic AI output',
-  'Wasted hours', 'Copywriter fees', 'Design back-and-forth', 'A/B test guesswork',
-  'Low conversion copy', 'Missed deadlines', 'Inconsistent quality', 'Planning meetings',
+  'Translation errors killing sales', 'Platform-specific reformatting', 'Expensive multilingual copywriters',
+  'Cultural nuance mistakes', 'Waiting 2 weeks for delivery', 'Amazon A+ manual work',
+  'Tmall detail page headaches', 'Low cross-border conversions', 'Per-language outsourcing costs',
+  '4 languages edited separately', 'Generic AI with no localization', 'Rakuten keyword guesswork',
 ]
 
 const REVIEWS = [
-  { name: 'Jason M.', role: 'E-commerce Seller, USA', stars: 5, badge: '10x Faster', text: 'I used to spend a week back-and-forth with a copywriter. Now I generate a complete product page in 5 minutes and it\'s honestly better quality.' },
-  { name: 'Yuki T.', role: 'Shopify Store Owner, Japan', stars: 5, badge: 'Cost Saved 90%', text: 'The AI understands my product category perfectly. The output is polished, professional, and ready to use. I\'ve replaced my entire content team.' },
-  { name: 'Li Wei', role: 'Brand Manager, Taiwan', stars: 5, badge: '2x Conversion', text: 'We tested AI-generated pages vs our old ones. The AI pages converted 2x better. We now use it for every new product launch.' },
-  { name: 'Sarah K.', role: 'Amazon FBA Seller, UK', stars: 5, badge: 'Saves £800/mo', text: 'Replacing my copywriter saved me £800 a month. The AI writes better product descriptions than most humans I\'ve hired.' },
-  { name: 'Marco R.', role: 'DTC Brand Founder, Italy', stars: 5, badge: '5x Productivity', text: 'I launch 3x more products per month now. What used to take 2 weeks takes 30 minutes. Absolute game-changer for my business.' },
-  { name: 'Aiko N.', role: 'Rakuten Seller, Japan', stars: 5, badge: 'Instant Edit', text: 'The inline editing feature is brilliant. I can tweak any section in seconds without asking anyone. My team loves it.' },
+  { name: 'Jason M.', role: 'Amazon JP & FBA Seller, USA', stars: 5, badge: 'Amazon JP CTR +24%', text: 'PageAI generates Amazon A+ Content in perfect Japanese — not just translated, but culturally localized. My JP store conversion went up 24% in the first month.' },
+  { name: 'Yuki T.', role: 'Shopify Global Store, Japan', stars: 5, badge: '4 Languages in 5 Min', text: 'One input → Korean, English, Japanese, Chinese all at once. I used to spend $2,000/month on translators. Now I launch globally in under 10 minutes.' },
+  { name: 'Li Wei', role: 'Tmall Brand Manager, Taiwan', stars: 5, badge: 'Tmall CTR +22%', text: 'The AI writes in actual Tmall A+ style — 天猫爆款风格, social proof focus, the works. Not just a translation. Our click-through rate went up 22% immediately.' },
+  { name: 'Sarah K.', role: 'Rakuten & Amazon Seller, UK', stars: 5, badge: 'Saves $1,200/mo', text: 'I was spending $1,200/month on multilingual copywriters for 3 platforms. PageAI replaced all of that. Cross-border selling has never been this affordable.' },
+  { name: 'Marco R.', role: 'D2C Brand, 6 Markets', stars: 5, badge: '6 Markets Simultaneously', text: 'We now launch on Amazon JP, Tmall, Rakuten, Lazada, and Shopify simultaneously. What took 6 weeks per launch now takes one afternoon.' },
+  { name: 'Aiko N.', role: 'Qoo10 & Lazada Seller', stars: 5, badge: 'Platform Auto-Optimized', text: 'Cross-border mode automatically adapts to each platform\'s requirements. Qoo10 format, Lazada bullet style — the AI just knows. Incredible time-saver.' },
 ]
 
 const FAQS = [
-  { q: 'What does PageAI actually do?', a: 'You input your product or service info, and our AI generates a full, professional document — product detail pages, press releases, business proposals, academic summaries, and more — in under 5 minutes.' },
-  { q: 'What categories are supported?', a: 'We support 40+ categories: e-commerce products, automotive services, restaurants, education, real estate, IT/SaaS, government documents, R&D proposals, academic papers, and more.' },
-  { q: 'Can I edit the generated content?', a: 'Yes. Click any section to edit it inline. You can also use the AI chat assistant to request revisions in natural language, like "make this more persuasive."' },
-  { q: 'What languages are supported?', a: 'Korean, English, Japanese, and Chinese. The AI detects your browser language and automatically sets the output language.' },
-  { q: 'Can I publish to my blog directly?', a: 'Yes! Open the Blog tab after generation and pick WordPress, Shopify, Medium, Instagram, or LinkedIn — copy the HTML and paste it into your editor. (Korean sites: Naver Blog & Tistory are available in the Korean UI.)' },
-  { q: 'How much does it cost?', a: 'Free plan includes 5 generations per month. Pro plan is $21/month with unlimited generations, SEO analysis, and multi-platform blog export.' },
+  { q: 'Does it really generate 4 languages simultaneously?', a: 'Yes! Enable "4-Language Mode" and get Korean, English, Japanese, and Chinese versions in one generation. Each is culturally localized — not just translated. JP gets polite 敬語 tone, CN gets Tmall A+ structure, EN gets Amazon bullet-point format.' },
+  { q: 'Which cross-border platforms are supported?', a: 'Amazon (A+ Content format), Tmall Global (详情页 structure), Rakuten (商品説明 style), Shopify, Qoo10, and Lazada. Enable Cross-border Mode and select your platforms — the AI adapts content structure automatically.' },
+  { q: 'Is it real localization or just translation?', a: 'Real localization. Japanese output emphasizes politeness, quality craftsmanship, and seasonal context. Chinese output uses social proof, KOL mentions, and promotional framing. English uses benefit-first, quantified claims. These are culturally distinct, not translated Korean.' },
+  { q: 'Can I input a product URL to auto-fill?', a: 'Yes! Paste any product URL (Amazon, Shopify, Naver, Coupang, Rakuten, etc.) and our AI scrapes and analyzes the page to auto-fill the product name, category, and description. Then generate in 4 languages instantly.' },
+  { q: 'Can I edit the generated content?', a: 'Yes. Click any section to edit inline. Each language tab shows that language\'s version. You can also request AI revisions via the chat assistant in natural language.' },
+  { q: 'How much does it cost vs. outsourcing?', a: 'Outsourcing multilingual content for 4 platforms costs $800–3,000/month minimum. PageAI Pro is $29/month for unlimited generations across all 4 languages and 6 platforms. That\'s 97%+ cost savings.' },
 ]
 
 const FEATURES = [
-  { icon: '⚡', title: '5-Minute Output', desc: 'From input to download in under 5 minutes. No waiting on agencies or freelancers.' },
-  { icon: '✏️', title: 'Click-to-Edit', desc: 'Not happy with a section? Click once to edit inline. No back-and-forth emails.' },
-  { icon: '🌏', title: '40+ Categories', desc: 'E-commerce, automotive, hospitality, government, academia — one tool for all industries.' },
-  { icon: '📤', title: 'Multi-Platform Publish', desc: 'WordPress, Shopify, Medium, Instagram, LinkedIn — one-click copy for your stack.' },
+  { icon: '🌏', title: '4 Languages at Once', desc: 'One input → KR + EN + JP + CN simultaneously. Each is culturally localized: JP = 敬語 style, CN = Tmall A+, EN = Amazon format.' },
+  { icon: '🛒', title: 'Platform Auto-Optimization', desc: 'Amazon A+ Content, Tmall 详情页, Rakuten 商品説明, Shopify — select your platforms and the AI adapts structure, keywords, and format automatically.' },
+  { icon: '📊', title: 'Conversion Rate Predictor', desc: '"Amazon JP estimated +18% / Tmall CN CTR +22%" — market-specific conversion predictions generated after every page.' },
+  { icon: '⚡', title: 'URL to Page in 5 Min', desc: 'Paste any product URL → AI auto-fills info → generate 4-language cross-border pages in under 5 minutes.' },
 ]
 
 export default function EnglishHome() {
@@ -101,42 +102,39 @@ export default function EnglishHome() {
 
       {/* ── HERO ── */}
       <section className="max-w-5xl mx-auto px-5 pt-12 md:pt-20 pb-10 text-center">
-        <div className="inline-flex items-center gap-2 bg-gray-50 border border-gray-200 text-gray-600 text-xs font-semibold px-3 md:px-4 py-2 rounded-full mb-6 md:mb-8">
-          <div className="flex -space-x-1 shrink-0">
-            {['#FF5C35','#6366F1','#10B981','#F59E0B','#EC4899'].map((c, i) => (
-              <div key={i} className="w-5 h-5 rounded-full border-2 border-white" style={{ backgroundColor: c }} />
-            ))}
-          </div>
-          <span className="w-px h-3 bg-gray-300 shrink-0" />
-          <span className="text-green-600 font-bold">Beta</span>
-          <span className="hidden sm:inline">— 40+ categories · Any language · Any industry</span>
-          <span className="sm:hidden">40+ categories</span>
+        <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold px-3 md:px-4 py-2 rounded-full mb-6 md:mb-8">
+          <span>🌏</span>
+          <span className="hidden sm:inline">1,247 cross-border sellers · Average SEO Score 86 · 🇰🇷🇺🇸🇯🇵🇨🇳 4 languages</span>
+          <span className="sm:hidden">1,247 sellers · 4 languages</span>
         </div>
 
-        <h1 className="text-[40px] sm:text-[58px] md:text-[88px] font-black text-black leading-[0.92] tracking-[-0.04em] mb-6 md:mb-8">
+        <h1 className="text-[36px] sm:text-[52px] md:text-[80px] font-black text-black leading-[0.92] tracking-[-0.04em] mb-4 md:mb-6">
           <span className="inline-block transition-all duration-300" style={{ opacity: fade ? 1 : 0, transform: fade ? 'translateY(0)' : 'translateY(10px)' }}>
-            {HERO_WORDS[wordIdx]},
+            {HERO_WORDS[wordIdx]}
           </span>
-          <br />
-          <span className="text-gray-200">any document,</span><br />
-          AI in 5 min.
+          <span className="text-gray-200">,</span><br />
+          <span className="text-gray-200">any product,</span><br />
+          4 languages · 5 min.
         </h1>
 
-        <p className="text-base md:text-xl text-gray-400 mb-8 max-w-xl mx-auto leading-relaxed font-medium px-2">
-          Just enter your info. AI generates a professional document —{' '}
-          <span className="text-gray-600 font-semibold">product pages, press releases, proposals, and more.</span>
+        <p className="text-base md:text-xl text-gray-400 mb-3 max-w-2xl mx-auto leading-relaxed font-medium px-2">
+          One input → Korean, English, Japanese, Chinese simultaneously.<br className="hidden sm:block" />
+          Optimized for Amazon · Tmall · Rakuten · Shopify · Qoo10 · Lazada.
+        </p>
+        <p className="text-sm text-gray-300 mb-8 max-w-xl mx-auto px-2">
+          Real sellers see <strong className="text-gray-500">2X conversion</strong> & <strong className="text-gray-500">10X cost savings</strong> vs. multilingual outsourcing.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4 px-4 sm:px-0">
           <Link href="/en/login" className="bg-black text-white px-8 md:px-10 py-4 rounded-2xl text-base md:text-lg font-black hover:bg-gray-800 transition-all hover:scale-[1.03] hover:shadow-xl">
-            Start for Free →
+            Start Free Now →
+          </Link>
+          <Link href="/en/login" className="border-2 border-gray-200 text-gray-700 px-6 py-4 rounded-2xl text-base font-bold hover:border-gray-400 transition-all">
+            🌏 4-Language Demo
           </Link>
         </div>
-        <p className="text-xs text-gray-300 font-medium">No credit card · Free to start · Takes 30 seconds</p>
+        <p className="text-xs text-gray-300 font-medium">No credit card · Free to start · 30 seconds to first result</p>
       </section>
-
-      {/* ── PROMO DEMO ── */}
-      <PromoDemoWidget lang="en" />
 
       {/* ── LIVE TICKER ── */}
       <LiveTicker lang="en" />
@@ -147,12 +145,12 @@ export default function EnglishHome() {
       {/* ── DEMO ANIMATION ── */}
       <section className="pb-12">
         <div className="max-w-5xl mx-auto px-5 text-center mb-8 md:mb-10">
-          <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">Analyze & Optimize</p>
+          <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">Auto-Publish</p>
           <h2 className="text-3xl md:text-5xl font-black text-black tracking-tight leading-tight mb-3">
-            AI analyzes your content,<br />
-            <span className="text-gray-300">then rewrites it to sell.</span>
+            1 input,<br />
+            <span className="text-gray-300">4 languages · 4 platforms at once.</span>
           </h2>
-          <p className="text-gray-400 text-sm font-medium">Input → Analysis → Channel-optimized copy & kits</p>
+          <p className="text-gray-400 text-sm font-medium">Input → AI 4-language generation → Amazon · Tmall · Rakuten · Shopify auto-optimized</p>
         </div>
         <DemoAnimation lang="en" />
       </section>

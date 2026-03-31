@@ -14,39 +14,40 @@ import TrendWidget from '@/components/TrendWidget'
 import PromoDemoWidget from '@/components/PromoDemoWidget'
 
 const HERO_WORDS = [
-  '商品详情页', '新闻稿', '商业计划书', '论文摘要',
-  '公司简介', 'IR路演资料', '政策宣传文', '研究提案书',
+  '天猫全球购', 'Amazon', '速卖通', 'Shopify',
+  '商品详情页', '新闻稿', '跨境电商', '商业计划书',
 ]
 
 const GOODBYE_ITEMS = [
-  '昂贵的外包费', '反复修改', '漫长等待', '千篇一律的AI输出',
-  '浪费时间', '文案撰写费', '设计反复沟通', 'A/B测试猜测',
-  '低转化文案', '错过截止日期', '质量不稳定', '策划会议',
+  '多语言翻译错误', '各平台格式转换', '昂贵的多语言文案费',
+  '文化差异导致的失误', '等待2周的交稿期', '天猫A+手动制作',
+  '跨境转化率低', '4种语言分开修改', '各语言外包成本',
+  '乐天关键词研究', '翻译后的单独修改', 'Amazon A+制作烦恼',
 ]
 
 const FEATURES = [
-  { icon: '⚡', title: '5分钟完成', desc: '从输入到PDF下载平均仅需5分钟。无需等待外包2周。' },
-  { icon: '✏️', title: '点击即编辑', desc: '对某个板块不满意？点击一下即可直接编辑，无需来回邮件。' },
-  { icon: '🌏', title: '40+行业分类', desc: '电商、汽车、餐饮、政府文件、学术论文……覆盖所有行业。' },
-  { icon: '📤', title: '多平台一键导出', desc: '微信公众号、WordPress、Instagram、PDF — 一键导出所有格式。' },
+  { icon: '🌏', title: '4语言同时生成', desc: '输入一次 → 韩语+英语+日语+中文同时生成。中文使用天猫A+爆款风格，英文使用Amazon格式，日文使用敬语风格，每种语言独立文化优化。' },
+  { icon: '🛒', title: '平台自动优化', desc: '天猫、Amazon、乐天、Shopify、Lazada — 选择平台，AI自动适应各平台的标题结构、关键词密度和内容格式。' },
+  { icon: '📊', title: '转化率预测报告', desc: '生成后自动显示"天猫CN预计CTR+22% / Amazon JP转化率+18%"等市场专属预测报告。' },
+  { icon: '⚡', title: 'URL到页面5分钟', desc: '粘贴任意商品URL → AI自动分析填写信息 → 5分钟内生成4语言跨境电商页面。' },
 ]
 
 const REVIEWS = [
-  { name: '张伟', role: '电商店主', stars: 5, badge: '效率提升10倍', text: '以前写一篇商品详情页要两周，现在5分钟搞定。质量一点不差，甚至更好。彻底解放了我的时间。' },
-  { name: '李慧', role: '品牌运营总监', stars: 5, badge: '成本降低90%', text: '每个月30万的外包费用现在几乎降到零。AI对行业的理解深度让我非常惊讶，生成的内容专业度极高。' },
-  { name: '王明', role: '跨境电商负责人', stars: 5, badge: '转化率翻倍', text: '用AI生成的页面和原来的做了A/B测试，AI版本转化率是原来的2倍。现在所有产品都在用了。' },
-  { name: '陈晓燕', role: 'Shopify卖家', stars: 5, badge: '每月省1万元', text: '以前雇文案要花1万多，现在PageAI全搞定了。生成出来的内容直接可以用，完全不需要改。' },
-  { name: '刘强', role: 'DTC品牌创始人', stars: 5, badge: '生产力提升5倍', text: '现在每月可以上线3倍的产品。以前要两周的工作，现在30分钟完成。真的是颠覆性的工具。' },
-  { name: '赵雨', role: '自由撰稿人', stars: 5, badge: '即时编辑', text: '内联编辑功能太好用了。任何板块几秒内就能修改，给客户提案也变得顺畅多了。' },
+  { name: '张伟', role: '天猫全球购品牌商', stars: 5, badge: '天猫CTR +22%', text: 'PageAI生成的中文文案完全是天猫A+爆款风格——销量数据、好评率、KOL推荐都自动融入。不是翻译，是真正的本地化内容。CTR涨了22%。' },
+  { name: '李慧', role: 'Shopify全球独立站', stars: 5, badge: '4语言5分钟', text: '输入一次，中文、英文、韩文、日文同时生成。之前每月花在翻译上的2万元现在省下来了。10分钟就能完成全球化上线。' },
+  { name: '王明', role: '速卖通跨境负责人', stars: 5, badge: '跨境转化翻倍', text: 'A/B测试显示AI生成的页面转化率是原来的2倍。跨境模式能针对不同市场自动优化，效果非常显著。' },
+  { name: '陈晓燕', role: 'Amazon FBA卖家', stars: 5, badge: '每月省1.5万元', text: '多语言文案外包每月要花1.5万，PageAI全部搞定。Amazon A+内容格式完全符合要求，直接可以用。' },
+  { name: '刘强', role: 'DTC品牌6市场运营', stars: 5, badge: '6市场同时上线', text: '以前每个市场单独运营要6周，现在天猫、Amazon、乐天、Lazada可以同时上线。PageAI彻底改变了我的跨境业务。' },
+  { name: '赵雨', role: 'Lazada · Qoo10卖家', stars: 5, badge: '平台自动适配', text: '跨境模式选好平台后，AI自动生成Lazada和Qoo10各自需要的格式和关键词。省去了无数次手动修改的烦恼。' },
 ]
 
 const FAQS = [
-  { q: 'PageAI是做什么的？', a: '只需输入产品或服务信息，AI在5分钟内自动生成专业文档——商品详情页、新闻稿、商业提案、学术摘要等，覆盖40+类别。' },
-  { q: '支持哪些行业分类？', a: '支持40+类别：电商商品、汽车、餐饮、教育、房地产、IT/SaaS、政府文件、研究提案、学术论文等。' },
-  { q: '生成的内容可以编辑吗？', a: '可以。点击任意板块即可直接内联编辑。也可以用自然语言向AI助手下指令，如"让这段更有说服力"。' },
-  { q: '支持哪些语言？', a: '支持中文、韩文、英文、日文。系统会自动检测浏览器语言并设置输出语言。' },
-  { q: '可以直接发布到博客吗？', a: '可以！生成后点击博客标签，选择微信公众号、WordPress、Instagram或Tistory，复制HTML粘贴到编辑器即完成发布。' },
-  { q: '费用是多少？', a: '免费版每月可生成5次。专业版¥148/月，支持无限次生成、SEO分析和多平台发布。' },
+  { q: '真的能4种语言同时生成吗？', a: '是的！开启"4语言同时生成模式"，一次输入即可同时获得韩语、英语、日语、中文版本。每种语言都经过文化优化：中文使用天猫A+爆款风格+社会证明，英文使用Amazon A+格式+利益导向，日文使用敬语+季节感+品质诉求。' },
+  { q: '支持哪些跨境电商平台？', a: '支持天猫全球购（详情页结构）、Amazon（A+ Content格式）、乐天（商品説明风格）、Shopify、速卖通、Lazada。开启跨境模式并选择目标平台，AI自动适应各平台内容结构。' },
+  { q: '是真正的本地化还是只是翻译？', a: '是真正的本地化。中文输出强调销量XX件、好评率99%、KOL推荐、限时促销，使用社会证明和爆款风格。英文强调benefit-first、量化数据、Amazon SEO关键词。日文强调丁寧語、季節感、品質保証。每种语言都是独立创作，而非翻译。' },
+  { q: '可以从商品URL自动填写信息吗？', a: '可以！粘贴任意商品URL（天猫、淘宝、Amazon、Shopify等），AI自动分析页面并填写商品名、分类和描述，然后立即生成4语言版本。' },
+  { q: '生成的内容可以编辑吗？', a: '可以。点击任意板块即可直接内联编辑。切换语言标签可查看各语言版本。也可以用自然语言向AI助手发出修改指令。' },
+  { q: '与外包相比费用如何？', a: '4语言4平台的多语言内容外包每月至少需要5,000-30,000元。PageAI专业版仅需$29/月，支持无限次生成，覆盖全部4种语言和6个平台。节省超过97%的成本。' },
 ]
 
 export default function ZhPage() {
@@ -95,41 +96,39 @@ export default function ZhPage() {
 
       {/* ── HERO ── */}
       <section className="max-w-5xl mx-auto px-5 pt-12 md:pt-20 pb-10 text-center">
-        <div className="inline-flex items-center gap-2 bg-gray-50 border border-gray-200 text-gray-600 text-xs font-semibold px-3 md:px-4 py-2 rounded-full mb-6 md:mb-8">
-          <div className="flex -space-x-1 shrink-0">
-            {['#FF5C35','#6366F1','#10B981','#F59E0B','#EC4899'].map((c, i) => (
-              <div key={i} className="w-5 h-5 rounded-full border-2 border-white" style={{ backgroundColor: c }} />
-            ))}
-          </div>
-          <span className="w-px h-3 bg-gray-300 shrink-0" />
-          <span className="text-green-600 font-bold">测试版</span>
-          <span className="hidden sm:inline">— 40+行业分类 · 任意语言 · 全球适用</span>
-          <span className="sm:hidden">40+分类</span>
+        <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold px-3 md:px-4 py-2 rounded-full mb-6 md:mb-8">
+          <span>🌏</span>
+          <span className="hidden sm:inline">1,247位跨境卖家正在使用 · 平均SEO评分86 · 🇰🇷🇺🇸🇯🇵🇨🇳 4语言支持</span>
+          <span className="sm:hidden">1,247卖家 · 4语言</span>
         </div>
 
-        <h1 className="text-[40px] sm:text-[58px] md:text-[80px] font-black text-black leading-[0.92] tracking-[-0.04em] mb-6 md:mb-8">
+        <h1 className="text-[36px] sm:text-[52px] md:text-[80px] font-black text-black leading-[0.92] tracking-[-0.04em] mb-4 md:mb-6">
           <span className="inline-block transition-all duration-300" style={{ opacity: fade ? 1 : 0, transform: fade ? 'translateY(0)' : 'translateY(10px)' }}>
-            {HERO_WORDS[wordIdx]}，
+            {HERO_WORDS[wordIdx]}
           </span>
-          <br />
-          <span className="text-gray-200">任何文档，</span><br />
-          AI 5分钟搞定。
+          <span className="text-gray-200">，</span><br />
+          <span className="text-gray-200">任何商品，</span><br />
+          4语言 · 5分钟。
         </h1>
 
-        <p className="text-base md:text-xl text-gray-400 mb-8 max-w-xl mx-auto leading-relaxed font-medium px-2">
-          只需输入信息，AI即可生成<span className="text-gray-600 font-semibold">商品详情页、新闻稿、商业提案等</span>专业文档。
+        <p className="text-base md:text-xl text-gray-400 mb-3 max-w-2xl mx-auto leading-relaxed font-medium px-2">
+          输入一次 → 韩语、英语、日语、中文同时生成。<br className="hidden sm:block" />
+          天猫 · Amazon · 乐天 · Shopify · Lazada · Qoo10 自动优化。
+        </p>
+        <p className="text-sm text-gray-300 mb-8 max-w-xl mx-auto px-2">
+          真实卖家实现<strong className="text-gray-500">转化率2倍提升</strong>与<strong className="text-gray-500">成本降低10倍</strong>。
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4 px-4 sm:px-0">
           <Link href="/zh/login" className="bg-black text-white px-8 md:px-10 py-4 rounded-2xl text-base md:text-lg font-black hover:bg-gray-800 transition-all hover:scale-[1.03] hover:shadow-xl">
-            免费开始 →
+            立即免费开始 →
+          </Link>
+          <Link href="/zh/login" className="border-2 border-gray-200 text-gray-700 px-6 py-4 rounded-2xl text-base font-bold hover:border-gray-400 transition-all">
+            🌏 查看4语言演示
           </Link>
         </div>
-        <p className="text-xs text-gray-300 font-medium">无需信用卡 · 30秒即可开始</p>
+        <p className="text-xs text-gray-300 font-medium">无需信用卡 · 30秒即可开始 · 首次免费</p>
       </section>
-
-      {/* ── PROMO DEMO ── */}
-      <PromoDemoWidget lang="zh" />
 
       {/* ── LIVE TICKER ── */}
       <LiveTicker lang="zh" />
@@ -140,12 +139,12 @@ export default function ZhPage() {
       {/* ── DEMO ANIMATION ── */}
       <section className="pb-12">
         <div className="max-w-5xl mx-auto px-5 text-center mb-8 md:mb-10">
-          <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">分析 & 优化</p>
+          <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">自动发布</p>
           <h2 className="text-3xl md:text-5xl font-black text-black tracking-tight leading-tight mb-3">
-            AI分析您的内容，<br />
-            <span className="text-gray-300">转化为高转化文案。</span>
+            输入1次，<br />
+            <span className="text-gray-300">4语言 · 4平台同时发布。</span>
           </h2>
-          <p className="text-gray-400 text-sm font-medium">输入 → 分析 → 各渠道文案 & 套件自动生成</p>
+          <p className="text-gray-400 text-sm font-medium">输入 → AI 4语言同时生成 → 天猫 · Amazon · 乐天 · Shopify 自动优化</p>
         </div>
         <DemoAnimation lang="zh" />
       </section>
