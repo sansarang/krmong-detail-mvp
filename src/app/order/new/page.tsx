@@ -590,6 +590,90 @@ const LANG_FOR_MARKET: Record<string, string> = {
   tmall:'zh',
 }
 
+// ── 생성 진행 상황 컴포넌트 ────────────────────────────────────────────────
+function GeneratingProgress({ elapsed, isMultiLang, langCount, uiLang }: {
+  elapsed: number
+  isMultiLang: boolean
+  langCount: number
+  uiLang: string
+}) {
+  // 예상 시간: 단일언어 ~25s, 다국어 ~55s, 양식4개국어 ~70s
+  const estimated = isMultiLang ? (langCount >= 4 ? 70 : 55) : 25
+  const progress  = Math.min(Math.round((elapsed / estimated) * 100), 96)
+  const remaining = Math.max(estimated - elapsed, 0)
+
+  const STEPS_KO = ['양식 구조 분석 중...', 'AI 항목별 작성 중...', '전문 문서로 편집 중...', '마무리 중...']
+  const STEPS_EN = ['Analyzing form structure...', 'AI filling each field...', 'Formatting as professional doc...', 'Almost done...']
+  const STEPS_JA = ['書式構造を解析中...', 'AIが各項目を記入中...', 'プロ文書に編集中...', '仕上げ中...']
+  const STEPS_ZH = ['分析表格结构...', 'AI逐项填写中...', '编辑为专业文档...', '即将完成...']
+  const STEPS: Record<string,string[]> = { ko: STEPS_KO, en: STEPS_EN, ja: STEPS_JA, zh: STEPS_ZH }
+  const steps = STEPS[uiLang] ?? STEPS_EN
+
+  const stepIdx = elapsed < 8 ? 0 : elapsed < 25 ? 1 : elapsed < 50 ? 2 : 3
+  const currentStep = steps[stepIdx] ?? steps[steps.length - 1]!
+
+  return (
+    <div className="w-full rounded-2xl overflow-hidden border border-indigo-200" style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%)' }}>
+      {/* Header */}
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-indigo-100">
+        <div className="w-7 h-7 rounded-xl bg-indigo-500/15 border border-indigo-500/20 flex items-center justify-center shrink-0">
+          <span className="w-3.5 h-3.5 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin block" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-black text-indigo-800">
+            {uiLang === 'ko' ? 'AI가 문서를 작성하고 있습니다'
+            : uiLang === 'ja' ? 'AIが文書を作成しています'
+            : uiLang === 'zh' ? 'AI正在生成文档'
+            : 'AI is generating your document'}
+          </p>
+          <p className="text-[10px] text-indigo-500 mt-0.5 truncate">{currentStep}</p>
+        </div>
+        <div className="shrink-0 text-right">
+          <p className="text-lg font-black text-indigo-700 tabular-nums leading-none">{elapsed}s</p>
+          <p className="text-[10px] text-indigo-400">
+            {remaining > 0
+              ? (uiLang === 'ko' ? `~${remaining}초 남음` : uiLang === 'ja' ? `残り~${remaining}秒` : `~${remaining}s left`)
+              : (uiLang === 'ko' ? '거의 완료...' : 'Almost done...')}
+          </p>
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      <div className="px-4 pt-2.5 pb-1">
+        <div className="w-full h-2 bg-indigo-100 rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-1000 ease-out"
+            style={{
+              width: `${progress}%`,
+              background: 'linear-gradient(90deg, #6366f1, #8b5cf6)',
+            }}
+          />
+        </div>
+        <div className="flex justify-between mt-1">
+          <span className="text-[9px] text-indigo-400 font-bold">{progress}%</span>
+          {isMultiLang && (
+            <span className="text-[9px] text-indigo-500 font-bold">
+              {uiLang === 'ko' ? `🌏 ${langCount}개 언어 동시 생성 중` : `🌏 Generating in ${langCount} languages`}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Step dots */}
+      <div className="px-4 pb-3 flex items-center gap-1.5 mt-1">
+        {steps.map((s, i) => (
+          <div key={i} className="flex-1 flex flex-col items-center gap-1">
+            <div className={`w-2 h-2 rounded-full transition-all ${
+              i < stepIdx ? 'bg-indigo-500' : i === stepIdx ? 'bg-indigo-400 ring-2 ring-indigo-200 animate-pulse' : 'bg-indigo-100'
+            }`} />
+            <p className={`text-[8px] text-center leading-tight hidden sm:block ${i <= stepIdx ? 'text-indigo-600 font-bold' : 'text-indigo-300'}`}>{s.replace('...','')}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function NewOrderPage() {
   const router   = useRouter()
   const supabase = createClient()
@@ -628,6 +712,20 @@ export default function NewOrderPage() {
   const [tmplTranslate, setTmplTranslate] = useState(false)
   const [tmplFileName, setTmplFileName] = useState('')
   const [tmplPreviewOpen, setTmplPreviewOpen] = useState(false)
+
+  // ── 생성 진행 타이머 ────────────────────────────────────────────────────
+  const [genElapsed, setGenElapsed]     = useState(0)
+  const genTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const startGenTimer = () => {
+    setGenElapsed(0)
+    if (genTimerRef.current) clearInterval(genTimerRef.current)
+    genTimerRef.current = setInterval(() => setGenElapsed(s => s + 1), 1000)
+  }
+  const stopGenTimer = () => {
+    if (genTimerRef.current) { clearInterval(genTimerRef.current); genTimerRef.current = null }
+    setGenElapsed(0)
+  }
 
   // ── 참고 URL (상위 노출 글 기반 재작성) ───────────────────────────────
   const [refUrl, setRefUrl]               = useState('')
@@ -722,6 +820,7 @@ export default function NewOrderPage() {
   ) {
     if (!isAdminUser && monthlyUsed >= FREE_LIMIT) { setShowUpgrade(true); return }
     setThisLoading(true)
+    startGenTimer()
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push(loginPathForLang(readStoredUiLang() ?? uiLang)); return }
@@ -739,7 +838,6 @@ export default function NewOrderPage() {
         .insert({ user_id: user.id, ...payload, image_urls: imageUrls, status: 'pending' })
         .select().single()
       if (error) throw error
-      toast.success(L.toastGenerating)
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -757,6 +855,7 @@ export default function NewOrderPage() {
       toast.error(err instanceof Error ? err.message : 'Error occurred')
     } finally {
       setThisLoading(false)
+      stopGenTimer()
     }
   }
 
@@ -1712,21 +1811,26 @@ export default function NewOrderPage() {
               </div>
 
               {/* ── Submit button ────────────────────────────────── */}
-              <button type="submit" disabled={templateLoading}
-                className="w-full text-white py-4 rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2.5 min-h-[56px] shadow-lg hover:opacity-90 hover:scale-[1.01] hover:shadow-indigo-200/60 disabled:opacity-40 disabled:scale-100 disabled:shadow-none"
-                style={{ background: templateLoading ? '#6366f1' : 'linear-gradient(135deg, #3730a3, #4f46e5 40%, #7c3aed)' }}>
-                {templateLoading
-                  ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /><span>{L.generating}</span></>
-                  : <>
-                      <span className="text-base">⚡</span>
-                      <span>{uiLang === 'ko' ? 'AI 자동 완성 시작 →' : uiLang === 'ja' ? 'AI自動完成を開始 →' : uiLang === 'zh' ? '启动AI自动填写 →' : 'Start AI Auto-Fill →'}</span>
-                      {tmplOutputLangs.length > 1 && (
-                        <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full">
-                          {tmplOutputLangs.length}{uiLang === 'ko' ? '개국어' : uiLang === 'ja' ? '言語' : uiLang === 'zh' ? '种语言' : ' langs'}
-                        </span>
-                      )}
-                    </>}
-              </button>
+              {templateLoading ? (
+                <GeneratingProgress
+                  elapsed={genElapsed}
+                  isMultiLang={tmplOutputLangs.length > 1}
+                  langCount={tmplOutputLangs.length}
+                  uiLang={uiLang}
+                />
+              ) : (
+                <button type="submit"
+                  className="w-full text-white py-4 rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2.5 min-h-[56px] shadow-lg hover:opacity-90 hover:scale-[1.01] hover:shadow-indigo-200/60"
+                  style={{ background: 'linear-gradient(135deg, #3730a3, #4f46e5 40%, #7c3aed)' }}>
+                  <span className="text-base">⚡</span>
+                  <span>{uiLang === 'ko' ? 'AI 자동 완성 시작 →' : uiLang === 'ja' ? 'AI自動完成を開始 →' : uiLang === 'zh' ? '启动AI自动填写 →' : 'Start AI Auto-Fill →'}</span>
+                  {tmplOutputLangs.length > 1 && (
+                    <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full">
+                      {tmplOutputLangs.length}{uiLang === 'ko' ? '개국어' : uiLang === 'ja' ? '言語' : uiLang === 'zh' ? '种语言' : ' langs'}
+                    </span>
+                  )}
+                </button>
+              )}
 
             </div>
           </form>
@@ -2186,25 +2290,33 @@ export default function NewOrderPage() {
 
             {/* ── 생성 버튼 ── */}
             <div className="sticky bottom-4 md:static pt-1">
-              <button type="submit" disabled={productLoading}
-                className={`w-full py-4 rounded-xl font-black text-base transition-all flex items-center justify-center gap-2.5 min-h-[56px] shadow-lg disabled:opacity-50 ${
-                  productLoading ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
-                  : crossborderMode ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:opacity-95 shadow-emerald-200'
-                  : outputLang === 'all' ? 'bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:opacity-95 shadow-blue-200'
-                  : 'bg-[#0F172A] hover:bg-gray-800 text-white shadow-gray-200'
-                }`}>
-                {productLoading
-                  ? <><span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />{L.generating}</>
-                  : crossborderMode
-                    ? <><span>🌏</span>{uiLang === 'ko' ? '크로스보더 글로벌 페이지 생성 →' : uiLang === 'ja' ? '越境ECページを生成 →' : uiLang === 'zh' ? '生成跨境详情页 →' : 'Generate Cross-Border Page →'}</>
-                    : outputLang === 'all'
-                      ? <><span>🌏</span>{uiLang === 'ko' ? '4개 언어 동시 생성 →' : '4 Languages Simultaneous →'}</>
-                      : <><span>⚡</span>{isDocCat ? L.docBtn : L.generateBtn}</>}
-              </button>
-              {(crossborderMode || outputLang === 'all') && (
-                <p className="text-center text-[10px] text-gray-400 mt-1.5">
-                  {crossborderMode ? '🌏 Amazon JP · Tmall · Rakuten · Shopify 동시 최적화' : '🇰🇷 🇺🇸 🇯🇵 🇨🇳 4개국어 동시 생성'}
-                </p>
+              {productLoading ? (
+                <GeneratingProgress
+                  elapsed={genElapsed}
+                  isMultiLang={outputLang === 'all' || crossborderMode}
+                  langCount={outputLang === 'all' ? 4 : 1}
+                  uiLang={uiLang}
+                />
+              ) : (
+                <>
+                  <button type="submit"
+                    className={`w-full py-4 rounded-xl font-black text-base transition-all flex items-center justify-center gap-2.5 min-h-[56px] shadow-lg ${
+                      crossborderMode ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:opacity-95 shadow-emerald-200'
+                      : outputLang === 'all' ? 'bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:opacity-95 shadow-blue-200'
+                      : 'bg-[#0F172A] hover:bg-gray-800 text-white shadow-gray-200'
+                    }`}>
+                    {crossborderMode
+                      ? <><span>🌏</span>{uiLang === 'ko' ? '크로스보더 글로벌 페이지 생성 →' : uiLang === 'ja' ? '越境ECページを生成 →' : uiLang === 'zh' ? '生成跨境详情页 →' : 'Generate Cross-Border Page →'}</>
+                      : outputLang === 'all'
+                        ? <><span>🌏</span>{uiLang === 'ko' ? '4개 언어 동시 생성 →' : '4 Languages Simultaneous →'}</>
+                        : <><span>⚡</span>{isDocCat ? L.docBtn : L.generateBtn}</>}
+                  </button>
+                  {(crossborderMode || outputLang === 'all') && (
+                    <p className="text-center text-[10px] text-gray-400 mt-1.5">
+                      {crossborderMode ? '🌏 Amazon JP · Tmall · Rakuten · Shopify 동시 최적화' : '🇰🇷 🇺🇸 🇯🇵 🇨🇳 4개국어 동시 생성'}
+                    </p>
+                  )}
+                </>
               )}
             </div>
           </form>

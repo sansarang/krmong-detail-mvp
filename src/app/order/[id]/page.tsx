@@ -1941,8 +1941,8 @@ export default function OrderResultPage() {
               </div>
             </div>
 
-            {/* SEO Score card */}
-            {seoReport && (
+            {/* SEO Score card — 양식 자동완성 모드에서 숨김 */}
+            {seoReport && !order.result_json?.template_mode && (
               <button onClick={() => setShowSeo(true)}
                 className={`w-full text-left rounded-2xl p-4 border transition-all hover:shadow-lg hover:-translate-y-0.5 ${scoreBg}`}>
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">{p.seoScore}</p>
@@ -1958,22 +1958,36 @@ export default function OrderResultPage() {
               </button>
             )}
 
-            {/* Publish button */}
-            <div className="space-y-2">
-              <button type="button"
-                onClick={() => { setPlatform(primaryPlatform); setShowBlogPreview(true) }}
-                className={`w-full ${primStyle.bg} ${primStyle.hover} text-white rounded-2xl py-3 px-4 text-sm font-black transition-all hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2`}>
-                <span className="text-base">{primaryRow?.icon}</span>
-                {t.primaryPublishLabel}
-              </button>
-              <button type="button" onClick={handleNaverCopy}
-                className={`w-full border ${primStyle.border} ${primStyle.text} hover:bg-gray-50 rounded-2xl py-2 px-4 text-xs font-bold transition-all`}>
-                {copyDone ? t.copyDoneCheck : copyFormatIsListing ? t.copyListingBundleShort : t.copyHtmlShort}
-              </button>
-            </div>
+            {/* Publish button — 양식 모드에서는 다운로드 버튼만, 발행 버튼 숨김 */}
+            {!order.result_json?.template_mode && (
+              <div className="space-y-2">
+                <button type="button"
+                  onClick={() => { setPlatform(primaryPlatform); setShowBlogPreview(true) }}
+                  className={`w-full ${primStyle.bg} ${primStyle.hover} text-white rounded-2xl py-3 px-4 text-sm font-black transition-all hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2`}>
+                  <span className="text-base">{primaryRow?.icon}</span>
+                  {t.primaryPublishLabel}
+                </button>
+                <button type="button" onClick={handleNaverCopy}
+                  className={`w-full border ${primStyle.border} ${primStyle.text} hover:bg-gray-50 rounded-2xl py-2 px-4 text-xs font-bold transition-all`}>
+                  {copyDone ? t.copyDoneCheck : copyFormatIsListing ? t.copyListingBundleShort : t.copyHtmlShort}
+                </button>
+              </div>
+            )}
+
+            {/* 양식 자동완성 모드: 다운로드 바로가기 */}
+            {order.result_json?.template_mode && (
+              <div className="space-y-2">
+                <button type="button"
+                  onClick={() => setRightTab('publish')}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl py-3 px-4 text-sm font-black transition-all flex items-center justify-center gap-2">
+                  <span>⬇</span>
+                  {uiLang==='ko'?'문서 다운로드':uiLang==='ja'?'文書ダウンロード':uiLang==='zh'?'下载文档':'Download Document'}
+                </button>
+              </div>
+            )}
 
             {/* Compliance alert */}
-            {complianceHighCount > 0 && (
+            {complianceHighCount > 0 && !order.result_json?.template_mode && (
               <div className="bg-red-50 border border-red-200 rounded-2xl p-3">
                 <p className="text-xs font-black text-red-700 mb-1">⚠ {complianceHighCount} 위험 항목</p>
                 <button type="button" onClick={() => setCompetitorOpen(o => !o)}
@@ -2054,14 +2068,22 @@ export default function OrderResultPage() {
 
                 {/* Right action buttons */}
                 <div className="flex flex-col items-end gap-2 shrink-0">
-                  <button type="button" onClick={handleNaverCopy}
-                    className={`${primStyle.bg} ${primStyle.hover} text-white px-4 py-2.5 rounded-2xl text-sm font-black transition-all flex items-center gap-2 shadow-lg`}>
-                    <span>{primaryRow?.icon}</span>
-                    {copyDone ? '✓ Done' : (uiLang==='ko'?'복사·발행':uiLang==='ja'?'コピー':'Publish')}
-                  </button>
-                  <button type="button" onClick={handleDownloadZip}
+                  {order.result_json?.template_mode ? (
+                    <button type="button" onClick={handleDownloadDocx}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-2xl text-sm font-black transition-all flex items-center gap-2 shadow-lg">
+                      <span>📄</span>
+                      {uiLang==='ko'?'Word 다운로드':uiLang==='ja'?'Wordダウンロード':'Download Word'}
+                    </button>
+                  ) : (
+                    <button type="button" onClick={handleNaverCopy}
+                      className={`${primStyle.bg} ${primStyle.hover} text-white px-4 py-2.5 rounded-2xl text-sm font-black transition-all flex items-center gap-2 shadow-lg`}>
+                      <span>{primaryRow?.icon}</span>
+                      {copyDone ? '✓ Done' : (uiLang==='ko'?'복사·발행':uiLang==='ja'?'コピー':'Publish')}
+                    </button>
+                  )}
+                  <button type="button" onClick={order.result_json?.template_mode ? handleDownloadTxt : handleDownloadZip}
                     className="flex items-center gap-1.5 bg-white/6 hover:bg-white/12 border border-white/10 text-gray-400 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all">
-                    ⬇️ ZIP
+                    {order.result_json?.template_mode ? '⬇️ TXT' : '⬇️ ZIP'}
                   </button>
                 </div>
               </div>
@@ -2075,7 +2097,7 @@ export default function OrderResultPage() {
                 <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
                 <span className="text-[11px] text-emerald-700 font-bold">{p.liveEdit}</span>
               </div>
-              {seoReport && (
+              {seoReport && !order.result_json?.template_mode && (
                 <button onClick={() => setShowSeo(true)}
                   className={`lg:hidden flex items-center gap-1 border px-2.5 py-1.5 rounded-xl text-xs font-black transition-all shadow-sm ${scoreBg} ${scoreColor}`}>
                   SEO {seoReport.score}
@@ -2087,11 +2109,19 @@ export default function OrderResultPage() {
                 className="xl:hidden bg-[#0F172A] text-white px-3 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-md">
                 🛠 {uiLang === 'ko' ? 'AI 도구' : uiLang === 'ja' ? 'AIツール' : uiLang === 'zh' ? 'AI工具' : 'AI Tools'}
               </button>
-              <button type="button" onClick={handleNaverCopy}
-                className={`lg:hidden ${primStyle.bg} ${primStyle.hover} text-white px-3 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-md`}>
-                <span>{primaryRow?.icon}</span>
-                {copyDone ? t.mobileCopyDone : copyFormatIsListing ? t.mobileListingCopy : t.mobileBlogCopy}
-              </button>
+              {!order.result_json?.template_mode && (
+                <button type="button" onClick={handleNaverCopy}
+                  className={`lg:hidden ${primStyle.bg} ${primStyle.hover} text-white px-3 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-md`}>
+                  <span>{primaryRow?.icon}</span>
+                  {copyDone ? t.mobileCopyDone : copyFormatIsListing ? t.mobileListingCopy : t.mobileBlogCopy}
+                </button>
+              )}
+              {order.result_json?.template_mode && (
+                <button type="button" onClick={handleDownloadDocx}
+                  className="lg:hidden bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-md">
+                  📄 {uiLang==='ko'?'Word':'Word'}
+                </button>
+              )}
             </div>
           </div>
 
