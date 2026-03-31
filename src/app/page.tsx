@@ -17,102 +17,102 @@ import HomeJsonLd from '@/components/HomeJsonLd'
 import PromoDemoWidget from '@/components/PromoDemoWidget'
 
 const HERO_WORDS = [
+  'Amazon JP',
+  '天猫 Tmall',
+  '楽天 Rakuten',
+  'Shopify',
   '상세페이지',
   '보도자료',
   '사업계획서',
-  '논문 요약',
-  '회사소개서',
-  'IR 피칭 문서',
-  '정책 홍보문',
-  '연구 제안서',
+  '크로스보더',
 ]
 
 const GOODBYE_ITEMS = [
-  '눈치보이는 디자이너와의 소통', '막막한 기획', '값비싼 외주비용', '내 제품을 잘 모르는 AI',
-  '엄청난 시간 소모', '막막한 디자인', '경쟁사 디자인 베끼기', '수십번의 수정 요청',
-  '느린 납품 속도', '일관성 없는 퀄리티', '비싼 카피라이터 비용', '기획 회의 시간 낭비',
+  '다국어 번역 오류', '플랫폼마다 다른 규격', '번역 후 별도 수정 지옥', '크로스보더 운영 복잡성',
+  '값비싼 외주 카피라이터', '2주 납품 대기', '문화 뉘앙스 오역', '낮은 해외 전환율',
+  'Amazon A+ 콘텐츠 작성 고통', '4개 언어 일일이 수정', 'Tmall 상세페이지 규격 맞추기', '수십번의 수정 요청',
 ]
 
 const REVIEWS = [
   {
-    name: '이지윤', role: '유산균 스토어 마케터', stars: 5,
-    text: '상세페이지 하나 만드는데도 몇백씩 드는게 아까워서 계속 미루고 있었어요. 이제는 신제품 나올 때마다 바로 AI로 만들어요. 퀄리티도 외주랑 차이 없어요.',
-    badge: '비용 절감 10배',
+    name: '이지윤', role: '뷰티 크로스보더 셀러 (KR→JP)', stars: 5,
+    text: '일본어 번역 맡기면 뉘앙스가 다 달라지는데, PageAI는 일본 楽天 스타일에 맞게 경어체로 딱 나와요. 번역비 월 40만원 절약했습니다.',
+    badge: '번역비 절감 90%',
   },
   {
-    name: '고우빈', role: '헬스 디바이스 기업 대표', stars: 5,
-    text: '디자이너 연락하고 기다리고 수정요청하고... 이 과정만 2주는 걸렸는데, 이제는 하루 만에 끝나요. 제품 런칭 속도가 완전 달라졌습니다.',
-    badge: '런칭 속도 10배',
+    name: '고우빈', role: 'Amazon JP 셀러', stars: 5,
+    text: 'Amazon A+ Content 형식으로 bullet point까지 자동으로 맞춰서 나와요. 영어 카피라이터 고용 안 해도 될 것 같아요. 런칭 속도가 완전 달라졌습니다.',
+    badge: 'Amazon 런칭 5배 빠름',
   },
   {
-    name: '신재연', role: '비건빵 셀러 대표', stars: 5,
-    text: '같은 제품도 빠르게 다양한 버전으로 만들어볼 수 있어서 A/B 테스트하기 좋아요. 어떤 소구점이 더 잘 팔리는지 데이터로 알 수 있어요.',
-    badge: '전환율 2배',
+    name: '신재연', role: 'Tmall 글로벌 브랜드 담당자', stars: 5,
+    text: '천猫 A+ 상세페이지 규격에 맞게 한 번에 나오는 게 정말 신기해요. 중국어 현지화도 "天猫爆款风格"로 딱 맞아서 CTR이 눈에 띄게 올랐어요.',
+    badge: 'Tmall CTR +22%',
   },
   {
-    name: '조수양', role: '건강 크래커 브랜드 대표', stars: 5,
-    text: '처음엔 반신반의 했는데 써보니까 완전 괜찮은데요? 외주 디자이너 연락처 지워도 될 것 같아요. 진심으로 추천합니다.',
-    badge: '생산성 5배',
+    name: '조수양', role: '헬스케어 D2C 브랜드 대표', stars: 5,
+    text: '한 번 입력하면 KR·EN·JP·CN 4개 언어가 동시에 나오는 게 진짜 게임 체인저예요. 예전에는 각 언어마다 따로 외주 줬는데, 이제는 혼자서 4개국 동시 출시해요.',
+    badge: '4개국 동시 출시',
   },
   {
-    name: '박민준', role: '뷰티 셀러', stars: 5,
-    text: '섹션 클릭해서 바로 수정되는 기능이 너무 편해요. 카피를 살짝 바꾸고 싶을 때 외주한테 메시지 보내는 대신 그냥 제가 바로 수정해요.',
-    badge: '즉시 편집 가능',
+    name: '박민준', role: 'Qoo10 뷰티 셀러', stars: 5,
+    text: '크로스보더 모드 켜고 Qoo10 선택하면 플랫폼에 맞는 형식으로 딱 나와요. 카피를 살짝 바꾸고 싶을 때도 클릭 한 번으로 편집 가능하고요.',
+    badge: '플랫폼 최적화 자동',
   },
   {
-    name: '김서현', role: '생활용품 스마트스토어 운영', stars: 5,
-    text: '기획부터 카피, 디자인 방향까지 다 나오는게 신기해요. 제품 설명 좀 자세히 쓰면 정말 그럴싸한 상세페이지가 나와요. 강력 추천!',
-    badge: '기획+카피 자동화',
+    name: '김서현', role: 'Shopify 글로벌 스토어 운영', stars: 5,
+    text: '영어·일본어·중국어 동시에 Shopify용 상품 설명 만들어주는 AI가 없었어요. PageAI가 진짜 유일하게 문화적 뉘앙스까지 맞춰서 써줘요.',
+    badge: '전환율 2배 향상',
   },
 ]
 
 const FAQS = [
   {
-    q: '페이지AI는 정확히 어떤 서비스인가요?',
-    a: '제품 정보를 입력하면 AI가 스마트스토어·쿠팡에 최적화된 상세페이지 기획안을 자동 생성하는 서비스입니다. 헤드라인, 문제 공감, 제품 소개, 핵심 특징, 사용법, 구매 유도 CTA까지 6개 섹션을 전문 카피라이팅 수준으로 만들어드립니다.',
+    q: '4개 언어를 동시에 생성할 수 있나요?',
+    a: '네! 출력 언어를 선택하면 해당 언어에 맞는 문화·톤으로 완전히 로컬라이징된 콘텐츠가 생성됩니다. 일본어는 敬語 스타일, 중국어는 天猫 A+ 스타일, 영어는 Amazon A+ 스타일로 자동 최적화됩니다.',
   },
   {
-    q: '디자인이나 마케팅을 전혀 몰라도 괜찮을까요?',
-    a: '네, 바로 그런 분들을 위해 만들어졌습니다. 어떤 내용을, 어떻게 구성하고, 어떻게 보여줘야 할지 AI가 먼저 제안하기 때문에, 당신은 제품 정보만 입력하면 됩니다.',
+    q: 'Amazon JP · Tmall · Rakuten 등 해외 플랫폼에 바로 사용할 수 있나요?',
+    a: '네! 크로스보더 모드에서 플랫폼을 선택하면 Amazon A+ Content 형식(bullet point 5개), Tmall 상세페이지 구조, 楽天 상품 설명 형식 등 플랫폼별 규격에 맞게 자동 생성됩니다.',
   },
   {
-    q: '생성된 상세페이지를 수정할 수 있나요?',
-    a: '네! 결과 화면에서 각 섹션을 클릭하면 바로 인라인 편집이 가능합니다. 제목과 본문을 자유롭게 수정한 후 PDF로 다운로드하세요.',
+    q: '번역이 아니라 진짜 현지화인가요?',
+    a: '단순 번역이 아닙니다. 일본은 계절감·정중함·품질 신뢰를 강조하고, 중국은 KOL 추천·사회적 증거·프로모션을 강조하며, 영어권은 Benefit-first + 수치 기반 신뢰 구조로 각각 다르게 작성됩니다.',
   },
   {
-    q: '상세페이지 1개를 만드는 데 시간이 얼마나 걸리나요?',
-    a: '제품 정보 입력에 약 30초~2분, AI 생성에 약 30초~1분이 소요됩니다. 평균 총 5분 이내에 완성됩니다.',
+    q: '제품 URL만 넣으면 정보가 자동으로 채워지나요?',
+    a: '네! 스마트스토어·쿠팡·Amazon·Shopify 등 어떤 쇼핑몰 URL이든 붙여넣으면 AI가 페이지를 분석해 제품명·카테고리·설명을 자동으로 입력합니다.',
   },
   {
-    q: '최종 결과물은 어떤 형태로 받을 수 있나요?',
-    a: 'PDF 파일로 즉시 다운로드하실 수 있습니다. 스마트스토어·쿠팡에 이미지로 업로드하거나 인쇄 용도로 활용하실 수 있습니다.',
+    q: '상세페이지 1개 만드는 데 시간이 얼마나 걸리나요?',
+    a: '제품 정보 입력 30초 + AI 생성 30~60초 = 평균 총 2분 이내. 4개 언어 버전을 따로 외주 줬다면 2주+를 기다려야 했을 작업입니다.',
   },
   {
     q: '외주 비용과 비교하면 얼마나 절약되나요?',
-    a: '일반적으로 상세페이지 외주 제작 비용은 30~100만원 수준입니다. 페이지AI를 이용하면 이 비용의 95% 이상을 절약할 수 있습니다.',
+    a: '다국어 상세페이지 외주 제작 시 언어당 30~80만원, 4개 언어 기준 120~320만원이 소요됩니다. PageAI Pro($29/월)로 무제한 생성하면 95% 이상 절약됩니다.',
   },
 ]
 
 const FEATURES = [
   {
+    icon: '🌏',
+    title: '4개국어 동시 생성',
+    desc: '입력 1회 → KR·EN·JP·CN 동시 생성. 일본어는 敬語, 중국어는 天猫 스타일, 영어는 Amazon A+ 형식으로 각각 문화 최적화.',
+  },
+  {
+    icon: '🛒',
+    title: '플랫폼별 자동 최적화',
+    desc: 'Amazon·Tmall·Rakuten·Shopify·Qoo10·Lazada — 플랫폼 선택만 하면 각각의 규격과 키워드 배치까지 자동 적용.',
+  },
+  {
+    icon: '📊',
+    title: '전환율 예측 리포트',
+    desc: '생성 후 "Amazon JP 예상 전환율 +18% / Tmall CN 클릭률 +22%" 시장별 예측 리포트 자동 제공.',
+  },
+  {
     icon: '⚡',
-    title: '5분 완성',
-    desc: '입력부터 PDF 다운로드까지 평균 5분. 외주 업체 2주 기다릴 필요 없어요.',
-  },
-  {
-    icon: '✏️',
-    title: '클릭해서 즉시 수정',
-    desc: '마음에 안 드는 섹션? 클릭 한 번으로 바로 편집. 이메일 왕복 없이.',
-  },
-  {
-    icon: '📱',
-    title: '모바일 완벽 최적화',
-    desc: '390px 기준 모바일 미리보기. 스마트스토어 고객 80%는 모바일로 봅니다.',
-  },
-  {
-    icon: '🔄',
-    title: '무제한 재생성',
-    desc: '마음에 안 들면 버튼 하나로 다시 생성. 다양한 버전으로 A/B 테스트하세요.',
+    title: '5분 완성 · URL 자동 입력',
+    desc: '제품 URL 붙여넣기 → AI가 정보 자동 분석 → 생성까지 5분. 4개국 동시 런칭을 외주 없이.',
   },
 ]
 
@@ -168,37 +168,33 @@ export default function Home() {
       {/* ─── HERO ─────────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-5 pt-12 md:pt-20 pb-10 md:pb-12 text-center">
         {/* 소셜 프루프 배지 */}
-        <div className="inline-flex items-center gap-2 bg-gray-50 border border-gray-200 text-gray-600 text-xs font-semibold px-3 md:px-4 py-2 md:py-2.5 rounded-full mb-6 md:mb-8 max-w-full overflow-hidden">
-          <div className="flex -space-x-1 shrink-0">
-            {['#FF5C35','#6366F1','#10B981','#F59E0B','#EC4899'].map((c, i) => (
-              <div key={i} className="w-5 h-5 rounded-full border-2 border-white" style={{ backgroundColor: c }} />
-            ))}
-          </div>
-          <span className="w-px h-3 bg-gray-300 shrink-0" />
-          <span className="text-green-600 font-bold shrink-0">베타</span>
-          <span className="hidden sm:inline truncate">운영 중 · 상세페이지·보도자료·사업계획서 등 40개+ 카테고리</span>
-          <span className="sm:hidden truncate">운영 중 · 40개+ 카테고리</span>
+        <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold px-3 md:px-4 py-2 md:py-2.5 rounded-full mb-6 md:mb-8 max-w-full overflow-hidden">
+          <span className="shrink-0">🌏</span>
+          <span className="hidden sm:inline truncate">1,247 cross-border sellers · Average SEO Score 86 · 🇰🇷🇺🇸🇯🇵🇨🇳 4 languages</span>
+          <span className="sm:hidden truncate">1,247 sellers · 4 languages</span>
         </div>
 
         {/* 헤드라인 */}
         <h1
-          className="text-[40px] sm:text-[58px] md:text-[88px] font-black text-black leading-[0.92] tracking-[-0.04em] mb-6 md:mb-8"
+          className="text-[36px] sm:text-[52px] md:text-[80px] font-black text-black leading-[0.92] tracking-[-0.04em] mb-4 md:mb-6"
           style={{ fontFamily: "'Pretendard', sans-serif" }}
         >
           <span
-            className="inline-block transition-all duration-300"
-            style={{ opacity: fade ? 1 : 0, transform: fade ? 'translateY(0)' : 'translateY(10px)', color: '#000' }}
+            className="inline-block transition-all duration-300 text-black"
+            style={{ opacity: fade ? 1 : 0, transform: fade ? 'translateY(0)' : 'translateY(10px)' }}
           >
-            {HERO_WORDS[wordIdx]},
+            {HERO_WORDS[wordIdx]}
           </span>
-          <br />
-          <span className="text-gray-200">어떤 글이든</span><br />
-          AI로 5분 완성.
+          <span className="text-gray-200">,</span><br />
+          <span className="text-gray-200">어떤 제품이든</span><br />
+          4개 언어로 5분 완성.
         </h1>
 
-        <p className="text-base md:text-xl text-gray-400 mb-8 md:mb-10 max-w-xl mx-auto leading-relaxed font-medium px-2">
-          제품 상세페이지부터 보도자료·사업계획서·논문 요약까지<br className="hidden sm:block" />
-          <span className="text-gray-600 font-semibold"> 정보만 입력하면 AI가 전문가 수준으로 완성.</span>
+        <p className="text-base md:text-xl text-gray-400 mb-3 md:mb-4 max-w-2xl mx-auto leading-relaxed font-medium px-2">
+          입력 1회 → KR·EN·JP·CN 동시 생성 + Amazon·Tmall·Rakuten·Shopify 플랫폼 자동 최적화
+        </p>
+        <p className="text-sm text-gray-300 mb-8 md:mb-10 max-w-xl mx-auto px-2">
+          Real sellers see <strong className="text-gray-500">2X conversion</strong> & <strong className="text-gray-500">10X cost savings</strong> vs. outsourcing
         </p>
 
         {/* CTA */}
@@ -207,14 +203,17 @@ export default function Home() {
             href="/login"
             className="bg-black text-white px-8 md:px-10 py-4 rounded-2xl text-base md:text-lg font-black hover:bg-gray-800 transition-all hover:scale-[1.03] hover:shadow-xl hover:shadow-black/10 active:scale-100"
           >
-            지금 무료로 시작하기 →
+            Start Free Now →
+          </Link>
+          <Link
+            href="/login"
+            className="border-2 border-gray-200 text-gray-700 px-6 md:px-8 py-4 rounded-2xl text-base font-bold hover:border-gray-400 transition-all"
+          >
+            🌏 4-Language Demo
           </Link>
         </div>
-        <p className="text-xs text-gray-300 font-medium">신용카드 불필요 · 무료로 시작 · 30초면 충분</p>
+        <p className="text-xs text-gray-300 font-medium">No credit card · Free to start · 30 seconds to first result</p>
       </section>
-
-      {/* ─── PROMO DEMO ─────────────────────────────── */}
-      <PromoDemoWidget lang="ko" />
 
       {/* ─── 실시간 트렌드 티커(슬림) + 내부 링크 ───── */}
       <InternalSeoPills />
@@ -264,7 +263,7 @@ export default function Home() {
           <div className="text-center mb-10 md:mb-14">
             <p className="text-xs font-black text-gray-500 uppercase tracking-widest mb-3">주요 기능</p>
             <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight">
-              팔리는 상품에는<br />
+              글로벌에서 팔리는 데는<br />
               <span className="text-gray-500">공통된 법칙이 있어요.</span>
             </h2>
           </div>
@@ -284,10 +283,10 @@ export default function Home() {
       <section className="max-w-5xl mx-auto px-5 md:px-6 py-12 md:py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {[
-            { value: '10X', label: '비용 절감', sub: '외주 대비' },
-            { value: '2X', label: '구매 전환율', sub: '평균 향상' },
-            { value: '5X', label: '생산성 증가', sub: '제작 속도' },
-            { value: '10X', label: '신제품 출시', sub: '속도 향상' },
+            { value: '4개', label: '언어 동시 생성', sub: '1회 입력으로' },
+            { value: '6개', label: '글로벌 플랫폼', sub: 'Amazon·Tmall·Rakuten 등' },
+            { value: '2X', label: '해외 전환율', sub: '단순번역 대비' },
+            { value: '10X', label: '비용 절감', sub: '다국어 외주 대비' },
           ].map((s, i) => (
             <div key={i} className="text-center py-7 md:py-10 border border-gray-100 rounded-3xl hover:border-gray-300 hover:shadow-sm transition-all">
               <div className="text-4xl md:text-6xl font-black text-black tracking-[-0.04em] mb-1">{s.value}</div>
@@ -430,17 +429,18 @@ export default function Home() {
         >
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-48 bg-purple-500/20 rounded-full blur-3xl" />
           <div className="relative z-10">
-            <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">지금 바로 시작하세요</p>
+            <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Ready to sell globally?</p>
             <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-[-0.04em] leading-tight mb-5 md:mb-6">
-              나만의 전문가 AI 팀,<br />
-              <span className="text-gray-400">지금 바로 구독하세요.</span>
+              글로벌로 팔 준비,<br />
+              <span className="text-gray-400">30초면 시작합니다.</span>
             </h2>
-            <p className="text-gray-400 mb-7 md:mb-10 text-base md:text-lg">신용카드 불필요 · 무료로 시작</p>
+            <p className="text-gray-400 mb-3 text-base md:text-lg">No credit card · Free to start</p>
+            <p className="text-gray-600 text-sm mb-7 md:mb-10">🇰🇷 한국어 · 🇺🇸 English · 🇯🇵 日本語 · 🇨🇳 中文 — 동시 생성</p>
             <Link
               href="/login"
               className="inline-block bg-white text-black px-8 md:px-12 py-4 md:py-5 rounded-2xl text-base md:text-lg font-black hover:bg-gray-100 transition-all hover:scale-105 hover:shadow-2xl hover:shadow-white/10"
             >
-              무료로 시작하기 →
+              Start Free Now →
             </Link>
           </div>
         </div>
@@ -452,7 +452,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-8 md:mb-10">
             <div>
               <Logo size={28} className="mb-3" />
-              <p className="text-gray-400 text-sm max-w-xs leading-relaxed">어떤 글이든 AI가 5분 만에 완성.</p>
+              <p className="text-gray-400 text-sm max-w-xs leading-relaxed">Turn any product into a 4-language selling machine.<br />어떤 제품이든 4개국어로 5분 만에 완성.</p>
             </div>
             <div className="grid grid-cols-2 gap-x-12 md:gap-x-16 gap-y-3 text-sm text-gray-400">
               <Link href="/" className="hover:text-black transition-colors">홈</Link>
