@@ -1,0 +1,73 @@
+export interface FaqItem { q: string; a: string }
+
+export const FAQ_KO: FaqItem[] = [
+  { q: 'PageAI로 스마트스토어 상세페이지를 어떻게 만드나요?', a: '제품 정보를 입력하거나 URL을 붙여넣으면 AI가 스마트스토어 최적화 상세페이지를 5분 안에 자동으로 작성해드립니다. 금칙어 제거, 모바일 최적화, SEO 키워드 배치까지 자동으로 처리됩니다.' },
+  { q: '쿠팡 상세페이지도 만들 수 있나요?', a: '네, 가능합니다. 쿠팡 플랫폼에 최적화된 상세페이지를 자동으로 생성합니다. 쿠팡 특유의 직설적 설명, 스펙 중심 구성, 금칙어 없는 표현으로 작성됩니다.' },
+  { q: 'Amazon JP 상품 페이지 일본어 작성도 되나요?', a: '네. Amazon JP의 A+ Content 형식에 맞춘 일본어 상품 페이지를 자동으로 생성합니다. Benefit-first 구성, 일본어 존댓말, 일본 소비자 취향에 맞는 표현으로 작성됩니다.' },
+  { q: '4개 언어 동시 생성이 정확히 무슨 의미인가요?', a: '한 번의 클릭으로 한국어(스마트스토어/쿠팡), 영어(Shopify/Amazon), 일본어(Amazon JP/Rakuten), 중국어(Tmall/JD) 버전을 동시에 생성합니다. 단순 번역이 아니라 각 시장 문화와 플랫폼 규칙에 맞게 현지화됩니다.' },
+  { q: '생성된 상세페이지는 저작권 문제가 없나요?', a: 'PageAI가 생성한 콘텐츠는 AI가 직접 작성한 완전히 새로운 텍스트입니다. 기존 상품 페이지를 복사하거나 표절하지 않으며, 생성된 콘텐츠의 저작권은 고객에게 귀속됩니다.' },
+  { q: '무료 플랜에서 몇 개까지 생성할 수 있나요?', a: '무료 플랜은 월 3개 상세페이지 생성이 가능합니다. 더 많은 생성이 필요하신 분은 유료 플랜을 이용하시면 됩니다.' },
+  { q: '스마트스토어 금칙어가 자동으로 제거되나요?', a: '네. PageAI는 스마트스토어·쿠팡 금칙어(최고, 최저, 보장, 효과, 치료 등)를 자동으로 감지하고 적절한 대체 표현으로 바꿔드립니다. 등록 거절 걱정 없이 바로 업로드 가능합니다.' },
+  { q: 'Tmall 중국어 상세페이지도 지원하나요?', a: '네. Tmall(천묘) 플랫폼에 최적화된 중국어 상세페이지를 생성합니다. 爆款 스타일의 설득력 있는 표현, 사회적 증거 강조, 긴 스크롤 구조 등 Tmall 실제 판매 패턴을 그대로 반영합니다.' },
+  { q: '기존에 작성한 상세페이지를 업그레이드할 수 있나요?', a: '네. 기존 상세페이지 URL이나 텍스트를 입력하면 AI가 분석 후 SEO 점수를 높이고 전환율에 최적화된 버전으로 업그레이드해드립니다.' },
+  { q: '이미지도 자동으로 만들어주나요?', a: '현재 텍스트 상세페이지 자동 생성이 핵심 기능입니다. 이미지는 직접 업로드하시면 플랫폼별 최적 위치에 자동으로 배치해드립니다.' },
+  { q: '생성 시간이 얼마나 걸리나요?', a: '단일 언어 생성은 약 20-30초, 4개 언어 동시 생성은 약 60-90초가 소요됩니다. 대용량 파일 업로드 시에는 추가 시간이 필요할 수 있습니다.' },
+  { q: 'Word, PDF 등으로 다운로드할 수 있나요?', a: '네. 생성된 상세페이지를 Word(.doc), TXT, ZIP(전 언어 패키지) 형식으로 다운로드할 수 있습니다. HTML 복사도 지원하여 바로 에디터에 붙여넣기 가능합니다.' },
+  { q: 'Shopify, WordPress 등 해외 플랫폼도 지원하나요?', a: 'Shopify, WordPress, Amazon JP, Tmall, Rakuten, Lazada, Qoo10 등 10개 이상의 글로벌 플랫폼에 최적화된 상세페이지를 생성할 수 있습니다.' },
+  { q: '과제나 사업계획서 같은 양식도 자동으로 채울 수 있나요?', a: '네, "양식 자동 작성" 기능으로 PDF, DOCX, XLSX 등 어떤 양식이든 업로드하면 AI가 빈칸을 전문가 수준으로 채워드립니다. 과제, 사업계획서, 제안서, 보고서 등에 활용 가능합니다.' },
+  { q: '결제 수단은 어떻게 되나요?', a: '신용카드, 카카오페이, 토스페이 등 다양한 결제 수단을 지원합니다. 해외 결제의 경우 Visa, Mastercard, PayPal을 이용하실 수 있습니다.' },
+]
+
+export const FAQ_EN: FaqItem[] = [
+  { q: 'How does PageAI generate Amazon JP product listings?', a: 'Simply enter your product information or paste a product URL. PageAI analyzes the details and automatically generates an Amazon JP-optimized A+ Content-style listing in Japanese within 5 minutes, following Amazon\'s Benefit-first structure and Japanese consumer preferences.' },
+  { q: 'Can PageAI create product pages for Shopify?', a: 'Yes. PageAI generates Shopify-optimized product descriptions with brand storytelling, SEO meta tags, and scannable bullet points. The output includes both page content and meta title/description for Google visibility.' },
+  { q: 'What does "4-language simultaneous generation" mean?', a: 'With one click, PageAI creates fully localized product pages in Korean (Smartstore/Coupang), English (Shopify/Amazon), Japanese (Amazon JP/Rakuten), and Chinese (Tmall/JD). Each version is culturally adapted—not just translated—for the specific platform and market.' },
+  { q: 'Does PageAI support Tmall (Tianmao) listings in Chinese?', a: 'Yes. PageAI generates Tmall-optimized Chinese product pages following authentic Tmall writing conventions: 爆款-style persuasive copy, social proof emphasis, detailed specifications, and the long-scroll format that Chinese shoppers expect.' },
+  { q: 'How does PageAI differ from just using ChatGPT?', a: 'ChatGPT is a general-purpose AI. PageAI is purpose-built for e-commerce: it knows platform-specific rules (Amazon A+ content, Tmall format, Rakuten style), automatically removes prohibited words, applies SEO optimization per platform, and generates all 4 languages simultaneously with cultural localization.' },
+  { q: 'What file formats can I upload?', a: 'You can upload PDF, DOCX, XLSX, PPTX, TXT, and HWP files. For product reference images, PNG and JPG are supported. The system also accepts product URLs from major platforms (Amazon, Coupang, Smartstore, Tmall, Rakuten, Shopify).' },
+  { q: 'Are Amazon prohibited words automatically removed?', a: 'Yes. PageAI automatically detects and replaces words prohibited by Amazon, Shopify, and other platforms ("guaranteed," "cure," "prevent," "best in the world," etc.) with compliant alternatives, reducing listing rejection risk.' },
+  { q: 'How long does generation take?', a: 'Single language generation takes approximately 20-30 seconds. 4-language simultaneous generation takes 60-90 seconds. Template auto-fill with large files may take slightly longer.' },
+  { q: 'Can I use PageAI for Rakuten Japan listings?', a: 'Yes. PageAI generates Rakuten-style Japanese product pages with polite Japanese expressions (丁寧語), seasonal context, price-value emphasis, and the structured format Rakuten sellers use. Both listing text and campaign copy variants are available.' },
+  { q: 'What about Lazada and Qoo10 listings?', a: 'PageAI supports Lazada (Southeast Asia) and Qoo10 (Japan/Korea) listing generation. Lazada listings are optimized for SEA market preferences, while Qoo10 listings follow the platform\'s deal-focused format.' },
+  { q: 'Can I download the generated content?', a: 'Yes. Generated product pages can be downloaded as Word (.doc), TXT, ZIP (all language package), or copied as HTML. The HTML output is ready to paste directly into your platform\'s editor.' },
+  { q: 'Is there a free plan?', a: 'Yes. The free plan allows up to 3 product page generations per month with no credit card required. Paid plans offer unlimited generation, priority processing, and advanced customization.' },
+  { q: 'How accurate is the cross-border localization?', a: 'PageAI is trained on real successful listings from each platform. Japanese localization follows actual Amazon JP top-seller patterns. Chinese content matches Tmall\'s distinctive marketing voice. Korean content applies Smartstore SEO best practices. Each version is reviewed for cultural appropriateness.' },
+  { q: 'Can I auto-fill business plans or proposals too?', a: 'Yes. The "Form Auto-Fill" feature accepts any document template (PDF, DOCX, XLSX) and fills in blanks with professional content. It works for business plans, proposals, reports, assignments, and questionnaires in 4 languages.' },
+  { q: 'What platforms does PageAI support?', a: 'PageAI supports Amazon JP, Tmall, Rakuten, Shopify, WordPress, Smartstore, Coupang, Qoo10, Lazada, and more. New platform profiles are regularly added based on user requests.' },
+]
+
+export const FAQ_JA: FaqItem[] = [
+  { q: 'PageAIでAmazon JPの商品ページを作成するにはどうすればいいですか？', a: '商品情報を入力するか、Amazon商品URLを貼り付けるだけです。AIがAmazon JPのA+ Contentスタイルに最適化された日本語商品ページを約5分で自動生成します。ベネフィットファーストの構成、丁寧語、日本人消費者の好みに合わせた表現で仕上がります。' },
+  { q: '楽天市場の商品ページも作れますか？', a: 'はい、対応しています。楽天市場特有の丁寧で洗練された日本語表現、価格対価値の強調、季節感の演出など、楽天トップセラーのパターンを学習した商品ページを生成します。' },
+  { q: '4言語同時生成とはどういう意味ですか？', a: '一度のクリックで韓国語（スマートストア/クーポン）、英語（Shopify/Amazon）、日本語（Amazon JP/楽天）、中国語（Tmall/JD）の4言語版商品ページを同時生成します。単純翻訳ではなく、各市場の文化とプラットフォームのルールに合わせてローカライズされます。' },
+  { q: 'Qoo10の商品ページにも対応していますか？', a: 'はい。Qoo10の商品ページ作成に対応しています。Qoo10特有のお得感を強調するフォーマット、価格訴求、キャンペーン向けコピーを自動生成します。' },
+  { q: 'Amazon禁止ワードは自動で除去されますか？', a: 'はい。Amazonのガイドライン違反ワード（「保証」「治療」「完璧」「世界一」など）を自動検出し、適切な代替表現に置き換えます。出品拒否リスクを大幅に低減できます。' },
+  { q: 'PageAIはChatGPTと何が違うのですか？', a: 'ChatGPTは汎用AIです。PageAIはECに特化して設計されており、プラットフォーム固有のルール（Amazon A+、楽天スタイル、Tmallフォーマット）を知っており、禁止ワードを自動除去し、プラットフォーム別SEO最適化を行い、4言語を文化的ローカライズで同時生成します。' },
+  { q: '生成にはどのくらい時間がかかりますか？', a: '単一言語の生成は約20〜30秒、4言語同時生成は約60〜90秒です。大容量ファイルのアップロード時は多少時間がかかる場合があります。' },
+  { q: 'WordやPDFでダウンロードできますか？', a: 'はい。生成した商品ページはWord（.doc）、TXT、ZIP（全言語パッケージ）形式でダウンロードできます。HTMLコピーも対応しており、各プラットフォームのエディタに直接貼り付け可能です。' },
+  { q: '無料プランはありますか？', a: 'はい。無料プランで月3枚まで商品ページを生成できます。クレジットカード不要で今すぐ始めることができます。' },
+  { q: '越境ECの商品ページ作成に役立ちますか？', a: 'はい、PageAIは越境ECセラーのために設計されています。Amazon JP、楽天、Tmall、Shopify、Lazada、Qoo10など10以上のプラットフォームに対応し、各市場の文化・規則に合わせたコンテンツを4言語で生成します。' },
+  { q: '商品URLを入力するだけで情報を取得できますか？', a: 'はい。Amazon、楽天、Tmall、Shopify、クーポンなど主要プラットフォームのURLを入力するだけで、AIが商品名・価格・特徴・画像などを自動抽出し、フォームを自動補完します。' },
+  { q: 'Shopify商品ページも対応していますか？', a: 'はい。Shopifyに最適化されたブランドストーリー型の商品ページを生成します。SEOメタタグ、スキャナブルな箇条書き、グローバル向け英語コピーを含みます。' },
+  { q: 'テンプレートのカスタマイズはできますか？', a: 'はい。生成後に各セクションを直接編集できます。また、カスタム指示欄に「〇〇を強調して」「〇〇のトーンで書いて」と入力するだけで、AIが指示を優先した商品ページを生成します。' },
+  { q: 'Tmallの中国語商品ページも作れますか？', a: 'はい。Tmall（天猫）に最適化された中国語商品ページを生成します。爆款スタイルの説得力ある表現、社会的証拠の強調、詳細な仕様説明など、Tmallの実際の販売パターンに沿った構成で作成します。' },
+  { q: 'セキュリティと個人情報は安全ですか？', a: 'はい。PageAIはSSL暗号化通信を使用し、入力されたデータはAI生成にのみ使用されます。第三者への提供や広告目的での利用は一切行いません。' },
+]
+
+export const FAQ_ZH: FaqItem[] = [
+  { q: 'PageAI如何生成天猫商品详情页？', a: '只需输入商品信息或粘贴商品URL，AI将在5分钟内自动生成符合天猫规范的中文详情页。内容采用爆款风格，包含有力的社会证明、详细规格说明，以及天猫消费者偏好的长滚动页面结构。' },
+  { q: '支持4种语言同时生成吗？', a: '是的。一键即可同时生成韩语（智能商店/Coupang）、英语（Shopify/Amazon）、日语（Amazon JP/乐天）和中文（天猫/京东）四个版本。不是简单翻译，而是针对每个市场的文化和平台规则进行本地化适配。' },
+  { q: 'PageAI和ChatGPT有什么区别？', a: 'ChatGPT是通用AI，而PageAI专为跨境电商打造。PageAI了解各平台规则（天猫格式、Amazon A+内容、乐天风格），自动过滤违禁词，针对各平台进行SEO优化，并能一次性生成4种语言的本地化内容。' },
+  { q: '支持Amazon全球商品页面吗？', a: '是的。PageAI支持Amazon JP、Amazon美国站、Amazon欧洲站等多个亚马逊站点的商品页面生成，包括A+内容格式、Bullet Point优化，以及各站点的关键词策略。' },
+  { q: '天猫违禁词会自动删除吗？', a: '是的。PageAI自动检测并替换天猫、京东等平台的违禁词（如"最佳"、"第一"、"100%有效"等），用合规表达代替，降低商品被下架的风险。' },
+  { q: 'Shopify跨境独立站也支持吗？', a: '是的。PageAI生成Shopify优化的商品描述，包含品牌故事、SEO元标签、符合全球消费者阅读习惯的排版格式，帮助提升独立站转化率。' },
+  { q: '生成速度有多快？', a: '单语言生成约需20-30秒，4语言同时生成约需60-90秒。对于大型文件上传，可能需要稍长时间。' },
+  { q: '可以下载Word或PDF格式吗？', a: '可以。生成的商品详情页可下载为Word（.doc）、TXT或ZIP（全语言包）格式，也支持HTML复制，直接粘贴到各平台编辑器中使用。' },
+  { q: '有免费计划吗？', a: '有。免费计划每月可生成3个商品详情页，无需信用卡，立即开始使用。' },
+  { q: '支持京东商品页面生成吗？', a: '是的。PageAI支持京东商品页面生成，采用京东特有的理性消费者导向风格，强调产品规格、品牌可信度和价格竞争力。' },
+  { q: '跨境电商内容策略方面有哪些建议？', a: 'PageAI内置各平台最优内容策略：天猫侧重社会证明和情感共鸣；Amazon侧重功能说明和关键词密度；Shopify侧重品牌故事和视觉呈现。所有策略均基于各平台真实畅销商品的内容分析。' },
+  { q: '商品URL可以自动抓取信息吗？', a: '可以。输入Amazon、天猫、Shopify、乐天等主流平台的商品URL，AI自动提取商品名称、价格、特征和图片，自动填写表单，大幅减少手动输入工作量。' },
+  { q: '支持自动填写商业计划书等文件吗？', a: '是的。"表单自动填写"功能支持上传PDF、DOCX、XLSX等任意格式的模板，AI自动填写空白处，适用于商业计划书、提案、报告、调查问卷等文件，支持4种语言。' },
+  { q: '生成内容的版权归谁所有？', a: 'PageAI生成的所有内容版权归用户所有。AI生成的是全新原创文本，不复制或抄袭现有商品页面。' },
+  { q: 'Lazada东南亚市场也支持吗？', a: '是的。PageAI支持Lazada商品页面生成，针对东南亚市场偏好进行优化，包括价格敏感型写作风格、快速配送强调、符合SEA消费者阅读习惯的内容结构。' },
+]

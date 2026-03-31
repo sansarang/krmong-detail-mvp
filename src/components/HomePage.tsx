@@ -724,6 +724,24 @@ export default function HomePage({ lang }: { lang: HomeLang }) {
               <p className="text-xs text-gray-500 leading-relaxed mb-4">상세페이지 SEO 점수를 5가지 항목으로 즉시 분석하고 개선 방법을 알려드립니다.</p>
               <p className="text-xs text-violet-400 font-bold group-hover:text-violet-300">SEO 점수 분석 →</p>
             </Link>
+            <Link href="/faq" className="group bg-white/5 hover:bg-white/8 border border-white/8 hover:border-blue-500/30 rounded-2xl p-6 transition-all hover:-translate-y-0.5">
+              <div className="text-2xl mb-3">❓</div>
+              <h3 className="font-black text-white mb-2">자주 묻는 질문</h3>
+              <p className="text-xs text-gray-500 leading-relaxed mb-4">스마트스토어·쿠팡·Amazon 상세페이지에 관한 FAQ 15가지를 총정리했습니다.</p>
+              <p className="text-xs text-blue-400 font-bold group-hover:text-blue-300">FAQ 보기 →</p>
+            </Link>
+            <Link href="/templates" className="group bg-white/5 hover:bg-white/8 border border-white/8 hover:border-violet-500/30 rounded-2xl p-6 transition-all hover:-translate-y-0.5">
+              <div className="text-2xl mb-3">📄</div>
+              <h3 className="font-black text-white mb-2">무료 템플릿 다운로드</h3>
+              <p className="text-xs text-gray-500 leading-relaxed mb-4">스마트스토어·쿠팡·Amazon JP 상세페이지 템플릿 4종을 이메일 입력 후 무료 다운로드.</p>
+              <p className="text-xs text-violet-400 font-bold group-hover:text-violet-300">무료 다운로드 →</p>
+            </Link>
+            <Link href="/compare/chatgpt" className="group bg-white/5 hover:bg-white/8 border border-white/8 hover:border-yellow-500/30 rounded-2xl p-6 transition-all hover:-translate-y-0.5">
+              <div className="text-2xl mb-3">⚡</div>
+              <h3 className="font-black text-white mb-2">PageAI vs ChatGPT 비교</h3>
+              <p className="text-xs text-gray-500 leading-relaxed mb-4">EC 전문 AI와 범용 AI의 차이를 7가지 항목으로 직접 비교해보세요.</p>
+              <p className="text-xs text-yellow-400 font-bold group-hover:text-yellow-300">비교 보기 →</p>
+            </Link>
           </div>
         </div>
       </section>
