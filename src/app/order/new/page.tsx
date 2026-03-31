@@ -550,6 +550,9 @@ export default function NewOrderPage() {
   const [selectedMarkets, setSelectedMarkets] = useState<string[]>([])
   const [customInstructions, setCustomInstructions] = useState('')
   const [showCustomInstr, setShowCustomInstr] = useState(false)
+  const [tmplDocType, setTmplDocType] = useState('')
+  const [tmplOutputLangs, setTmplOutputLangs] = useState<string[]>(['ko'])
+  const [tmplDragOver, setTmplDragOver] = useState(false)
   const docInputRef     = useRef<HTMLInputElement>(null)
   const templateFileRef = useRef<HTMLInputElement>(null)
 
@@ -1127,47 +1130,184 @@ export default function NewOrderPage() {
         {/* ══ TWO-COLUMN FORMS ═════════════════════════════════ */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
 
-          {/* ── LEFT: 양식 자동 작성 ─────────────────────────── */}
+          {/* ── LEFT: 양식 자동 작성 (완전 리뉴얼) ──────────── */}
           <form onSubmit={handleTemplateSubmit}
-            className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5 ${activeTab !== 'template' ? 'hidden md:block' : ''}`}>
+            className={`rounded-2xl overflow-hidden border border-indigo-100 shadow-lg ${activeTab !== 'template' ? 'hidden md:block' : ''}`}
+            style={{ background: 'linear-gradient(160deg, #f8f7ff 0%, #ffffff 60%)' }}>
 
-            <div>
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-black text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full mb-3">
-                📋 {L.colTmplBadge}
-              </span>
-              <h2 className="text-lg font-black text-gray-900 mb-1">{L.colTmplTitle}</h2>
-              <p className="text-xs text-gray-400">{L.colTmplDesc}</p>
+            {/* Header gradient banner */}
+            <div className="relative px-6 pt-6 pb-5 overflow-hidden"
+              style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 60%, #6d28d9 100%)' }}>
+              <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 80% 20%, #a78bfa, transparent 50%)' }} />
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-black text-indigo-100 bg-white/15 border border-white/20 px-3 py-1 rounded-full">
+                    📋 {L.colTmplBadge}
+                  </span>
+                  <span className="text-[10px] font-black text-emerald-300 bg-emerald-500/20 border border-emerald-400/30 px-2.5 py-1 rounded-full">AI AUTO</span>
+                </div>
+                <h2 className="text-xl font-black text-white mb-1 tracking-tight">{L.colTmplTitle}</h2>
+                <p className="text-indigo-200 text-xs leading-relaxed">
+                  {uiLang === 'ko' ? '과제·시험지·사업계획서·제안서·보고서 — 어떤 양식이든 AI가 자동 완성' :
+                   uiLang === 'ja' ? '課題・事業計画書・提案書・報告書 — あらゆる書類をAIが自動完成' :
+                   uiLang === 'zh' ? '作业·商业计划书·提案书·报告书 — 任何表格AI自动完成' :
+                   'Assignments · Business Plans · Reports · Any form — AI completes it all'}
+                </p>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">{L.tmplTitleLabel}</label>
-              <input placeholder={L.tmplTitlePlaceholder} value={tmplTitle} onChange={e => setTmplTitle(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm bg-gray-50 min-h-[48px]" />
-            </div>
+            <div className="p-5 space-y-4">
 
-            <div>
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">
-                {L.templateFormLabel} <span className="text-gray-300 normal-case font-normal text-[9px]">({L.templateFormSub})</span>
-              </label>
-              <label className="flex items-center gap-2 bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 cursor-pointer hover:bg-indigo-100 transition-all text-xs text-indigo-700 font-bold mb-2 min-h-[48px]">
-                📎 {uiLang === 'ko' ? 'PDF·DOCX·XLSX·PPTX 파일 첨부' : uiLang === 'ja' ? 'ファイルを選択' : uiLang === 'zh' ? '选择文件' : 'Attach File (PDF/DOCX/XLSX)'}
-                <input ref={templateFileRef} type="file" accept=".txt,.md,.csv,.pdf,.docx,.xlsx,.xls,.pptx" className="hidden" onChange={handleTemplateFile} />
-                {templateContent && <span className="ml-auto text-[10px] bg-indigo-200 text-indigo-700 px-2 py-0.5 rounded-full">{templateContent.length.toLocaleString()}자</span>}
-              </label>
-              <textarea placeholder={L.templateFormPlaceholder} rows={6} value={templateContent} onChange={e => setTemplateContent(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm resize-none bg-gray-50" />
-            </div>
+              {/* Document type quick-selector */}
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">
+                  {uiLang === 'ko' ? '문서 유형 (선택)' : uiLang === 'ja' ? '文書タイプ（任意）' : uiLang === 'zh' ? '文档类型（可选）' : 'Document Type (optional)'}
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {(uiLang === 'ko'
+                    ? ['📝 과제·시험지', '💼 사업계획서', '📊 보고서', '📝 제안서', '🏛 신청서', '🎓 논문·학술', '📋 IR 피칭']
+                    : uiLang === 'ja'
+                    ? ['📝 課題・試験', '💼 事業計画書', '📊 報告書', '📝 提案書', '🏛 申請書', '🎓 論文・学術', '📋 IRピッチ']
+                    : uiLang === 'zh'
+                    ? ['📝 作业·考试', '💼 商业计划书', '📊 报告书', '📝 提案书', '🏛 申请书', '🎓 论文·学术', '📋 IR路演']
+                    : ['📝 Assignment', '💼 Business Plan', '📊 Report', '📝 Proposal', '🏛 Application', '🎓 Academic', '📋 IR Pitch']
+                  ).map(dt => (
+                    <button key={dt} type="button"
+                      onClick={() => setTmplDocType(tmplDocType === dt ? '' : dt)}
+                      className={`text-[11px] font-bold px-3 py-1.5 rounded-xl border transition-all ${
+                        tmplDocType === dt
+                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm shadow-indigo-200'
+                          : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-600'
+                      }`}>
+                      {dt}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-            <div>
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">{L.templateInfoLabel}</label>
-              <textarea placeholder={L.templateInfoPlaceholder} rows={3} value={tmplRefInfo} onChange={e => setTmplRefInfo(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm resize-none bg-gray-50" />
-            </div>
+              {/* Document title */}
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1.5">{L.tmplTitleLabel}</label>
+                <input placeholder={L.tmplTitlePlaceholder} value={tmplTitle} onChange={e => setTmplTitle(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm bg-white min-h-[48px]" />
+              </div>
 
-            <button type="submit" disabled={templateLoading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2 min-h-[52px] shadow-sm disabled:opacity-40">
-              {templateLoading ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />{L.generating}</> : L.templateBtn}
-            </button>
+              {/* BIG Upload zone */}
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1.5">
+                  {L.templateFormLabel} <span className="text-gray-300 normal-case font-normal text-[9px]">({L.templateFormSub})</span>
+                </label>
+                <label
+                  onDragOver={e => { e.preventDefault(); setTmplDragOver(true) }}
+                  onDragLeave={() => setTmplDragOver(false)}
+                  onDrop={e => {
+                    e.preventDefault(); setTmplDragOver(false)
+                    const file = e.dataTransfer.files[0]
+                    if (file && templateFileRef.current) {
+                      const dt = new DataTransfer(); dt.items.add(file)
+                      templateFileRef.current.files = dt.files
+                      templateFileRef.current.dispatchEvent(new Event('change', { bubbles: true }))
+                    }
+                  }}
+                  className={`flex flex-col items-center gap-2 rounded-2xl p-5 cursor-pointer transition-all border-2 border-dashed ${
+                    tmplDragOver
+                      ? 'border-indigo-500 bg-indigo-50 scale-[1.01]'
+                      : templateContent
+                      ? 'border-emerald-400 bg-emerald-50'
+                      : 'border-indigo-200 bg-indigo-50/50 hover:border-indigo-400 hover:bg-indigo-50'
+                  }`}>
+                  <input ref={templateFileRef} type="file" accept=".txt,.md,.csv,.pdf,.docx,.xlsx,.xls,.pptx" className="hidden" onChange={handleTemplateFile} />
+                  {templateContent ? (
+                    <>
+                      <span className="text-3xl">✅</span>
+                      <p className="text-emerald-700 text-sm font-black">
+                        {uiLang === 'ko' ? '파일 파싱 완료' : uiLang === 'ja' ? 'ファイル解析完了' : uiLang === 'zh' ? '文件解析完成' : 'File parsed'}
+                      </p>
+                      <p className="text-emerald-600 text-xs">{templateContent.length.toLocaleString()}{uiLang === 'ko' ? '자' : uiLang === 'en' ? ' chars' : uiLang === 'ja' ? '文字' : '字'} — {uiLang === 'ko' ? '클릭해서 변경' : uiLang === 'ja' ? 'クリックして変更' : uiLang === 'zh' ? '点击更改' : 'Click to change'}</p>
+                      {/* Mini preview */}
+                      <div className="w-full mt-1 bg-white rounded-xl p-3 border border-emerald-200">
+                        <p className="text-[10px] text-gray-400 font-black uppercase mb-1">
+                          {uiLang === 'ko' ? '미리보기' : 'Preview'}
+                        </p>
+                        <p className="text-xs text-gray-600 leading-relaxed line-clamp-3">{templateContent.slice(0, 200)}…</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl transition-transform ${tmplDragOver ? 'scale-125' : ''}`}
+                        style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)' }}>📤</div>
+                      <p className="text-indigo-700 text-sm font-black text-center">
+                        {uiLang === 'ko' ? 'PDF · DOCX · XLSX · PPTX' : 'PDF · DOCX · XLSX · PPTX'}
+                      </p>
+                      <p className="text-indigo-400 text-xs text-center">
+                        {uiLang === 'ko' ? '드래그하거나 클릭해서 업로드' : uiLang === 'ja' ? 'ドラッグまたはクリックでアップロード' : uiLang === 'zh' ? '拖放或点击上传' : 'Drag & drop or click to upload'}
+                      </p>
+                      <span className="text-[11px] font-black text-white bg-indigo-600 px-4 py-2 rounded-xl mt-1 hover:bg-indigo-700 transition-colors">
+                        {uiLang === 'ko' ? '파일 선택' : uiLang === 'ja' ? 'ファイル選択' : uiLang === 'zh' ? '选择文件' : 'Choose File'}
+                      </span>
+                    </>
+                  )}
+                </label>
+                {/* Or: paste directly */}
+                <details className="mt-2">
+                  <summary className="text-[10px] text-indigo-500 font-bold cursor-pointer hover:text-indigo-700 transition-colors select-none px-1">
+                    {uiLang === 'ko' ? '또는 양식 내용 직접 붙여넣기 ▾' : uiLang === 'ja' ? 'またはテキストを直接貼り付け ▾' : uiLang === 'zh' ? '或直接粘贴内容 ▾' : 'Or paste form text directly ▾'}
+                  </summary>
+                  <textarea placeholder={L.templateFormPlaceholder} rows={5} value={templateContent} onChange={e => setTemplateContent(e.target.value)}
+                    className="w-full mt-2 border border-indigo-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm resize-none bg-white" />
+                </details>
+              </div>
+
+              {/* Reference info */}
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1.5">{L.templateInfoLabel}</label>
+                <textarea placeholder={L.templateInfoPlaceholder} rows={3} value={tmplRefInfo} onChange={e => setTmplRefInfo(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all text-sm resize-none bg-white" />
+              </div>
+
+              {/* Output language selector */}
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">
+                  {uiLang === 'ko' ? '출력 언어 (다중 선택 가능)' : uiLang === 'ja' ? '出力言語（複数選択可）' : uiLang === 'zh' ? '输出语言（可多选）' : 'Output Language (multi-select)'}
+                </label>
+                <div className="flex gap-2 flex-wrap">
+                  {([['🇰🇷', 'ko', 'KR'], ['🇺🇸', 'en', 'EN'], ['🇯🇵', 'ja', 'JP'], ['🇨🇳', 'zh', 'CN']] as [string, string, string][]).map(([flag, code, label]) => {
+                    const active = tmplOutputLangs.includes(code)
+                    return (
+                      <button key={code} type="button"
+                        onClick={() => setTmplOutputLangs(
+                          active && tmplOutputLangs.length > 1
+                            ? tmplOutputLangs.filter(l => l !== code)
+                            : active ? tmplOutputLangs : [...tmplOutputLangs, code]
+                        )}
+                        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl border text-xs font-black transition-all ${
+                          active
+                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm shadow-indigo-200'
+                            : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-300'
+                        }`}>
+                        {flag} {label}
+                      </button>
+                    )
+                  })}
+                  {tmplOutputLangs.length > 1 && (
+                    <span className="flex items-center gap-1 text-[10px] text-emerald-600 font-bold px-2">
+                      <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                      {uiLang === 'ko' ? `${tmplOutputLangs.length}개 언어 동시 생성` : `${tmplOutputLangs.length} languages simultaneously`}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Submit */}
+              <button type="submit" disabled={templateLoading}
+                className="w-full text-white py-4 rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2 min-h-[54px] shadow-lg hover:opacity-90 hover:scale-[1.01] disabled:opacity-40 disabled:scale-100"
+                style={{ background: templateLoading ? '#6366f1' : 'linear-gradient(135deg, #4f46e5, #7c3aed)' }}>
+                {templateLoading
+                  ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />{L.generating}</>
+                  : <>⚡ {L.templateBtn}</>}
+              </button>
+
+            </div>
           </form>
 
           {/* ── RIGHT: 제품 AI 작성 ──────────────────────────── */}

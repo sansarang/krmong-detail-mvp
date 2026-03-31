@@ -172,6 +172,107 @@ export default function HomePage({ lang }: { lang: HomeLang }) {
         </div>
       </section>
 
+      {/* ══ TEMPLATE AUTO-FILL FEATURE ══════════════════ */}
+      <section className="bg-[#080D16] py-16 md:py-24 px-4 md:px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+            {/* Left: Copy */}
+            <div className="reveal-left">
+              <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/25 text-indigo-400 text-[10px] font-black px-3.5 py-1.5 rounded-full mb-6 uppercase tracking-wider">
+                {C.template.badge}
+              </div>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.05] mb-5">
+                {C.template.h2a}<br />
+                <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">{C.template.h2b}</span>
+              </h2>
+              <p className="text-gray-400 text-sm md:text-base leading-relaxed mb-8 max-w-lg">{C.template.sub}</p>
+              {/* Document types */}
+              <div className="flex flex-wrap gap-2 mb-8">
+                {C.template.types.map((t: string) => (
+                  <span key={t} className="text-xs font-semibold text-gray-300 bg-white/5 border border-white/8 rounded-xl px-3 py-1.5 hover:bg-white/10 hover:border-indigo-500/30 transition-colors cursor-default">{t}</span>
+                ))}
+              </div>
+              {/* Flow steps */}
+              <div className="space-y-3 mb-8">
+                {C.template.flow.map((f: {step: string; title: string; desc: string; icon: string}) => (
+                  <div key={f.step} className="flex items-start gap-4">
+                    <div className="w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center text-lg shrink-0">{f.icon}</div>
+                    <div>
+                      <p className="text-white text-sm font-bold">{f.title}</p>
+                      <p className="text-gray-500 text-xs leading-relaxed">{f.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link href="/login" className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-6 py-3.5 rounded-xl text-sm font-black hover:opacity-90 transition-all hover:scale-[1.02] hover:shadow-xl hover:shadow-indigo-500/30 text-center">
+                  {C.template.cta}
+                </Link>
+                <div className="flex items-center gap-2 text-xs text-gray-500 px-1">
+                  <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse shrink-0" />
+                  {C.template.proof}
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Visual mockup */}
+            <div className="reveal-right relative">
+              <div className="relative rounded-3xl overflow-hidden border border-indigo-500/20 shadow-2xl shadow-indigo-900/40"
+                style={{ background: 'linear-gradient(135deg, rgba(30,27,75,0.95), rgba(15,23,42,0.98))' }}>
+                {/* Window bar */}
+                <div className="flex items-center gap-1.5 px-5 py-3.5 border-b border-white/5">
+                  <span className="w-3 h-3 rounded-full bg-red-400/60" />
+                  <span className="w-3 h-3 rounded-full bg-yellow-400/60" />
+                  <span className="w-3 h-3 rounded-full bg-green-400/60" />
+                  <span className="text-gray-600 text-[11px] mx-auto font-mono">PageAI — AI Form Filler</span>
+                </div>
+                <div className="p-5 space-y-4">
+                  {/* Upload zone */}
+                  <div className="border-2 border-dashed border-indigo-400/40 rounded-2xl p-6 flex flex-col items-center gap-2 bg-indigo-500/5 hover:bg-indigo-500/10 transition-colors cursor-pointer group">
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">📤</div>
+                    <p className="text-white text-sm font-black">PDF · DOCX · XLSX · PPTX</p>
+                    <p className="text-gray-500 text-xs text-center">드래그하거나 클릭해서 업로드</p>
+                    <span className="text-[10px] font-black bg-indigo-500 text-white px-3 py-1 rounded-full mt-1">파일 선택</span>
+                  </div>
+                  {/* Parsed preview */}
+                  <div className="bg-white/3 border border-white/8 rounded-xl p-4 space-y-2.5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                      <span className="text-emerald-400 text-xs font-black">양식 파싱 완료 — 사업계획서.docx</span>
+                    </div>
+                    {[['회사명', 'PageAI Inc.'], ['사업 목적', 'AI 기반 문서 자동화 SaaS'], ['목표 시장', '한국·일본·중국 크로스보더'], ['예상 매출', '1억원 (1년차)']].map(([k, v]) => (
+                      <div key={k} className="flex gap-2 items-start">
+                        <span className="text-gray-600 text-[10px] shrink-0 w-20 pt-0.5">{k}</span>
+                        <div className="flex-1 bg-indigo-500/10 border border-indigo-500/15 rounded-lg px-2.5 py-1.5">
+                          <span className="text-indigo-300 text-[11px] font-semibold">{v}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Language output badges */}
+                  <div className="flex gap-2 flex-wrap">
+                    {[['🇰🇷', 'KR', 'bg-blue-500/20 border-blue-500/30 text-blue-300'], ['🇺🇸', 'EN', 'bg-violet-500/20 border-violet-500/30 text-violet-300'], ['🇯🇵', 'JP', 'bg-rose-500/20 border-rose-500/30 text-rose-300'], ['🇨🇳', 'CN', 'bg-amber-500/20 border-amber-500/30 text-amber-300']].map(([flag, code, cls]) => (
+                      <span key={code} className={`flex items-center gap-1.5 text-[11px] font-black px-3 py-1.5 rounded-xl border ${cls}`}>
+                        {flag} {code}
+                      </span>
+                    ))}
+                    <span className="ml-auto text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" /> 4개 언어 동시 생성
+                    </span>
+                  </div>
+                  {/* Generate button */}
+                  <button className="w-full py-3 rounded-xl font-black text-sm text-white bg-gradient-to-r from-indigo-500 to-violet-600 hover:opacity-90 transition-all">
+                    ⚡ AI 자동 완성 시작
+                  </button>
+                </div>
+              </div>
+              {/* Glow */}
+              <div className="absolute inset-0 -z-10 bg-indigo-500/8 rounded-3xl blur-3xl scale-110" />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ══ PLATFORM BAR ═════════════════════════════════ */}
       <section className="bg-[#080D16] border-b border-white/5 py-5">
         <p className="text-center text-[10px] font-black text-gray-700 uppercase tracking-widest mb-4">{C.platformBar}</p>
