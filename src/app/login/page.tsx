@@ -7,9 +7,12 @@ import LoginForm from '@/components/LoginForm'
 export default function LoginPage() {
   return (
     <main className="min-h-screen bg-white flex flex-col">
-      <nav className="px-8 py-5 border-b border-gray-100">
+      <nav className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 w-fit">
           <Logo size={28} />
+        </Link>
+        <Link href="/" className="text-xs text-gray-400 hover:text-gray-700 transition-colors">
+          ← Home
         </Link>
       </nav>
       <Suspense fallback={

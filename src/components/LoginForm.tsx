@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import type { UiLang } from '@/lib/uiLocale'
+import { persistUiLang, type UiLang } from '@/lib/uiLocale'
 
 const COPY: Record<UiLang, {
   titleIn: string
@@ -71,16 +71,29 @@ const COPY: Record<UiLang, {
   },
 }
 
+const LANG_META: { code: UiLang; flag: string; label: string }[] = [
+  { code: 'ko', flag: '🇰🇷', label: '한국어' },
+  { code: 'en', flag: '🇺🇸', label: 'English' },
+  { code: 'ja', flag: '🇯🇵', label: '日本語' },
+  { code: 'zh', flag: '🇨🇳', label: '中文' },
+]
+
 export default function LoginForm({ lang, homeHref }: { lang: UiLang; homeHref: string }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
-  const t = COPY[lang]
+  const [uiLang, setUiLang] = useState<UiLang>(lang)
+  const t = COPY[uiLang]
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [isSignUp, setIsSignUp] = useState(false)
   const refCode = searchParams.get('ref')
+
+  function switchLang(code: UiLang) {
+    setUiLang(code)
+    persistUiLang(code)
+  }
 
   useEffect(() => {
     if (refCode) setIsSignUp(true)
@@ -121,8 +134,30 @@ export default function LoginForm({ lang, homeHref }: { lang: UiLang; homeHref: 
   }
 
   return (
-    <div className="flex-1 flex items-center justify-center px-4 py-16">
+    <div className="flex-1 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm">
+
+        {/* 언어 선택 탭 */}
+        <div className="flex items-center justify-center mb-8">
+          <div className="flex items-center gap-1 bg-gray-100 rounded-2xl p-1">
+            {LANG_META.map(({ code, flag, label }) => (
+              <button
+                key={code}
+                type="button"
+                onClick={() => switchLang(code)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                  uiLang === code
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-400 hover:text-gray-700'
+                }`}
+              >
+                <span>{flag}</span>
+                <span className="hidden sm:inline">{label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="text-center mb-10">
           <h1 className="text-4xl font-black text-black mb-3 tracking-tight">
             {isSignUp ? t.titleUp : t.titleIn}
