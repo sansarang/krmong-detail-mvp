@@ -517,6 +517,8 @@ function ConversionAbPanel({
 }) {
   const labs: ('A' | 'B' | 'C')[] = ['A', 'B', 'C']
   const ctaLabs: ('A' | 'B')[] = ['A', 'B']
+  const [openersExpanded, setOpenersExpanded] = useState(false)
+  const [thumbExpanded, setThumbExpanded] = useState(false)
   return (
     <div className={`border border-violet-200 bg-violet-50/90 rounded-2xl overflow-hidden ${className}`}>
       <button
@@ -529,7 +531,8 @@ function ConversionAbPanel({
         <span className="text-[10px] font-bold text-violet-800 mt-1 inline-block">{open ? ui.abCopyHide : ui.abCopyShow}</span>
       </button>
       {open && (
-        <div className="px-3 pb-3 space-y-4 border-t border-violet-200/80 pt-2">
+        <div className="px-3 pb-3 space-y-3 border-t border-violet-200/80 pt-2">
+          {/* Title Variants — always visible */}
           <div>
             <p className="text-[10px] font-black text-violet-500 uppercase tracking-wider mb-1.5">{ui.abCopyTitles}</p>
             <div className="space-y-2">
@@ -538,19 +541,13 @@ function ConversionAbPanel({
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <span className="text-[10px] font-black text-violet-700">{labs[i]}</span>
                     <div className="flex gap-1 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => onCopyLine(line)}
-                        className="text-[10px] font-bold text-violet-800 border border-violet-200 bg-white px-2 py-0.5 rounded-md hover:bg-violet-50"
-                      >
+                      <button type="button" onClick={() => onCopyLine(line)}
+                        className="text-[10px] font-bold text-violet-800 border border-violet-200 bg-white px-2 py-0.5 rounded-md hover:bg-violet-50">
                         {ui.abCopyCopy}
                       </button>
                       {hasFirst && (
-                        <button
-                          type="button"
-                          onClick={() => onApplyTitle(i as 0 | 1 | 2)}
-                          className="text-[10px] font-bold text-white bg-violet-700 px-2 py-0.5 rounded-md hover:bg-violet-800"
-                        >
+                        <button type="button" onClick={() => onApplyTitle(i as 0 | 1 | 2)}
+                          className="text-[10px] font-bold text-white bg-violet-700 px-2 py-0.5 rounded-md hover:bg-violet-800">
                           {ui.abCopyApplyTitle}
                         </button>
                       )}
@@ -561,119 +558,118 @@ function ConversionAbPanel({
               ))}
             </div>
           </div>
-          <div>
-            <p className="text-[10px] font-black text-violet-500 uppercase tracking-wider mb-1.5">{ui.abCopyOpeners}</p>
-            <div className="space-y-2">
-              {openers.map((line, i) => (
-                <div key={i} className="rounded-xl bg-white/90 border border-violet-100 px-2.5 py-2">
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <span className="text-[10px] font-black text-violet-700">{labs[i]}</span>
-                    <div className="flex gap-1 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => onCopyLine(line)}
-                        className="text-[10px] font-bold text-violet-800 border border-violet-200 bg-white px-2 py-0.5 rounded-md hover:bg-violet-50"
-                      >
-                        {ui.abCopyCopy}
-                      </button>
-                      {hasFirst && (
-                        <button
-                          type="button"
-                          onClick={() => onApplyOpener(i as 0 | 1 | 2)}
-                          className="text-[10px] font-bold text-white bg-violet-700 px-2 py-0.5 rounded-md hover:bg-violet-800"
-                        >
-                          {ui.abCopyApplyOpener}
+
+          {/* Opening Sentence Variants — collapsible */}
+          <div className="rounded-xl border border-violet-200 overflow-hidden">
+            <button type="button" onClick={() => setOpenersExpanded(o => !o)}
+              className="w-full flex items-center justify-between px-3 py-2 hover:bg-violet-100/50 transition-colors bg-violet-50/50">
+              <span className="text-[10px] font-black text-violet-600 uppercase tracking-wider">{ui.abCopyOpeners}</span>
+              <span className="text-[10px] text-violet-500 font-bold">{openersExpanded ? '▲' : '▼'}</span>
+            </button>
+            {openersExpanded && (
+              <div className="p-2 space-y-2 bg-white/60">
+                {openers.map((line, i) => (
+                  <div key={i} className="rounded-xl bg-white/90 border border-violet-100 px-2.5 py-2">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-[10px] font-black text-violet-700">{labs[i]}</span>
+                      <div className="flex gap-1 shrink-0">
+                        <button type="button" onClick={() => onCopyLine(line)}
+                          className="text-[10px] font-bold text-violet-800 border border-violet-200 bg-white px-2 py-0.5 rounded-md hover:bg-violet-50">
+                          {ui.abCopyCopy}
                         </button>
-                      )}
+                        {hasFirst && (
+                          <button type="button" onClick={() => onApplyOpener(i as 0 | 1 | 2)}
+                            className="text-[10px] font-bold text-white bg-violet-700 px-2 py-0.5 rounded-md hover:bg-violet-800">
+                            {ui.abCopyApplyOpener}
+                          </button>
+                        )}
+                      </div>
                     </div>
+                    <p className="text-xs text-gray-800 leading-snug break-words">{line}</p>
                   </div>
-                  <p className="text-xs text-gray-800 leading-snug break-words">{line}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="rounded-xl bg-violet-900/5 border border-violet-200/80 px-2.5 py-2 space-y-2">
-            <p className="text-[10px] font-black text-violet-700 uppercase tracking-wider">{ui.abCopyRecommend}</p>
-            <p className="text-[11px] text-violet-950 leading-snug font-medium">
-              {['A', 'B', 'C'][recommendation.titleIdx]} + {['A', 'B', 'C'][recommendation.openerIdx]} + CTA {ctaLabs[recommendation.ctaIdx]}
-            </p>
-            <p className="text-[10px] text-violet-900/80 leading-relaxed">{recommendation.reason}</p>
-            <p className="text-[9px] text-violet-700/70 leading-relaxed">{ui.abCopyUtmHint}</p>
-            <pre className="text-[9px] text-violet-900/90 bg-white/80 border border-violet-100 rounded-lg p-2 overflow-x-auto whitespace-pre-wrap break-all">
-              ?{utmRecommendedQuery}
-            </pre>
-            <div className="flex flex-col gap-1.5">
-              {hasFirst && lastSectionId !== null && (
-                <button
-                  type="button"
-                  onClick={() => onApplyCombo(recommendation)}
-                  className="w-full text-center text-[10px] font-black text-white bg-violet-800 py-2 rounded-xl hover:bg-violet-900"
-                >
-                  {ui.abCopyApplyRecommended}
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={onCopyUtm}
-                className="w-full text-center text-[10px] font-bold text-violet-900 border border-violet-300 bg-white py-1.5 rounded-xl hover:bg-violet-50"
-              >
-                {ui.abCopyCopyUtm}
-              </button>
-              <button
-                type="button"
-                onClick={onCopyExperimentSheet}
-                className="w-full text-center text-[10px] font-bold text-violet-900 border border-violet-300 bg-white py-1.5 rounded-xl hover:bg-violet-50"
-              >
-                {ui.abCopyCopyExperimentSheet}
-              </button>
-            </div>
-          </div>
-          <div className="rounded-xl bg-white/90 border border-violet-200 px-2.5 py-2 space-y-2">
-            <p className="text-[10px] font-black text-violet-600 uppercase tracking-wider">{ui.abCopyRunnerUp}</p>
-            <p className="text-[11px] text-violet-950 font-medium">
-              {['A', 'B', 'C'][runnerUp.titleIdx]} + {['A', 'B', 'C'][runnerUp.openerIdx]} + CTA {ctaLabs[runnerUp.ctaIdx]}
-            </p>
-            <p className="text-[10px] text-gray-700 leading-relaxed">{runnerUp.reason}</p>
-            {hasFirst && lastSectionId !== null && (
-              <button
-                type="button"
-                onClick={() => onApplyCombo(runnerUp)}
-                className="w-full text-center text-[10px] font-bold text-violet-800 border border-violet-400 bg-violet-50 py-1.5 rounded-xl hover:bg-violet-100"
-              >
-                {ui.abCopyApplyRunnerUp}
-              </button>
+                ))}
+              </div>
             )}
           </div>
-          <div>
-            <p className="text-[10px] font-black text-violet-500 uppercase tracking-wider mb-1.5">{ui.abCopyCtas}</p>
-            <div className="space-y-2">
-              {ctas.map((line, i) => (
-                <div key={i} className="rounded-xl bg-white/90 border border-violet-100 px-2.5 py-2">
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <span className="text-[10px] font-black text-violet-700">{ctaLabs[i]}</span>
-                    <div className="flex gap-1 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => onCopyLine(line)}
-                        className="text-[10px] font-bold text-violet-800 border border-violet-200 bg-white px-2 py-0.5 rounded-md hover:bg-violet-50"
-                      >
-                        {ui.abCopyCopy}
+
+          {/* Thumbnail + CTA Combinations — collapsible */}
+          <div className="rounded-xl border border-violet-200 overflow-hidden">
+            <button type="button" onClick={() => setThumbExpanded(o => !o)}
+              className="w-full flex items-center justify-between px-3 py-2 hover:bg-violet-100/50 transition-colors bg-violet-50/50">
+              <span className="text-[10px] font-black text-violet-600 uppercase tracking-wider">
+                {ui.abCopyRecommend} + CTAs
+              </span>
+              <span className="text-[10px] text-violet-500 font-bold">{thumbExpanded ? '▲' : '▼'}</span>
+            </button>
+            {thumbExpanded && (
+              <div className="p-2 space-y-2 bg-white/60">
+                <div className="rounded-xl bg-violet-900/5 border border-violet-200/80 px-2.5 py-2 space-y-2">
+                  <p className="text-[10px] font-black text-violet-700 uppercase tracking-wider">{ui.abCopyRecommend}</p>
+                  <p className="text-[11px] text-violet-950 leading-snug font-medium">
+                    {['A', 'B', 'C'][recommendation.titleIdx]} + {['A', 'B', 'C'][recommendation.openerIdx]} + CTA {ctaLabs[recommendation.ctaIdx]}
+                  </p>
+                  <p className="text-[10px] text-violet-900/80 leading-relaxed">{recommendation.reason}</p>
+                  <p className="text-[9px] text-violet-700/70 leading-relaxed">{ui.abCopyUtmHint}</p>
+                  <pre className="text-[9px] text-violet-900/90 bg-white/80 border border-violet-100 rounded-lg p-2 overflow-x-auto whitespace-pre-wrap break-all">
+                    ?{utmRecommendedQuery}
+                  </pre>
+                  <div className="flex flex-col gap-1.5">
+                    {hasFirst && lastSectionId !== null && (
+                      <button type="button" onClick={() => onApplyCombo(recommendation)}
+                        className="w-full text-center text-[10px] font-black text-white bg-violet-800 py-2 rounded-xl hover:bg-violet-900">
+                        {ui.abCopyApplyRecommended}
                       </button>
-                      {lastSectionId !== null && (
-                        <button
-                          type="button"
-                          onClick={() => onApplyCta(i as 0 | 1)}
-                          className="text-[10px] font-bold text-white bg-violet-700 px-2 py-0.5 rounded-md hover:bg-violet-800"
-                        >
-                          {ui.abCopyApplyCta}
-                        </button>
-                      )}
-                    </div>
+                    )}
+                    <button type="button" onClick={onCopyUtm}
+                      className="w-full text-center text-[10px] font-bold text-violet-900 border border-violet-300 bg-white py-1.5 rounded-xl hover:bg-violet-50">
+                      {ui.abCopyCopyUtm}
+                    </button>
+                    <button type="button" onClick={onCopyExperimentSheet}
+                      className="w-full text-center text-[10px] font-bold text-violet-900 border border-violet-300 bg-white py-1.5 rounded-xl hover:bg-violet-50">
+                      {ui.abCopyCopyExperimentSheet}
+                    </button>
                   </div>
-                  <p className="text-xs text-gray-800 leading-snug break-words">{line}</p>
                 </div>
-              ))}
-            </div>
+                <div className="rounded-xl bg-white/90 border border-violet-200 px-2.5 py-2 space-y-2">
+                  <p className="text-[10px] font-black text-violet-600 uppercase tracking-wider">{ui.abCopyRunnerUp}</p>
+                  <p className="text-[11px] text-violet-950 font-medium">
+                    {['A', 'B', 'C'][runnerUp.titleIdx]} + {['A', 'B', 'C'][runnerUp.openerIdx]} + CTA {ctaLabs[runnerUp.ctaIdx]}
+                  </p>
+                  <p className="text-[10px] text-gray-700 leading-relaxed">{runnerUp.reason}</p>
+                  {hasFirst && lastSectionId !== null && (
+                    <button type="button" onClick={() => onApplyCombo(runnerUp)}
+                      className="w-full text-center text-[10px] font-bold text-violet-800 border border-violet-400 bg-violet-50 py-1.5 rounded-xl hover:bg-violet-100">
+                      {ui.abCopyApplyRunnerUp}
+                    </button>
+                  )}
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-violet-500 uppercase tracking-wider mb-1.5">{ui.abCopyCtas}</p>
+                  <div className="space-y-2">
+                    {ctas.map((line, i) => (
+                      <div key={i} className="rounded-xl bg-white/90 border border-violet-100 px-2.5 py-2">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className="text-[10px] font-black text-violet-700">{ctaLabs[i]}</span>
+                          <div className="flex gap-1 shrink-0">
+                            <button type="button" onClick={() => onCopyLine(line)}
+                              className="text-[10px] font-bold text-violet-800 border border-violet-200 bg-white px-2 py-0.5 rounded-md hover:bg-violet-50">
+                              {ui.abCopyCopy}
+                            </button>
+                            {lastSectionId !== null && (
+                              <button type="button" onClick={() => onApplyCta(i as 0 | 1)}
+                                className="text-[10px] font-bold text-white bg-violet-700 px-2 py-0.5 rounded-md hover:bg-violet-800">
+                                {ui.abCopyApplyCta}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-800 leading-snug break-words">{line}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1357,6 +1353,13 @@ export default function OrderResultPage() {
   const [rightTab, setRightTab] = useState<'publish'|'copy'|'tools'>('publish')
   const [mobileToolsOpen, setMobileToolsOpen] = useState(false)
   const [photoOptOpen, setPhotoOptOpen] = useState(true)
+  const [seoOptimizing, setSeoOptimizing] = useState(false)
+  const [seoOptPopup, setSeoOptPopup] = useState(false)
+  const [expectedSeoScore, setExpectedSeoScore] = useState(0)
+  const [advPublishOpen, setAdvPublishOpen] = useState(false)
+  const [abOpenersOpen, setAbOpenersOpen] = useState(false)
+  const [abCtasOpen, setAbCtasOpen] = useState(false)
+  const [seoAutoPromptShown, setSeoAutoPromptShown] = useState(false)
   const [photoPresets, setPhotoPresets] = useState<Record<string, string>>({})
   const [photoProcessing, setPhotoProcessing] = useState<string | null>(null)
   const [deployOpen, setDeployOpen] = useState(false)
@@ -1956,6 +1959,75 @@ export default function OrderResultPage() {
     }).catch(() => toast.error(t.toastCopyFail))
   }
 
+  function handleSeoOptimizeClick() {
+    if (!seoReport) return
+    setSeoOptimizing(true)
+    setTimeout(() => {
+      const failingCount = seoReport.items.filter(i => !i.ok).length
+      const maxGain = failingCount * Math.round(100 / seoReport.items.length)
+      const expected = Math.min(seoReport.score + maxGain, 98)
+      setExpectedSeoScore(expected)
+      setSeoOptimizing(false)
+      setSeoOptPopup(true)
+    }, 1400)
+  }
+
+  function applySeoOptimization() {
+    if (!seoReport || !order) return
+    setSeoOptPopup(false)
+    const productName = order.product_name || ''
+    const tokens = productName.split(/[\s,·]+/).filter(t => t.length >= 2)
+    const ctasByLang: Record<string, string> = {
+      ko: '\n\n지금 바로 구매하세요! 특별 할인 기간 한정 무료 배송 혜택과 함께 최저가로 만나보실 수 있습니다. 지금 시작하세요!',
+      en: '\n\nBuy now! Limited time offer — shop today and get free shipping. Start saving now and don\'t miss this deal!',
+      ja: '\n\n今すぐ購入！期間限定割引中、今すぐお買い求めください。送料無料でお届けします。',
+      zh: '\n\n立即购买！限时特惠，立即下单，享受免费配送。现在就开始吧！',
+    }
+    const ctaText = ctasByLang[uiLang] ?? ctasByLang.ko
+    const nums = uiLang === 'ko' ? ['3가지','5가지','7가지'] : uiLang === 'ja' ? ['3つの','5つの','7つの'] : uiLang === 'zh' ? ['3个','5个','7个'] : ['3 ways','5 tips','7 reasons']
+
+    const newSections = sections.map((section, index) => {
+      const isLast = index === sections.length - 1
+      let { title, body } = section
+
+      if (!seoReport.items[0].ok && tokens.length > 0 && !tokens.some(t => title.includes(t))) {
+        title = `${tokens[0]} ${title}`
+      }
+      if (!seoReport.items[2].ok) {
+        if (title.length > 40) title = title.slice(0, 38) + '…'
+        if (title.length < 15) title = `${title} – ${productName.slice(0, 10)}`
+      }
+      if (!seoReport.items[3].ok && !/\d/.test(title)) {
+        title = `${nums[index % nums.length]} ${title}`
+      }
+      if (!seoReport.items[4].ok && index === 0 && !/[?？]/.test(title)) {
+        title = title + (uiLang === 'ko' ? '?' : '?')
+      }
+      if (!seoReport.items[5].ok && isLast) {
+        body = body + ctaText
+      }
+      if (!seoReport.items[6].ok && body.replace(/\s/g, '').length < 100) {
+        const padByLang: Record<string, string> = {
+          ko: ` 이 제품은 ${productName}으로, 높은 품질과 가성비를 자랑합니다. 많은 사용자들이 만족하고 있으며, 최고의 선택 중 하나입니다.`,
+          en: ` This ${productName} delivers exceptional quality and outstanding value. Highly rated by users who love its performance and reliability.`,
+          ja: ` ${productName}は高品質でコスパに優れ、多くのユーザーから高い評価を得ています。`,
+          zh: ` ${productName}以其高品质和优良性价比赢得了众多用户的好评，是最佳选择之一。`,
+        }
+        body = body + (padByLang[uiLang] ?? padByLang.ko)
+      }
+      return { ...section, title, body }
+    })
+
+    newSections.forEach(s => {
+      updateSection(s.id, 'title', s.title)
+      updateSection(s.id, 'body', s.body)
+    })
+    toast.success(uiLang === 'ko' ? '✅ SEO 최적화 완료!' : uiLang === 'ja' ? '✅ SEO最適化完了!' : uiLang === 'zh' ? '✅ SEO优化完成!' : '✅ SEO optimization applied!')
+    setTimeout(() => {
+      setSeoReport(buildSeoReport(newSections, order.product_name, order.category, uiLang))
+    }, 200)
+  }
+
   function openPreview(targetPlatform?: PublishPlatform) {
     if (targetPlatform) setPlatform(targetPlatform)
     // Init photo layouts from order image_urls if not set
@@ -2109,9 +2181,9 @@ export default function OrderResultPage() {
               </div>
             </div>
 
-            {/* SEO Score card — 양식 자동완성 모드에서 숨김 */}
+            {/* Analytics shortcut button — Analytics 탭으로 이동 */}
             {seoReport && !order.result_json?.template_mode && (
-              <button onClick={() => setShowSeo(true)}
+              <button onClick={() => setRightTab('tools')}
                 className={`w-full text-left rounded-2xl p-4 border transition-all hover:shadow-lg hover:-translate-y-0.5 ${scoreBg}`}>
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">{p.seoScore}</p>
                 <div className="flex items-end gap-2">
@@ -2122,24 +2194,18 @@ export default function OrderResultPage() {
                   <div className="h-full rounded-full transition-all duration-1000"
                     style={{ width: `${seoReport.score}%`, background: seoReport.score >= 80 ? '#10b981' : seoReport.score >= 60 ? '#f59e0b' : '#ef4444' }} />
                 </div>
-                <p className="text-xs text-gray-400 mt-1.5">{p.seoSeeMore}</p>
+                <p className="text-xs text-gray-400 mt-1.5">{uiLang==='ko'?'분석 탭에서 AI 최적화 →':uiLang==='ja'?'分析タブでAI最適化 →':uiLang==='zh'?'在分析标签中AI优化 →':'AI Optimize in Analytics →'}</p>
               </button>
             )}
 
-            {/* Publish button — 양식 모드에서는 다운로드 버튼만, 발행 버튼 숨김 */}
+            {/* Publish shortcut → 발행 탭 이동 */}
             {!order.result_json?.template_mode && (
-              <div className="space-y-2">
-                <button type="button"
-                  onClick={() => openPreview(primaryPlatform)}
-                  className={`w-full ${primStyle.bg} ${primStyle.hover} text-white rounded-2xl py-3 px-4 text-sm font-black transition-all hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2`}>
-                  <span className="text-base">{primaryRow?.icon}</span>
-                  {t.primaryPublishLabel}
-                </button>
-                <button type="button" onClick={handleNaverCopy}
-                  className={`w-full border ${primStyle.border} ${primStyle.text} hover:bg-gray-50 rounded-2xl py-2 px-4 text-xs font-bold transition-all`}>
-                  {copyDone ? t.copyDoneCheck : copyFormatIsListing ? t.copyListingBundleShort : t.copyHtmlShort}
-                </button>
-              </div>
+              <button type="button"
+                onClick={() => setRightTab('publish')}
+                className={`w-full ${primStyle.bg} ${primStyle.hover} text-white rounded-2xl py-3 px-4 text-sm font-black transition-all hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2`}>
+                <span className="text-base">{primaryRow?.icon}</span>
+                {t.primaryPublishLabel}
+              </button>
             )}
 
             {/* 양식 자동완성 모드: 다운로드 바로가기 */}
@@ -2151,15 +2217,6 @@ export default function OrderResultPage() {
                   <span>⬇</span>
                   {uiLang==='ko'?'문서 다운로드':uiLang==='ja'?'文書ダウンロード':uiLang==='zh'?'下载文档':'Download Document'}
                 </button>
-              </div>
-            )}
-
-            {/* Compliance alert */}
-            {complianceHighCount > 0 && !order.result_json?.template_mode && (
-              <div className="bg-red-50 border border-red-200 rounded-2xl p-3">
-                <p className="text-xs font-black text-red-700 mb-1">⚠ {complianceHighCount} 위험 항목</p>
-                <button type="button" onClick={() => setCompetitorOpen(o => !o)}
-                  className="text-[10px] text-red-600 font-bold underline">자세히 보기</button>
               </div>
             )}
 
@@ -2981,6 +3038,40 @@ export default function OrderResultPage() {
                     </div>
                   )}
 
+                  {/* Primary platform publish button — non-template mode */}
+                  {!order.result_json?.template_mode && (
+                    <div className="space-y-2">
+                      <button type="button"
+                        onClick={() => openPreview(primaryPlatform)}
+                        className={`w-full ${primStyle.bg} ${primStyle.hover} text-white rounded-2xl py-4 px-4 text-sm font-black transition-all hover:shadow-lg flex items-center justify-center gap-2.5 shadow-lg`}>
+                        <span className="text-xl">{primaryRow?.icon}</span>
+                        <span>{t.primaryPublishLabel}</span>
+                      </button>
+                      <button type="button" onClick={handleNaverCopy}
+                        className={`w-full border ${primStyle.border} ${primStyle.text} hover:bg-gray-50 rounded-2xl py-2 px-4 text-xs font-bold transition-all`}>
+                        {copyDone ? t.copyDoneCheck : copyFormatIsListing ? t.copyListingBundleShort : t.copyHtmlShort}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Advanced Settings accordion */}
+                  <div className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-sm">
+                    <button type="button" onClick={() => setAdvPublishOpen(o => !o)}
+                      className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span>⚙️</span>
+                        <span className="text-sm font-black text-gray-700 shrink-0">
+                          {uiLang==='ko'?'고급 설정':uiLang==='ja'?'詳細設定':uiLang==='zh'?'高级设置':'Advanced Settings'}
+                        </span>
+                        <span className="text-[10px] text-gray-400 truncate">
+                          {uiLang==='ko'?'사진·패키지·안전검사':'Photo · packages · safety'}
+                        </span>
+                      </div>
+                      <span className="text-gray-300 text-xs shrink-0">{advPublishOpen ? '▲' : '▼'}</span>
+                    </button>
+                    {advPublishOpen && (
+                      <div className="border-t border-gray-100 p-3 space-y-3">
+
                   {/* ── 📸 사진 자동 편집·배치 패널 ─────────────────── */}
                   <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
                     <button type="button" onClick={() => setPhotoOptOpen(o => !o)}
@@ -3261,6 +3352,10 @@ export default function OrderResultPage() {
                     />
                   )}
                   <OrderWritingWidgets uiLang={uiLang} />
+
+                      </div>
+                    )}
+                  </div>{/* end Advanced Settings */}
                 </>
               )}
 
@@ -3358,6 +3453,49 @@ export default function OrderResultPage() {
               {/* ANALYTICS TAB */}
               {rightTab === 'tools' && (
                 <>
+                  {/* ── SEO Score + AI Optimize ─────────────────── */}
+                  {seoReport && !order.result_json?.template_mode && (
+                    <div className={`rounded-2xl border p-4 ${scoreBg}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">{p.seoScore}</p>
+                        <button onClick={() => setShowSeo(true)} className="text-[10px] font-bold text-gray-400 hover:text-gray-700 underline">
+                          {p.seoSeeMore}
+                        </button>
+                      </div>
+                      <div className="flex items-end gap-2 mb-2">
+                        <span className={`text-4xl font-black leading-none ${scoreColor}`}>{seoReport.score}</span>
+                        <span className="text-gray-400 text-sm mb-0.5 font-medium">/ 100</span>
+                      </div>
+                      <div className="h-1.5 bg-black/5 rounded-full overflow-hidden mb-3">
+                        <div className="h-full rounded-full transition-all duration-1000"
+                          style={{ width: `${seoReport.score}%`, background: seoReport.score >= 80 ? '#10b981' : seoReport.score >= 60 ? '#f59e0b' : '#ef4444' }} />
+                      </div>
+                      {/* SEO items */}
+                      <div className="space-y-1.5 mb-3">
+                        {seoReport.items.map((item, i) => (
+                          <div key={i} className={`flex items-start gap-2 text-xs rounded-xl px-2.5 py-2 ${item.ok ? 'bg-emerald-50 border border-emerald-100' : 'bg-red-50 border border-red-100'}`}>
+                            <span className={`font-black shrink-0 mt-0.5 ${item.ok ? 'text-emerald-500' : 'text-red-500'}`}>{item.ok ? '✓' : '✗'}</span>
+                            <div className="min-w-0">
+                              <p className={`font-bold leading-tight ${item.ok ? 'text-emerald-700' : 'text-red-700'}`}>{item.label}</p>
+                              {!item.ok && <p className="text-[10px] text-red-500 mt-0.5 leading-tight">{item.tip}</p>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {/* AI Optimize button */}
+                      {seoReport.score < 100 && (
+                        <button type="button" onClick={handleSeoOptimizeClick}
+                          disabled={seoOptimizing}
+                          className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-300 text-white rounded-xl py-2.5 text-xs font-black transition-all flex items-center justify-center gap-2">
+                          {seoOptimizing
+                            ? <><span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />{uiLang==='ko'?'예상 점수 계산 중...':uiLang==='ja'?'予測スコア計算中...':uiLang==='zh'?'计算预期分数...':'Calculating expected score...'}</>
+                            : <>✨ {uiLang==='ko'?'AI 자동 최적화':uiLang==='ja'?'AI自動最適化':uiLang==='zh'?'AI自动优化':'AI Auto-Optimize'}</>
+                          }
+                        </button>
+                      )}
+                    </div>
+                  )}
+
                   {/* Competitor */}
                   {sections.length > 0 && (
                     <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
@@ -3593,6 +3731,50 @@ export default function OrderResultPage() {
           PDF
         </button>
       </div>
+
+      {/* ══ SEO OPTIMIZE POPUP ════════════════════════════════════ */}
+      {seoOptPopup && seoReport && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl p-6 space-y-4">
+            <div className="text-center">
+              <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-3">✨</div>
+              <p className="font-black text-gray-900 text-base">
+                {uiLang==='ko'?'AI SEO 최적화':uiLang==='ja'?'AI SEO最適化':uiLang==='zh'?'AI SEO优化':'AI SEO Optimization'}
+              </p>
+            </div>
+            <div className="bg-gray-50 rounded-2xl p-4 space-y-2 text-sm text-gray-700">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-500">{uiLang==='ko'?'현재 점수':uiLang==='ja'?'現在スコア':uiLang==='zh'?'当前分数':'Current score'}</span>
+                <span className={`text-2xl font-black ${scoreColor}`}>{seoReport.score}</span>
+              </div>
+              <div className="h-px bg-gray-200" />
+              <div className="flex justify-between items-center">
+                <span className="text-gray-500">{uiLang==='ko'?'최적화 후 예상 점수':uiLang==='ja'?'最適化後の予想スコア':uiLang==='zh'?'优化后预期分数':'Expected after optimization'}</span>
+                <span className="text-2xl font-black text-emerald-600">{expectedSeoScore}</span>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 leading-relaxed text-center">
+              {uiLang==='ko'
+                ? '실패 항목만 자동 수정합니다. 통과된 항목은 그대로 유지됩니다.'
+                : uiLang==='ja'
+                ? '失敗した項目のみ自動修正します。合格した項目はそのままです。'
+                : uiLang==='zh'
+                ? '仅自动修复失败项目，通过的项目保持不变。'
+                : 'Only failed items will be fixed. Passed items remain unchanged.'}
+            </p>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setSeoOptPopup(false)}
+                className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-bold hover:bg-gray-50 transition-all">
+                {uiLang==='ko'?'취소':uiLang==='ja'?'キャンセル':uiLang==='zh'?'取消':'Cancel'}
+              </button>
+              <button type="button" onClick={applySeoOptimization}
+                className="flex-1 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-black transition-all">
+                {uiLang==='ko'?'최적화 시작':uiLang==='ja'?'最適化開始':uiLang==='zh'?'开始优化':'Optimize Now'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ══ SEO MODAL ════════════════════════════════════════════ */}
       {showSeo && seoReport && (
