@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: '이용약관 — 페이지AI',
+  title: '이용약관 — PageAI',
 }
 
 export default function TermsPage() {
@@ -11,7 +11,7 @@ export default function TermsPage() {
       <nav className="px-8 py-5 border-b border-gray-100">
         <Link href="/" className="flex items-center gap-2 w-fit">
           <div className="w-7 h-7 bg-black rounded-lg" />
-          <span className="font-bold text-lg tracking-tight">페이지AI</span>
+          <span className="font-bold text-lg tracking-tight">PageAI</span>
         </Link>
       </nav>
       <div className="max-w-3xl mx-auto px-6 py-16">
@@ -22,13 +22,13 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-xl font-black text-black mb-3">제1조 (목적)</h2>
-            <p className="text-sm">이 약관은 페이지AI(이하 "서비스")가 제공하는 AI 상세페이지 자동 생성 서비스의 이용 조건 및 절차, 이용자와 서비스 간의 권리·의무 및 책임 사항을 규정함을 목적으로 합니다.</p>
+            <p className="text-sm">이 약관은 PageAI(이하 "서비스")가 제공하는 AI 상세페이지 자동 생성 서비스의 이용 조건 및 절차, 이용자와 서비스 간의 권리·의무 및 책임 사항을 규정함을 목적으로 합니다.</p>
           </section>
 
           <section>
             <h2 className="text-xl font-black text-black mb-3">제2조 (정의)</h2>
             <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
-              <li>"서비스"란 페이지AI가 운영하는 AI 상세페이지 자동 생성 플랫폼을 의미합니다.</li>
+              <li>"서비스"란 PageAI가 운영하는 AI 상세페이지 자동 생성 플랫폼을 의미합니다.</li>
               <li>"이용자"란 서비스에 접속하여 이 약관에 따라 서비스를 이용하는 회원 및 비회원을 의미합니다.</li>
               <li>"회원"이란 서비스에 개인정보를 제공하여 회원 등록을 한 자로, 서비스의 기능을 이용할 수 있는 자를 의미합니다.</li>
             </ul>
@@ -71,7 +71,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-xl font-black text-black mb-3">제6조 (지식재산권)</h2>
-            <p className="text-sm">서비스를 통해 생성된 상세페이지의 저작권은 이를 생성한 이용자에게 귀속됩니다. 서비스의 소프트웨어, 디자인, 로고 등의 지식재산권은 페이지AI에 귀속됩니다.</p>
+            <p className="text-sm">서비스를 통해 생성된 상세페이지의 저작권은 이를 생성한 이용자에게 귀속됩니다. 서비스의 소프트웨어, 디자인, 로고 등의 지식재산권은 PageAI에 귀속됩니다.</p>
           </section>
 
           <section>
