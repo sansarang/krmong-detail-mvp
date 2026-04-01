@@ -170,14 +170,22 @@ export default function TrendWidget({ geo = 'KR', uiLocale, compact = false, var
     )
   }
 
+  const compactUI: Record<UiLocale, { title: string; asOf: string; noData: string }> = {
+    ko: { title: '실시간 급상승', asOf: '기준', noData: '데이터를 불러올 수 없습니다' },
+    en: { title: 'Trending Now', asOf: 'updated', noData: 'Unable to load data' },
+    ja: { title: 'リアルタイム急上昇', asOf: '時点', noData: 'データを読み込めません' },
+    zh: { title: '实时热搜', asOf: '更新', noData: '无法加载数据' },
+  }
+  const cu = compactUI[stripLoc]
+
   if (v === 'compact') {
     return (
       <div className="bg-white border border-gray-200 rounded-2xl p-4">
         <div className="flex items-center justify-between mb-3">
           <p className="text-xs font-black text-black flex items-center gap-1.5">
-            <span className="text-red-500">🔥</span> 실시간 급상승
+            <span className="text-red-500">🔥</span> {cu.title}
           </p>
-          {updatedAt && <p className="text-[9px] text-gray-300">{updatedAt} 기준</p>}
+          {updatedAt && <p className="text-[9px] text-gray-300">{updatedAt} {cu.asOf}</p>}
         </div>
         {loading ? (
           <div className="space-y-2">
@@ -186,7 +194,7 @@ export default function TrendWidget({ geo = 'KR', uiLocale, compact = false, var
             ))}
           </div>
         ) : error ? (
-          <p className="text-xs text-gray-400">데이터를 불러올 수 없습니다</p>
+          <p className="text-xs text-gray-400">{cu.noData}</p>
         ) : (
           <ol className="space-y-1.5">
             {trends.slice(0, 5).map((t, i) => (

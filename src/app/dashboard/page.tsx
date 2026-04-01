@@ -467,8 +467,8 @@ export default async function DashboardPage() {
               )}
             </div>
 
-            <ReferralWidget />
-            <TrendWidget compact />
+            <ReferralWidget lang={lang} />
+            <TrendWidget compact uiLocale={lang} geo={lang === 'en' ? 'US' : lang === 'ja' ? 'JP' : lang === 'zh' ? 'CN' : 'KR'} />
 
             {/* 오늘의 팁 */}
             <div className="bg-white border border-gray-100 rounded-2xl p-5">
