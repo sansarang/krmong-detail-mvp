@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createAdminClient, createServerSupabaseClient } from '@/lib/supabase/server'
 import { buildDataContextBlock } from '@/lib/marketIntelCopy'
+import { checkAndIncrementUsage } from '@/lib/usage'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 const FREE_LIMIT = 5
@@ -41,46 +42,19 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await userSupabase.auth.getUser()
 
     if (user) {
-      const now = new Date()
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-
-      const { count } = await supabase
-        .from('orders')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .gte('created_at', startOfMonth)
-        .neq('status', 'error')
-
-      const monthlyCount = count ?? 0
-
-      // 관리자 이메일 먼저 체크 (profiles 테이블 없어도 동작)
       const HARDCODED_ADMINS = ['jyj1653@krmong.local']
       const envAdmins = (process.env.ADMIN_EMAILS ?? '').split(',').map(e => e.trim()).filter(Boolean)
       const allAdmins = [...new Set([...HARDCODED_ADMINS, ...envAdmins])]
 
-      if (allAdmins.includes(user.email ?? '')) {
-        // 관리자 → 바로 생성 진행 (무제한)
-      } else {
-        // profiles 테이블에서 플랜 확인 (테이블 없으면 free로 간주)
-        let plan = 'free'
-        try {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('plan')
-            .eq('id', user.id)
-            .single()
-          plan = profile?.plan ?? 'free'
-        } catch { /* profiles 테이블 없음 */ }
-
-        const isPaidPlan = plan === 'admin' || plan === 'pro' || plan === 'business'
-        if (!isPaidPlan && monthlyCount > FREE_LIMIT) {
+      if (!allAdmins.includes(user.email ?? '')) {
+        const { ok, error: usageError } = await checkAndIncrementUsage(user.id)
+        if (!ok) {
           return NextResponse.json(
-            { error: 'LIMIT_EXCEEDED', message: `무료 플랜은 월 ${FREE_LIMIT}회까지 생성할 수 있어요.` },
+            { error: 'LIMIT_EXCEEDED', message: usageError ?? `무료 플랜은 월 ${FREE_LIMIT}회까지 생성할 수 있어요.` },
             { status: 402 }
           )
         }
       }
-
     }
     // ─────────────────────────────────────────────────────────────
 

@@ -120,7 +120,7 @@ export default async function JaBlogPostPage({ params }: { params: Promise<{ slu
           <div className="mt-16 bg-gradient-to-r from-blue-600/20 to-violet-600/20 border border-blue-500/20 rounded-3xl p-10 text-center">
             <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">実践してみましょう</p>
             <h2 className="text-2xl font-black text-white mb-3">商品ページを90秒で生成<br /><span className="text-gray-500">無料プランで今すぐ開始</span></h2>
-            <p className="text-gray-500 text-sm mb-6">クレジットカード不要 · Amazon JP・楽天・Tmall・Shopify対応</p>
+            <p className="text-gray-500 text-sm mb-6">Amazon JP・楽天・Tmall・Shopify対応</p>
             <Link href="/login" className="inline-block bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-xl font-black text-sm transition-colors">
               PageAIで商品ページを自動生成する →
             </Link>

@@ -28,7 +28,7 @@ export default function HomeJsonLd() {
       '@type': 'Offer',
       price: '0',
       priceCurrency: 'USD',
-      description: 'Free tier available — no credit card required',
+      description: 'Free tier available — 5 generations per month',
     },
     aggregateRating: {
       '@type': 'AggregateRating',
@@ -124,7 +124,7 @@ export default function HomeJsonLd() {
         name: 'How much does PageAI cost compared to outsourcing?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Multilingual content outsourcing typically costs $800–$2,400 per month. PageAI Pro costs $29/month for unlimited generations — a 95%+ cost reduction. The free tier lets you try the service without a credit card.',
+          text: 'Multilingual content outsourcing typically costs $800–$2,400 per month. PageAI Pro costs $29/month for unlimited generations — a 95%+ cost reduction. The free tier includes 5 generations per month.',
         },
       },
       {
