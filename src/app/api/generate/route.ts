@@ -16,7 +16,32 @@ YOUR NON-NEGOTIABLE STANDARDS:
 3. ZERO FILLER: Every single sentence exists to move the reader toward purchase. Delete any sentence that doesn't serve conversion.
 4. STORYTELLING: The best product pages tell a story. Hero narrative → problem agitation → solution reveal → proof → CTA.
 5. PREMIUM FEEL: You write for luxury and premium brands. Sophisticated vocabulary. Confident voice. Never desperate or pushy.
-6. JSON ONLY: Output must be valid JSON with no extra text before or after.`
+6. JSON ONLY: Output must be valid JSON with no extra text before or after.
+7. ESCAPE RULES: In JSON string values, ALL double quotes must be escaped as \\". ALL newlines must be written as \\n. Never use literal line breaks inside a JSON string value.`
+
+// JSON 복구 유틸리티 — 잘린 JSON 및 탈출 문자 오류를 최대한 복구
+function repairJson(raw: string): string {
+  // 마크다운 코드블록 제거
+  let s = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
+
+  // 가장 바깥쪽 { } 추출
+  const start = s.indexOf('{')
+  if (start === -1) return s
+  s = s.slice(start)
+
+  // trailing comma before ] or } 제거
+  s = s.replace(/,(\s*[}\]])/g, '$1')
+
+  // 잘린 경우 — 열린 괄호 수 맞추기
+  const opens  = (s.match(/\[/g) ?? []).length
+  const closes = (s.match(/\]/g) ?? []).length
+  const ob = (s.match(/\{/g) ?? []).length
+  const cb = (s.match(/\}/g) ?? []).length
+  if (opens > closes) s += ']'.repeat(opens - closes)
+  if (ob > cb)        s += '}'.repeat(ob - cb)
+
+  return s
+}
 
 export async function POST(req: NextRequest) {
   let orderId: string | undefined
@@ -1048,35 +1073,34 @@ MANDATORY QUALITY STANDARDS:
 ${refUrl ? `9. REFERENCE REWRITE: Study the reference structure above. Mirror its flow quality but write 100% new original content.` : ''}
 ${docRules}
 
-Output JSON only (no other text, no markdown):
-{"sections": [
-  {"id": 1, "name": "Section Name", "title": "Compelling Title", "body": "Body 200+ chars", "bg_color": "#FFFFFF"},
-  {"id": 2, "name": "Section Name", "title": "Compelling Title", "body": "Body 200+ chars", "bg_color": "#F8F9FA"},
-  {"id": 3, "name": "Section Name", "title": "Compelling Title", "body": "Body 200+ chars", "bg_color": "#FFFFFF"},
-  {"id": 4, "name": "Section Name", "title": "Compelling Title", "body": "Body 200+ chars", "bg_color": "#F0F7FF"},
-  {"id": 5, "name": "Section Name", "title": "Compelling Title", "body": "Body 200+ chars", "bg_color": "#FFFFFF"},
-  {"id": 6, "name": "Section Name", "title": "Compelling Title", "body": "Body 200+ chars", "bg_color": "#FFF8E7"}
-]}`
+CRITICAL JSON RULES: body values must use \\n for line breaks (no literal newlines). All " inside strings must be escaped as \\". Output valid JSON only.
+{"sections":[{"id":1,"name":"Name","title":"Title","body":"Body 200+ chars","bg_color":"#FFFFFF"},{"id":2,"name":"Name","title":"Title","body":"Body","bg_color":"#F8F9FA"},{"id":3,"name":"Name","title":"Title","body":"Body","bg_color":"#FFFFFF"},{"id":4,"name":"Name","title":"Title","body":"Body","bg_color":"#F0F7FF"},{"id":5,"name":"Name","title":"Title","body":"Body","bg_color":"#FFFFFF"},{"id":6,"name":"Name","title":"Title","body":"Body","bg_color":"#FFF8E7"}]}`
       }
 
       const langResults = await Promise.all(
         LANGS_ALL.map(async (lang) => {
           const msg = await anthropic.messages.create({
             model: 'claude-sonnet-4-5',
-            max_tokens: 3500,
+            max_tokens: 5000,
             system: GLOBAL_SYSTEM_PROMPT,
-            messages: [{ role: 'user', content: buildMultiPrompt(lang) }],
+            messages: [
+              { role: 'user', content: buildMultiPrompt(lang) },
+              { role: 'assistant', content: '{"sections":[' },
+            ],
           })
           const c = msg.content[0]
           if (c.type !== 'text') throw new Error(`${lang} 응답 오류`)
-          const raw = c.text.trim()
-            .replace(/^```(?:json)?\s*/i, '')
-            .replace(/\s*```\s*$/i, '')
-            .trim()
-          const match = raw.match(/\{[\s\S]*\}/)
-          if (!match) throw new Error(`${lang} JSON 파싱 실패`)
-          const parsed = JSON.parse(match[0]) as { sections: unknown[] }
-          return { lang, sections: parsed.sections }
+          const rawLang = '{"sections":[' + c.text
+          const repLang = repairJson(rawLang)
+          let parsedLang: { sections: unknown[] }
+          try {
+            parsedLang = JSON.parse(repLang)
+          } catch {
+            const m = repLang.match(/\{[\s\S]*\}/)
+            if (!m) throw new Error(`${lang} JSON 파싱 실패`)
+            parsedLang = JSON.parse(m[0])
+          }
+          return { lang, sections: parsedLang.sections }
         })
       )
 
@@ -1102,13 +1126,7 @@ Output JSON only (no other text, no markdown):
     const productAnchor = buildProductAnchor(outputLang)
     const refBlock = buildRefUrlBlock()
 
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5',
-      max_tokens: 4500,
-      system: GLOBAL_SYSTEM_PROMPT,
-      messages: [{
-        role: 'user',
-        content: `${productAnchor}${refBlock ? '\n' + refBlock + '\n' : ''}${customBlock}당신은 ${roleDesc}입니다.${langInstruction}
+    const userPromptContent = `${productAnchor}${refBlock ? '\n' + refBlock + '\n' : ''}${customBlock}당신은 ${roleDesc}입니다.${langInstruction}
 
 카테고리: ${order.category}
 제목/이름: ${order.product_name}
@@ -1121,47 +1139,60 @@ ${sectionGuide}
 1. 각 섹션 본문 220자 이상 — 짧고 강한 문단과 긴 문단을 교차해서 리듬감 형성
 2. 각 섹션 제목은 서로 완전히 다른 스타일 (의문형, 선언형, 수사적 역설, 숫자 강조, 감성 호소 혼합)
 3. 카테고리·제품에 맞는 전문 용어 + 감각적 언어 사용
-4. 첫 번째 섹션: 예상치 못한 앵글로 시작 — "여러분은 ~불편함이 있으신가요?" 같은 뻔한 시작 절대 금지
-5. 마지막 섹션: 감정적 트리거 + 명확한 행동 유도 (긴박감, 독점성, 감성 연결 중 택일)
+4. 첫 번째 섹션: 예상치 못한 앵글로 시작 절대 금지 — 뻔한 질문형 시작 금지
+5. 마지막 섹션: 감정적 트리거 + 명확한 행동 유도
 6. 전체 섹션 본문 합계 1500자 이상
 7. 인간 작가처럼 자연스럽고 유기적인 흐름 — 섹션 간 패턴 반복 금지
 ${refUrl ? `8. 참고 URL 재작성 모드: 위 참고 글의 구조를 학습하고 완전히 새로운 원본 문장으로 재작성` : ''}
 ${docRules}
 
-⚠️ SEO + 인간화 동시 달성:
-- 제품명 핵심 키워드를 3개 이상 섹션에 자연스럽게 (억지로 끼워 넣지 말 것)
-- 수치는 최소 3개 섹션에서 문장 속에 자연스럽게 (제목에 강제 삽입 금지)
-- 섹션 제목 6개가 모두 달라야 함 — 같은 구조 2개 이상 금지
-- 마지막 섹션에 구체적 행동 유도 + 감정적 클로징
+CRITICAL JSON RULES:
+- body 값에서 줄바꿈은 반드시 \\n 으로 표기 (실제 개행 금지)
+- body 값에서 큰따옴표는 반드시 \\" 로 표기
+- JSON 외의 텍스트 출력 절대 금지
 
-JSON만 출력 (마크다운 없이, 앞뒤 텍스트 없이):
-{
-  "sections": [
-    { "id": 1, "name": "섹션명", "title": "제목", "body": "본문 200자 이상", "bg_color": "#FFFFFF" },
-    { "id": 2, "name": "섹션명", "title": "제목", "body": "본문 200자 이상", "bg_color": "#F8F9FA" },
-    { "id": 3, "name": "섹션명", "title": "제목", "body": "본문 200자 이상", "bg_color": "#FFFFFF" },
-    { "id": 4, "name": "섹션명", "title": "제목", "body": "본문 200자 이상", "bg_color": "#F0F7FF" },
-    { "id": 5, "name": "섹션명", "title": "제목", "body": "본문 200자 이상", "bg_color": "#FFFFFF" },
-    { "id": 6, "name": "섹션명", "title": "제목", "body": "본문 200자 이상", "bg_color": "#FFF8E7" }
-  ]
-}`,
-      }],
+다음 JSON 형식으로만 출력하라:
+{"sections":[{"id":1,"name":"섹션명","title":"제목","body":"본문 220자 이상 (줄바꿈은 \\\\n으로)","bg_color":"#FFFFFF"},{"id":2,"name":"섹션명","title":"제목","body":"본문","bg_color":"#F8F9FA"},{"id":3,"name":"섹션명","title":"제목","body":"본문","bg_color":"#FFFFFF"},{"id":4,"name":"섹션명","title":"제목","body":"본문","bg_color":"#F0F7FF"},{"id":5,"name":"섹션명","title":"제목","body":"본문","bg_color":"#FFFFFF"},{"id":6,"name":"섹션명","title":"제목","body":"본문","bg_color":"#FFF8E7"}]}`
+
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-5',
+      max_tokens: 6000,
+      system: GLOBAL_SYSTEM_PROMPT,
+      messages: [
+        { role: 'user', content: userPromptContent },
+        { role: 'assistant', content: '{"sections":[' },
+      ],
     })
 
     const content = message.content[0]
     if (content.type !== 'text') throw new Error('AI 응답 형식 오류')
 
-    const text = content.text.trim()
-      .replace(/^```(?:json)?\s*/i, '')
-      .replace(/\s*```\s*$/i, '')
-      .trim()
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      console.error('[generate] JSON not found:', text.slice(0, 500))
-      throw new Error('AI 응답 JSON 파싱 실패')
+    // assistant prefill로 시작했으므로 앞에 붙여서 복원
+    const rawText = '{"sections":[' + content.text
+    let repaired: string
+    try {
+      repaired = repairJson(rawText)
+    } catch {
+      repaired = rawText
     }
 
-    const parsed = JSON.parse(jsonMatch[0])
+    let parsed: { sections: unknown[] }
+    try {
+      parsed = JSON.parse(repaired)
+    } catch (firstErr) {
+      // 2차 시도: jsonMatch 방식 + 복구
+      const jsonMatch = repaired.match(/\{[\s\S]*\}/)
+      if (!jsonMatch) {
+        console.error('[generate] JSON not found. raw:', rawText.slice(0, 500))
+        throw new Error('AI 응답 JSON 파싱 실패')
+      }
+      try {
+        parsed = JSON.parse(jsonMatch[0])
+      } catch {
+        console.error('[generate] JSON parse failed:', firstErr, 'raw slice:', rawText.slice(0, 500))
+        throw new Error('AI 응답 JSON 파싱 실패 — 다시 시도해주세요')
+      }
+    }
     const result = {
       sections: parsed.sections,
       output_lang: outputLang,
