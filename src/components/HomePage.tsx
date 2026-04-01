@@ -63,12 +63,9 @@ export default function HomePage({ lang, isLoggedIn = false }: { lang: HomeLang;
                 대시보드
               </Link>
             ) : (
-              <>
-                <Link href="/login" className="text-sm text-gray-400 hover:text-white font-medium transition-colors hidden sm:block">{C.nav.signin}</Link>
-                <Link href="/login" className="bg-gradient-to-r from-blue-500 to-violet-500 text-white text-sm px-4 py-2 rounded-xl font-bold hover:opacity-90 transition-all hover:scale-105 shadow-lg shadow-blue-500/20 whitespace-nowrap">
-                  {C.nav.startFree}
-                </Link>
-              </>
+              <Link href="/login" className="bg-gradient-to-r from-blue-500 to-violet-500 text-white text-sm px-4 py-2 rounded-xl font-bold hover:opacity-90 transition-all hover:scale-105 shadow-lg shadow-blue-500/20 whitespace-nowrap">
+                {C.nav.startFree}
+              </Link>
             )}
           </div>
         </div>

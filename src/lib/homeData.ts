@@ -40,7 +40,7 @@ export const HOME_COPY = {
       sub1: '상세페이지 · 사업계획서 · 제안서 · 보고서 · 과제 — PDF·DOCX 어떤 양식이든.',
       sub1b: '',
       sub2: 'Amazon JP · Tmall · Rakuten · Shopify · Smartstore — 플랫폼별 완벽 최적화.',
-      cta1: '무료로 시작하기 — 카드 불필요', cta2: '데모 보기 ▶',
+      cta1: '무료로 시작하기', cta2: '데모 보기 ▶',
       stats: [['5분', '전문가 수준 완성'], ['4개 언어', '동시 생성'], ['95%', '외주 비용 절감'], ['무료', '시작 가능']],
     },
     crossborder: {
@@ -182,7 +182,7 @@ export const HOME_COPY = {
       sub1: 'Amazon JP · Tmall · Rakuten · Shopify · Smartstore product pages,',
       sub1b: 'plus business plans, proposals & reports — AI auto-fills any form at expert level.',
       sub2: 'The only AI tool that generates culturally-localized content for KR · EN · JP · CN simultaneously.',
-      cta1: 'Start Free Now — No Credit Card', cta2: 'See How It Works ▶',
+      cta1: 'Start Free Now', cta2: 'See How It Works ▶',
       stats: [['5 min', 'expert-level content'], ['4 languages', 'simultaneously'], ['95%', 'cost vs outsourcing'], ['Free', 'to start']],
     },
     crossborder: {
@@ -303,7 +303,7 @@ export const HOME_COPY = {
       label: 'Start generating cross-border content for free',
       h2a: 'Your first 4-language',
       h2b: 'product page is free.',
-      sub1: 'No credit card required · Start in 30 seconds · Instant results',
+      sub1: 'Start in 30 seconds · Instant results',
       sub2: '🇰🇷 Korean · 🇺🇸 English · 🇯🇵 Japanese · 🇨🇳 Chinese',
       cta: 'Start Free — Generate in 4 Languages →',
     },
@@ -324,7 +324,7 @@ export const HOME_COPY = {
       sub1: '商品ページ・事業計画書・提案書・レポート・課題 — PDF·DOCX問わず。',
       sub1b: '',
       sub2: 'Amazon JP · Tmall · 楽天 · Shopify — プラットフォーム別に完璧に最適化。',
-      cta1: '無料で始める — カード不要', cta2: 'デモを見る ▶',
+      cta1: '無料で始める', cta2: 'デモを見る ▶',
       stats: [['5分', 'プロレベルの完成'], ['4言語', '同時生成'], ['95%', '外注コスト削減'], ['無料', 'スタート']],
     },
     crossborder: {
@@ -466,7 +466,7 @@ export const HOME_COPY = {
       sub1: '商品详情页·商业计划书·提案书·报告·作业 — PDF·DOCX任意格式。',
       sub1b: '',
       sub2: '天猫 · Amazon JP · 楽天 · Shopify — 按平台完美优化。',
-      cta1: '立即免费开始 — 无需信用卡', cta2: '观看演示 ▶',
+      cta1: '立即免费开始', cta2: '观看演示 ▶',
       stats: [['5分钟', '专家级文档'], ['4种语言', '同时生成'], ['95%', '外包成本节省'], ['免费', '即可开始']],
     },
     crossborder: {
