@@ -30,6 +30,19 @@ function billingCycle(priceId: string): string {
   return (priceId === STRIPE_PRICE_PRO_YEARLY || priceId === STRIPE_PRICE_BIZ_YEARLY) ? 'yearly' : 'monthly'
 }
 
+// Stripe 신버전에서 current_period_* 가 items 하위로 이동
+function getPeriod(subscription: Stripe.Subscription) {
+  const item = subscription.items.data[0]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sub = subscription as any
+  const start: number = item?.current_period_start ?? sub.current_period_start ?? 0
+  const end: number   = item?.current_period_end   ?? sub.current_period_end   ?? 0
+  return {
+    current_period_start: start ? new Date(start * 1000).toISOString() : null,
+    current_period_end:   end   ? new Date(end   * 1000).toISOString() : null,
+  }
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.text()
   const sig = req.headers.get('stripe-signature')!
@@ -55,14 +68,14 @@ export async function POST(req: NextRequest) {
       const priceId = subscription.items.data[0]?.price.id ?? ''
       const plan = planFromPriceId(priceId)
       const cycle = billingCycle(priceId)
+      const period = getPeriod(subscription)
 
       await admin.from('subscriptions').upsert({
         user_id: userId,
         plan,
         status: 'active',
         billing_cycle: cycle,
-        current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+        ...period,
         stripe_customer_id: session.customer as string,
         stripe_subscription_id: subscriptionId,
         stripe_price_id: priceId,
@@ -74,24 +87,23 @@ export async function POST(req: NextRequest) {
 
     case 'invoice.payment_succeeded': {
       const invoice = event.data.object as Stripe.Invoice
-      const subscriptionId = (invoice as { subscription?: string }).subscription
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const subscriptionId = (invoice as any).subscription as string | undefined
       if (!subscriptionId) break
 
       const subscription = await stripe.subscriptions.retrieve(subscriptionId)
       const userId = subscription.metadata?.supabase_user_id
       if (!userId) break
 
-      await admin.from('subscriptions').update({
-        status: 'active',
-        current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-      }).eq('user_id', userId)
+      const period = getPeriod(subscription)
+      await admin.from('subscriptions').update({ status: 'active', ...period }).eq('user_id', userId)
       break
     }
 
     case 'invoice.payment_failed': {
       const invoice = event.data.object as Stripe.Invoice
-      const subscriptionId = (invoice as { subscription?: string }).subscription
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const subscriptionId = (invoice as any).subscription as string | undefined
       if (!subscriptionId) break
 
       const subscription = await stripe.subscriptions.retrieve(subscriptionId)
