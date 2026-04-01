@@ -74,8 +74,17 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .maybeSingle()
 
+  const { data: subscription } = await supabase
+    .from('subscriptions')
+    .select('plan, status, current_period_end, billing_cycle')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
   const currentPlan = userProfile?.plan ?? 'free'
   const monthlyUsageFromProfile = userProfile?.monthly_usage ?? 0
+  const nextBillingDate = subscription?.current_period_end
+    ? new Date(subscription.current_period_end).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
+    : null
 
   const total       = orders?.length ?? 0
   const doneCount   = orders?.filter(o => o.status === 'done').length ?? 0
@@ -263,6 +272,9 @@ export default async function DashboardPage() {
                   <span className="text-[10px] text-gray-300">무제한 생성</span>
                 )}
               </div>
+              {nextBillingDate && currentPlan !== 'free' && (
+                <p className="text-[11px] text-gray-400 mb-3">다음 결제일: {nextBillingDate}</p>
+              )}
               {currentPlan === 'free' ? (
                 <Link href="/pricing" className="block w-full text-center bg-black text-white py-2.5 rounded-xl text-xs font-black hover:bg-gray-800 transition-all">
                   업그레이드 →

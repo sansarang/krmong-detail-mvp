@@ -5,6 +5,7 @@ import './globals.css'
 import { Toaster } from 'sonner'
 import ChatWidget from '@/components/ChatWidget'
 import { Analytics } from '@vercel/analytics/react'
+import PaddleProvider from '@/components/PaddleProvider'
 
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
@@ -94,6 +95,7 @@ export default function RootLayout({
             </Script>
           </>
         )}
+        <PaddleProvider />
         {children}
         <Toaster richColors position="top-center" />
         <ChatWidget />

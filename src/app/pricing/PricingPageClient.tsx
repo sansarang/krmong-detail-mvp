@@ -14,27 +14,35 @@ interface Plan {
 const PLANS: Plan[] = [
   {
     name: '무료', desc: '시작해보고 싶은 분', featured: false, free: true,
-    monthlyPrice: '₩0', yearlyPrice: '₩0',
+    monthlyPrice: '$0', yearlyPrice: '$0',
     monthlyPriceId: '', yearlyPriceId: '',
     features: ['월 5회 생성', 'PDF 다운로드', '인라인 편집', 'SEO 분석 ✗', '블로그 발행 ✗'],
   },
   {
     name: '프로', desc: '글로벌 셀러 · 크로스보더', badge: '가장 인기', featured: true, free: false,
-    monthlyPrice: '₩29,000', yearlyPrice: '₩290,000',
-    monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY ?? '',
-    yearlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY ?? '',
+    monthlyPrice: '$19', yearlyPrice: '$190',
+    monthlyPriceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_PRO_MONTHLY ?? '',
+    yearlyPriceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_PRO_YEARLY ?? '',
     features: ['무제한 생성', '🌏 4개 언어 동시 생성', '6개 플랫폼 자동 최적화', 'SEO 분석 리포트', 'A/B 버전 자동 생성'],
   },
   {
     name: '비즈니스', desc: '에이전시·팀·브랜드', featured: false, free: false,
-    monthlyPrice: '₩79,000', yearlyPrice: '₩790,000',
-    monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_BIZ_MONTHLY ?? '',
-    yearlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_BIZ_YEARLY ?? '',
+    monthlyPrice: '$49', yearlyPrice: '$490',
+    monthlyPriceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_BIZ_MONTHLY ?? '',
+    yearlyPriceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_BIZ_YEARLY ?? '',
     features: ['무제한 생성', '🌏 4개 언어 동시 생성', '6개 플랫폼 자동 최적화', 'SEO 분석 리포트', '팀 3인 + API 액세스'],
   },
 ]
 
-export default function PricingPageClient({ isLoggedIn }: { isLoggedIn: boolean }) {
+export default function PricingPageClient({
+  isLoggedIn,
+  userEmail,
+  userId,
+}: {
+  isLoggedIn: boolean
+  userEmail?: string
+  userId?: string
+}) {
   const router = useRouter()
   const [yearly, setYearly] = useState(false)
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
@@ -45,25 +53,36 @@ export default function PricingPageClient({ isLoggedIn }: { isLoggedIn: boolean 
       return
     }
     if (!isLoggedIn) {
-      router.push(`/login?redirect=/pricing`)
+      router.push('/login?redirect=/pricing')
       return
     }
+
     const priceId = yearly ? plan.yearlyPriceId : plan.monthlyPriceId
     if (!priceId) {
-      toast.error('결제 설정을 확인해주세요.')
+      toast.info('결제 준비 중입니다. 잠시 후 다시 시도해주세요.')
       return
     }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const paddle = (window as any).PaddleInstance
+    if (!paddle) {
+      toast.info('결제 준비 중입니다. 페이지를 새로고침 후 다시 시도해주세요.')
+      return
+    }
+
     setLoadingPlan(plan.name)
     try {
-      const res = await fetch('/api/payment/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priceId }),
+      paddle.Checkout.open({
+        items: [{ priceId, quantity: 1 }],
+        ...(userEmail ? { customer: { email: userEmail } } : {}),
+        customData: {
+          supabase_user_id: userId ?? '',
+          plan: plan.name.toLowerCase(),
+          billing_cycle: yearly ? 'yearly' : 'monthly',
+        },
       })
-      const data = await res.json()
-      if (data.url) window.location.href = data.url
-      else toast.error(data.error || '오류가 발생했습니다.')
-    } catch {
+    } catch (err) {
+      console.error('Paddle checkout error:', err)
       toast.error('결제 처리 중 오류가 발생했습니다.')
     } finally {
       setLoadingPlan(null)
@@ -159,7 +178,7 @@ export default function PricingPageClient({ isLoggedIn }: { isLoggedIn: boolean 
       <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-gray-400">
         {[
           { icon: '🛡️', text: '30일 환불 보장', color: 'bg-green-50 border-green-100 text-green-500' },
-          { icon: '💳', text: 'Visa · Mastercard · Apple Pay · Samsung Pay 지원 | 전 세계 결제 가능', color: 'bg-blue-50 border-blue-100 text-blue-500' },
+          { icon: '💳', text: 'Visa · Mastercard · Apple Pay · PayPal 지원 | 전 세계 결제 가능', color: 'bg-blue-50 border-blue-100 text-blue-500' },
           { icon: '✕', text: '언제든지 해지 가능', color: 'bg-purple-50 border-purple-100 text-purple-500' },
         ].map((item, i) => (
           <div key={i} className="flex items-center gap-2">

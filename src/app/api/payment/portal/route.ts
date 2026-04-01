@@ -1,16 +1,17 @@
 /**
- * POST /api/payment/portal
- * 고객이 직접 해지/플랜변경/카드변경 가능한 Stripe Customer Portal 세션 생성
- * Returns: { url: string }
+ * POST /api/payment/portal — Paddle Customer Portal 세션 생성
+ * PADDLE_API_KEY 미설정 시 { error: 'Paddle not configured' } 반환
  */
 import { NextResponse } from 'next/server'
-import Stripe from 'stripe'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/server'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
-
 export async function POST() {
+  const paddleApiKey = process.env.PADDLE_API_KEY
+  if (!paddleApiKey) {
+    return NextResponse.json({ error: 'Paddle not configured' }, { status: 503 })
+  }
+
   try {
     const supabase = await createServerSupabaseClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -19,22 +20,46 @@ export async function POST() {
     const admin = createAdminClient()
     const { data: sub } = await admin
       .from('subscriptions')
-      .select('stripe_customer_id')
+      .select('paddle_customer_id')
       .eq('user_id', user.id)
       .maybeSingle()
 
-    if (!sub?.stripe_customer_id) {
-      return NextResponse.json({ error: 'No subscription found' }, { status: 404 })
+    const customerId = sub?.paddle_customer_id
+    if (!customerId) {
+      return NextResponse.json({ error: '구독 정보를 찾을 수 없습니다.' }, { status: 404 })
     }
 
-    const session = await stripe.billingPortal.sessions.create({
-      customer: sub.stripe_customer_id,
-      return_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://pagebeer.beer'}/dashboard`,
+    // Paddle v2 API: Customer Portal 세션 생성
+    const isProd = process.env.NODE_ENV === 'production'
+    const baseUrl = isProd
+      ? 'https://api.paddle.com'
+      : 'https://sandbox-api.paddle.com'
+
+    const res = await fetch(`${baseUrl}/customers/${customerId}/portal-sessions`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${paddleApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({}),
     })
 
-    return NextResponse.json({ url: session.url })
+    if (!res.ok) {
+      const err = await res.text()
+      console.error('[paddle portal] api error', err)
+      return NextResponse.json({ error: '포털 생성 실패' }, { status: 500 })
+    }
+
+    const json = await res.json()
+    const portalUrl = json?.data?.urls?.general?.overview ?? json?.data?.url ?? null
+
+    if (!portalUrl) {
+      return NextResponse.json({ error: '포털 URL을 가져올 수 없습니다.' }, { status: 500 })
+    }
+
+    return NextResponse.json({ url: portalUrl })
   } catch (err) {
-    console.error('[portal]', err)
-    return NextResponse.json({ error: 'Server error' }, { status: 500 })
+    console.error('[paddle portal]', err)
+    return NextResponse.json({ error: '서버 오류가 발생했습니다.' }, { status: 500 })
   }
 }

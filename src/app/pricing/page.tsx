@@ -38,7 +38,7 @@ export default async function PricingPage() {
         </div>
       </nav>
 
-      <PricingPageClient isLoggedIn={!!user} />
+      <PricingPageClient isLoggedIn={!!user} userEmail={user?.email} userId={user?.id} />
     </main>
   )
 }
