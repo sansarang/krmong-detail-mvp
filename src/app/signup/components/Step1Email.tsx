@@ -32,7 +32,6 @@ export default function Step1Email({ t, onNext }: Props) {
         email,
         options: {
           shouldCreateUser: true,
-          emailRedirectTo: undefined,
         },
       })
       if (error) {

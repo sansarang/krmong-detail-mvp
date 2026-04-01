@@ -77,7 +77,7 @@ export default function Step2OTP({ t, email, onNext, onBack }: Props) {
     if (cooldown > 0) return
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: true, emailRedirectTo: undefined },
+      options: { shouldCreateUser: true },
     })
     if (error) { toast.error(error.message); return }
     toast.success(t.toastResent)
