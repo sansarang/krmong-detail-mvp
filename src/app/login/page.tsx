@@ -1,10 +1,19 @@
-'use client'
 import { Suspense } from 'react'
+import { cookies } from 'next/headers'
 import Logo from '@/components/Logo'
 import Link from 'next/link'
 import LoginForm from '@/components/LoginForm'
+import type { UiLang } from '@/lib/uiLocale'
 
-export default function LoginPage() {
+function getLang(cookieStr: string): UiLang {
+  const m = cookieStr.match(/pageai-lang=(ko|en|ja|zh)/)
+  return (m?.[1] as UiLang) ?? 'ko'
+}
+
+export default async function LoginPage() {
+  const cookieStore = await cookies()
+  const lang = getLang(cookieStore.toString())
+
   return (
     <main className="min-h-screen bg-white flex flex-col">
       <nav className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
@@ -20,7 +29,7 @@ export default function LoginPage() {
           <div className="w-8 h-8 border-2 border-gray-200 border-t-black rounded-full animate-spin" />
         </div>
       }>
-        <LoginForm />
+        <LoginForm lang={lang} />
       </Suspense>
     </main>
   )

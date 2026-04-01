@@ -16,7 +16,7 @@
  * </div>
  */
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Logo from '@/components/Logo'
 import Step1Email from './components/Step1Email'
@@ -251,13 +251,32 @@ const COPY: Record<SignupLang, LangCopy> = {
   },
 }
 
+function detectLang(): SignupLang {
+  try {
+    // 쿠키 우선
+    const m = document.cookie.match(/pageai-lang=(ko|en|ja|zh)/)
+    if (m) return m[1] as SignupLang
+    // localStorage fallback
+    const s = localStorage.getItem('pageai-ui-lang')
+    if (s === 'ko' || s === 'en' || s === 'ja' || s === 'zh') return s
+  } catch { /* ignore */ }
+  return 'ko'
+}
+
 interface Props {
   lang?: SignupLang
 }
 
-export default function SignupPage({ lang = 'ko' }: Props) {
+export default function SignupPage({ lang: langProp }: Props) {
   const [step, setStep] = useState<Step>(1)
   const [email, setEmail] = useState('')
+  const [lang, setLang] = useState<SignupLang>(langProp ?? 'ko')
+
+  useEffect(() => {
+    // langProp이 명시적으로 전달된 경우 (en/ja/zh 전용 페이지) 그대로 사용
+    if (!langProp) setLang(detectLang())
+  }, [langProp])
+
   const t = COPY[lang]
 
   function progressIdx(s: Step) {
