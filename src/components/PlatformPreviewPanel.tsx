@@ -60,7 +60,7 @@ function sectionsToMarkdown(sections: Section[], productName: string): string {
 }
 
 export default function PlatformPreviewPanel({ sections, productName, defaultPlatformKey, uiLang = 'ko' }: Props) {
-  const initialId: PlatformId = (defaultPlatformKey && KEY_TO_ID[defaultPlatformKey]) ?? 'smartstore'
+  const initialId: PlatformId = (defaultPlatformKey ? KEY_TO_ID[defaultPlatformKey] : undefined) ?? 'smartstore'
   const [activePlatform, setActivePlatform] = useState<PlatformId>(initialId)
   const [photos, setPhotos] = useState<string[]>([])
   const [open, setOpen] = useState(false)
