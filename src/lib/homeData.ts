@@ -61,6 +61,14 @@ export const HOME_COPY = {
       ],
       cta: '양식 자동완성 무료로 시작 →',
       proof: '베타 사용자 기준 평균 작성 시간 92% 단축',
+      demo: {
+        dragDrop: '드래그하거나 클릭해서 업로드',
+        fileBtn: '파일 선택',
+        parsed: '양식 파싱 완료 — 사업계획서.docx',
+        fields: [['회사명', 'PageAI Inc.'], ['사업 목적', 'AI 기반 문서 자동화 SaaS'], ['목표 시장', '한국·일본·중국 크로스보더'], ['예상 매출', '1억원 (1년차)']],
+        multiLang: '4개 언어 동시 생성',
+        startBtn: '⚡ AI 자동 완성 시작',
+      },
     },
     platformBar: '글로벌 주요 플랫폼 자동 최적화',
     how: {
@@ -203,6 +211,14 @@ export const HOME_COPY = {
       ],
       cta: 'Try AI Document Auto-Fill Free →',
       proof: 'Beta users report 92% reduction in document writing time',
+      demo: {
+        dragDrop: 'Drag & drop or click to upload',
+        fileBtn: 'Choose File',
+        parsed: 'Form parsed — BusinessPlan.docx',
+        fields: [['Company', 'PageAI Inc.'], ['Business Goal', 'AI Document Automation SaaS'], ['Target Market', 'Korea · Japan · China Cross-border'], ['Est. Revenue', '$1M (Year 1)']],
+        multiLang: '4 languages simultaneously',
+        startBtn: '⚡ Start AI Auto-Fill',
+      },
     },
     platformBar: 'Auto-optimized for every major global eCommerce platform',
     how: {
@@ -345,6 +361,14 @@ export const HOME_COPY = {
       ],
       cta: 'AI書類自動完成を無料で試す →',
       proof: 'ベータユーザーの平均作成時間92%短縮',
+      demo: {
+        dragDrop: 'ファイルをドラッグまたはクリック',
+        fileBtn: 'ファイル選択',
+        parsed: '書式解析完了 — 事業計画書.docx',
+        fields: [['会社名', 'PageAI Inc.'], ['事業目的', 'AI文書自動化SaaS'], ['ターゲット市場', '日韓中クロスボーダー'], ['想定売上', '1億円（初年度）']],
+        multiLang: '4言語同時生成',
+        startBtn: '⚡ AI自動補完を開始',
+      },
     },
     platformBar: '主要グローバルプラットフォームに完全対応',
     how: {
@@ -487,6 +511,14 @@ export const HOME_COPY = {
       ],
       cta: '免费体验AI表格自动填写 →',
       proof: '测试用户平均节省92%写作时间',
+      demo: {
+        dragDrop: '拖放文件或点击选择',
+        fileBtn: '选择文件',
+        parsed: '表格解析完成 — 商业计划书.docx',
+        fields: [['公司名称', 'PageAI Inc.'], ['业务目标', 'AI文档自动化SaaS'], ['目标市场', '中日韩跨境电商'], ['预计营收', '1千万元（第1年）']],
+        multiLang: '4种语言同时生成',
+        startBtn: '⚡ 启动AI自动填写',
+      },
     },
     platformBar: '针对所有主要全球平台进行优化',
     how: {

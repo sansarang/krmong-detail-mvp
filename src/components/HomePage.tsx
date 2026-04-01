@@ -270,16 +270,16 @@ export default function HomePage({ lang, isLoggedIn = false }: { lang: HomeLang;
                   <div className="border-2 border-dashed border-indigo-400/40 rounded-2xl p-6 flex flex-col items-center gap-2 bg-indigo-500/5 hover:bg-indigo-500/10 transition-colors cursor-pointer group">
                     <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">📤</div>
                     <p className="text-white text-sm font-black">PDF · DOCX · XLSX · PPTX</p>
-                    <p className="text-gray-500 text-xs text-center">드래그하거나 클릭해서 업로드</p>
-                    <span className="text-[10px] font-black bg-indigo-500 text-white px-3 py-1 rounded-full mt-1">파일 선택</span>
+                    <p className="text-gray-500 text-xs text-center">{C.template.demo.dragDrop}</p>
+                    <span className="text-[10px] font-black bg-indigo-500 text-white px-3 py-1 rounded-full mt-1">{C.template.demo.fileBtn}</span>
                   </div>
                   {/* Parsed preview */}
                   <div className="bg-white/3 border border-white/8 rounded-xl p-4 space-y-2.5">
                     <div className="flex items-center gap-2 mb-3">
                       <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                      <span className="text-emerald-400 text-xs font-black">양식 파싱 완료 — 사업계획서.docx</span>
+                      <span className="text-emerald-400 text-xs font-black">{C.template.demo.parsed}</span>
                     </div>
-                    {[['회사명', 'PageAI Inc.'], ['사업 목적', 'AI 기반 문서 자동화 SaaS'], ['목표 시장', '한국·일본·중국 크로스보더'], ['예상 매출', '1억원 (1년차)']].map(([k, v]) => (
+                    {C.template.demo.fields.map(([k, v]) => (
                       <div key={k} className="flex gap-2 items-start">
                         <span className="text-gray-600 text-[10px] shrink-0 w-20 pt-0.5">{k}</span>
                         <div className="flex-1 bg-indigo-500/10 border border-indigo-500/15 rounded-lg px-2.5 py-1.5">
@@ -296,12 +296,12 @@ export default function HomePage({ lang, isLoggedIn = false }: { lang: HomeLang;
                       </span>
                     ))}
                     <span className="ml-auto text-[10px] text-emerald-400 font-bold flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" /> 4개 언어 동시 생성
+                      <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" /> {C.template.demo.multiLang}
                     </span>
                   </div>
                   {/* Generate button */}
                   <button className="w-full py-3 rounded-xl font-black text-sm text-white bg-gradient-to-r from-indigo-500 to-violet-600 hover:opacity-90 transition-all">
-                    ⚡ AI 자동 완성 시작
+                    {C.template.demo.startBtn}
                   </button>
                 </div>
               </div>
