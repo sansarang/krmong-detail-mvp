@@ -45,6 +45,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // Widget / Embed
     { url: `${base}/embed`,                            lastModified: now, changeFrequency: 'monthly', priority: 0.7  },
     { url: `${base}/en/embed`,                         lastModified: now, changeFrequency: 'monthly', priority: 0.7  },
+    // Pricing
+    { url: `${base}/pricing`,                          lastModified: now, changeFrequency: 'monthly', priority: 0.9  },
     // Blog index
     { url: `${base}/blog`,                             lastModified: now, changeFrequency: 'daily',   priority: 0.85 },
     // Static pages
