@@ -49,6 +49,10 @@ const T = {
       { label: '생활용품', emoji: '🏠' }, { label: '패션/의류', emoji: '👗' },
       { label: '건강식품', emoji: '💊' }, { label: '전자제품', emoji: '📱' },
     ],
+    formSection: '📋 양식 자동 작성',
+    formSectionSub: '채워야 할 양식·과제를 붙여넣으면 AI가 빈칸을 자동으로 완성해드립니다',
+    formStart: '양식 작성 시작 →',
+    formExamples: ['사업계획서', '과제 제출물', '제안서', '신청서', '보고서'],
     tips: [
       { tag: '전환율 팁', tagColor: 'bg-orange-50 text-orange-600 border-orange-200', title: '제목에 숫자를 넣으면 CTR 32% 상승', desc: '"녹차 세럼"보다 "3초 흡수 녹차 세럼"이 클릭률이 훨씬 높습니다. 숫자는 구체성을 만들고 신뢰를 높여요.' },
       { tag: '카피라이팅 팁', tagColor: 'bg-blue-50 text-blue-600 border-blue-200', title: '첫 문장은 고객의 고통을 건드려라', desc: '"좋은 제품입니다" 대신 "3번 발라도 안 되던 피부 건조, 이제 끝"처럼 고객의 문제를 먼저 말하세요.' },
@@ -93,6 +97,10 @@ const T = {
       { label: 'Home & Living', emoji: '🏠' }, { label: 'Fashion', emoji: '👗' },
       { label: 'Health', emoji: '💊' }, { label: 'Electronics', emoji: '📱' },
     ],
+    formSection: '📋 Auto Form Fill',
+    formSectionSub: 'Paste a form or assignment and AI will complete all the blanks automatically',
+    formStart: 'Start Form Fill →',
+    formExamples: ['Business Plan', 'Assignment', 'Proposal', 'Application', 'Report'],
     tips: [
       { tag: 'CTR Tip', tagColor: 'bg-orange-50 text-orange-600 border-orange-200', title: 'Numbers in titles boost CTR by 32%', desc: '"3-Second Absorbing Green Tea Serum" gets more clicks than just "Green Tea Serum". Numbers create specificity and trust.' },
       { tag: 'Copywriting', tagColor: 'bg-blue-50 text-blue-600 border-blue-200', title: 'Open with the customer\'s pain', desc: 'Instead of "Great product", try "Dry skin after 3 attempts? Problem solved." Lead with their problem.' },
@@ -137,6 +145,10 @@ const T = {
       { label: '生活用品', emoji: '🏠' }, { label: 'ファッション', emoji: '👗' },
       { label: '健康食品', emoji: '💊' }, { label: '電子機器', emoji: '📱' },
     ],
+    formSection: '📋 書類自動作成',
+    formSectionSub: '記入が必要な書類や課題を貼り付けると、AIが空欄を自動で埋めます',
+    formStart: '書類作成を開始 →',
+    formExamples: ['事業計画書', '課題提出物', '提案書', '申請書', '報告書'],
     tips: [
       { tag: 'CTRのコツ', tagColor: 'bg-orange-50 text-orange-600 border-orange-200', title: 'タイトルに数字でCTR32%UP', desc: '「緑茶セラム」より「3秒吸収の緑茶セラム」の方がクリック率が大幅に高いです。' },
       { tag: 'コピーライティング', tagColor: 'bg-blue-50 text-blue-600 border-blue-200', title: '最初の文で顧客の悩みを突け', desc: '「良い商品です」ではなく「3回塗っても乾燥が続いていた肌、これで解決」のように問題から始める。' },
@@ -181,6 +193,10 @@ const T = {
       { label: '家居', emoji: '🏠' }, { label: '时尚', emoji: '👗' },
       { label: '健康', emoji: '💊' }, { label: '电子', emoji: '📱' },
     ],
+    formSection: '📋 自动填写表单',
+    formSectionSub: '粘贴需要填写的表单或作业，AI将自动填写所有空白',
+    formStart: '开始填写表单 →',
+    formExamples: ['商业计划书', '作业提交', '提案书', '申请书', '报告书'],
     tips: [
       { tag: '点击率技巧', tagColor: 'bg-orange-50 text-orange-600 border-orange-200', title: '标题加数字CTR提升32%', desc: '「3秒吸收绿茶精华」比「绿茶精华」点击率高得多。数字创造具体性和信任感。' },
       { tag: '文案技巧', tagColor: 'bg-blue-50 text-blue-600 border-blue-200', title: '第一句话触及客户痛点', desc: '不要说「好产品」，而要说「涂了3次还是干燥？这次终于解决了」，先说问题。' },
@@ -388,6 +404,28 @@ export default async function DashboardPage() {
                 </Link>
               </div>
             )}
+
+            {/* ── 자동 양식 작성 섹션 ── */}
+            <div className="bg-white border border-gray-100 rounded-3xl p-8">
+              <div className="flex items-start gap-4 mb-5">
+                <div className="w-12 h-12 bg-violet-50 rounded-2xl flex items-center justify-center text-2xl shrink-0">📋</div>
+                <div>
+                  <h3 className="font-black text-gray-900 text-base mb-1">{t.formSection}</h3>
+                  <p className="text-gray-400 text-sm">{t.formSectionSub}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 mb-5">
+                {t.formExamples.map((ex, i) => (
+                  <span key={i} className="text-xs font-bold px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-full text-gray-500">
+                    {ex}
+                  </span>
+                ))}
+              </div>
+              <Link href="/order/new?tab=template"
+                className="flex items-center justify-center gap-2 w-full bg-black text-white py-3.5 rounded-2xl font-bold text-sm hover:bg-gray-800 transition-all">
+                {t.formStart}
+              </Link>
+            </div>
           </div>
 
           {/* 오른쪽 사이드바 */}
