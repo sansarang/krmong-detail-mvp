@@ -312,7 +312,7 @@ const UI: Record<UiLang, {
     templateFileAdded: '자 양식 내용 추가됨',
     errTemplateRequired: '채워야 할 양식 내용을 입력해주세요',
     colTmplBadge: '📋 양식 자동 작성', colTmplTitle: '양식을 첨부하면 AI가 채워드립니다', colTmplDesc: '과제·서식·제안서 → AI가 빈칸을 자동 완성',
-    colProdBadge: '📦 제품 · 서비스 AI 작성', colProdTitle: '정보를 입력하면 상세페이지가 완성돼요', colProdDesc: '제품명·카테고리 입력 → 전환율 높은 카피 자동 생성',
+    colProdBadge: '📦 제품 · 서비스 AI 작성', colProdTitle: '정보를 입력하면 상세페이지가 완성돼요', colProdDesc: '제품명 입력 → AI가 카테고리 자동 판단 → 전환율 높은 카피 자동 생성',
     tmplTitleLabel: '문서 제목', tmplTitlePlaceholder: '예: 2025 스마트시티 사업계획서',
     tmplTitleRequired: '문서 제목을 입력해주세요',
     urlLabel: '제품 URL로 자동 입력', urlPlaceholder: '예: https://smartstore.naver.com/...',
@@ -356,7 +356,7 @@ const UI: Record<UiLang, {
     templateFileAdded: ' chars of template content added',
     errTemplateRequired: 'Please provide the template content to fill in',
     colTmplBadge: '📋 Template Auto-Fill', colTmplTitle: 'Attach a form and AI fills it in', colTmplDesc: 'Assignment · Form · Proposal → AI auto-completes',
-    colProdBadge: '📦 Product / Service AI', colProdTitle: 'Enter info and get a high-converting page', colProdDesc: 'Product name & category → AI generates copy',
+    colProdBadge: '📦 Product / Service AI', colProdTitle: 'Enter info and get a high-converting page', colProdDesc: 'Product name → AI auto-detects type → generates high-converting copy',
     tmplTitleLabel: 'Document Title', tmplTitlePlaceholder: 'e.g. 2025 Smart City R&D Proposal',
     tmplTitleRequired: 'Please enter a document title',
     urlLabel: 'Auto-fill from Product URL', urlPlaceholder: 'e.g. https://amazon.com/dp/...',
@@ -748,6 +748,7 @@ export default function NewOrderPage() {
   const [urlInput, setUrlInput]             = useState('')
   const [urlLoading, setUrlLoading]         = useState(false)
   const [urlLoadingStep, setUrlLoadingStep] = useState('')
+  const [urlGuidance, setUrlGuidance]       = useState(false)
   const [scrapedExtra, setScrapedExtra]     = useState<{
     product_name?: string; brand?: string; price?: string; original_price?: string
     features?: string[]; keywords?: string[]; image_urls?: string[]
@@ -1087,20 +1088,30 @@ export default function NewOrderPage() {
   // URL 자동 입력
   async function handleUrlScrape() {
     if (!urlInput.trim()) return
+    setUrlGuidance(false)
+
+    // 즉시 차단 도메인 — fetch 시도 없이 바로 가이드 표시
+    const INSTANT_BLOCK = ['smartstore.naver.com', 'shopping.naver.com', 'naver.com', 'coupang.com']
+    const urlLower = urlInput.toLowerCase()
+    const isInstantBlocked = INSTANT_BLOCK.some(d => urlLower.includes(d))
+
+    if (isInstantBlocked) {
+      setUrlGuidance(true)
+      return
+    }
+
     setUrlLoading(true)
     setScrapedExtra(null)
 
-    // 플랫폼 감지
-    const urlLower = urlInput.toLowerCase()
     const platform =
-      urlLower.includes('coupang') ? (uiLang === 'ko' ? '쿠팡' : 'Coupang') :
       urlLower.includes('amazon') ? 'Amazon' :
-      urlLower.includes('smartstore') ? (uiLang === 'ko' ? '스마트스토어' : 'Smartstore') :
       urlLower.includes('tmall') ? 'Tmall' :
       urlLower.includes('rakuten') ? '楽天' :
       urlLower.includes('shopify') ? 'Shopify' :
       urlLower.includes('qoo10') ? 'Qoo10' :
       urlLower.includes('lazada') ? 'Lazada' :
+      urlLower.includes('aliexpress') ? 'AliExpress' :
+      urlLower.includes('cafe24') ? 'Cafe24' :
       (uiLang === 'ko' ? '사이트' : 'site')
 
     const steps = [
@@ -1110,10 +1121,10 @@ export default function NewOrderPage() {
       uiLang === 'ko' ? '마무리 중...' : 'Finalizing...',
     ]
     let stepIdx = 0
-    setUrlLoadingStep(steps[0])
+    setUrlLoadingStep(steps[0]!)
     const stepTimer = setInterval(() => {
       stepIdx = Math.min(stepIdx + 1, steps.length - 1)
-      setUrlLoadingStep(steps[stepIdx])
+      setUrlLoadingStep(steps[stepIdx]!)
     }, 2200)
 
     try {
@@ -1124,15 +1135,9 @@ export default function NewOrderPage() {
       })
       const data = await res.json()
 
-      // 완전 차단
-      if (res.status === 422 && data.restricted) {
-        toast.error(
-          uiLang === 'ko' ? '이 사이트는 자동 수집이 제한되어 있어요. 제품명과 설명을 직접 입력해 주세요.'
-          : uiLang === 'ja' ? 'このサイトは自動取得が制限されています。直接入力してください。'
-          : uiLang === 'zh' ? '该网站限制自动采集，请直接输入产品信息。'
-          : 'This site restricts auto-scraping. Please enter product info manually.',
-          { duration: 5000 }
-        )
+      // 차단됨 (422 or 403/429 등)
+      if ((res.status === 422 && data.restricted) || res.status === 403 || res.status === 429) {
+        setUrlGuidance(true)
         return
       }
 
@@ -1143,69 +1148,45 @@ export default function NewOrderPage() {
         uiLang === 'ko' ? '제품 정보를 찾을 수 없습니다.' : 'Could not extract product info.'
       )
 
-      // 기본 폼 채우기
+      // 성공: 폼 채우기
+      setUrlGuidance(false)
       setForm(prev => ({
         product_name: data.product_name || prev.product_name,
         category: data.category || prev.category,
         description: (() => {
-          // description에 brand + features 추가 보강
           let desc = data.description || prev.description
-          if (data.brand && !desc.includes(data.brand)) {
-            desc = `브랜드: ${data.brand}\n` + desc
-          }
-          if (Array.isArray(data.features) && data.features.length > 0 && desc.length < 400) {
+          if (data.brand && !desc.includes(data.brand)) desc = `브랜드: ${data.brand}\n` + desc
+          if (Array.isArray(data.features) && data.features.length > 0 && desc.length < 400)
             desc += '\n\n주요 특징:\n' + data.features.map((f: string) => `• ${f}`).join('\n')
-          }
           return desc.trim()
         })(),
       }))
-
-      // 추가 정보 저장 (브랜드, 가격, 키워드, 이미지 등)
       setScrapedExtra({
-        brand: data.brand,
-        price: data.price,
-        original_price: data.original_price,
-        features: data.features,
-        keywords: data.keywords,
-        image_urls: data.image_urls,
-        colors: data.colors,
-        sizes: data.sizes,
-        material: data.material,
+        brand: data.brand, price: data.price, original_price: data.original_price,
+        features: data.features, keywords: data.keywords, image_urls: data.image_urls,
+        colors: data.colors, sizes: data.sizes, material: data.material,
         target_customer: data.target_customer,
       })
 
-      // 채워진 필드 개수 계산
       const filledCount = [
         data.product_name, data.brand, data.category, data.description,
         data.price, data.features?.length, data.keywords?.length, data.image_urls?.length,
       ].filter(Boolean).length
 
-      if (data.partial) {
-        toast.success(
-          uiLang === 'ko' ? `✏️ ${filledCount}개 항목 자동 입력 — 부족한 부분을 보완해 주세요`
-          : uiLang === 'ja' ? `✏️ ${filledCount}項目を自動入力 — 不足部分を補完してください`
-          : uiLang === 'zh' ? `✏️ 已自动填写 ${filledCount} 项 — 请补充缺少的部分`
-          : `✏️ ${filledCount} fields auto-filled — please complete the rest`,
-          { duration: 6000 }
-        )
-      } else {
-        toast.success(
-          uiLang === 'ko' ? `✅ ${filledCount}개 항목 자동 완성! 수정이 필요하면 아래에서 편집하세요.`
-          : uiLang === 'ja' ? `✅ ${filledCount}項目を自動入力しました！必要に応じて編集してください。`
-          : uiLang === 'zh' ? `✅ 已自动填写 ${filledCount} 项！如需修改请在下方编辑。`
-          : `✅ ${filledCount} fields auto-filled! Edit below if needed.`,
-          { duration: 5000 }
-        )
-      }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'URL 분석 실패'
-      const isBlocked = msg.includes('제한') || msg.includes('429') || msg.includes('403') || msg.includes('restrict')
-      toast.error(
-        isBlocked
-          ? (uiLang === 'ko' ? '이 사이트는 자동 수집이 제한되어 있어요. 제품명과 설명을 직접 입력해 주세요.' : 'Auto-scraping restricted. Please enter info manually.')
-          : msg,
+      toast.success(
+        data.partial
+          ? (uiLang === 'ko' ? `✏️ ${filledCount}개 항목 자동 입력 — 부족한 부분을 보완해 주세요` : `✏️ ${filledCount} fields auto-filled — please complete the rest`)
+          : (uiLang === 'ko' ? `✅ ${filledCount}개 항목 자동 완성!` : `✅ ${filledCount} fields auto-filled!`),
         { duration: 5000 }
       )
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : ''
+      const isBlocked = msg.includes('제한') || msg.includes('429') || msg.includes('403') || msg.includes('restrict') || msg.includes('blocked')
+      if (isBlocked) {
+        setUrlGuidance(true)
+      } else {
+        setUrlGuidance(true)
+      }
     } finally {
       clearInterval(stepTimer)
       setUrlLoading(false)
@@ -1269,7 +1250,9 @@ export default function NewOrderPage() {
   // 제품 모드 제출
   async function handleProductSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.product_name || !form.category || !form.description) { toast.error(L.errRequired); return }
+    if (!form.product_name || !form.description) { toast.error(L.errRequired); return }
+    // category가 비어있으면 AI가 자동 판단하도록 'other'로 기본값 설정
+    if (!form.category) setForm(prev => ({ ...prev, category: 'other' }))
     let combinedDesc = docText.trim()
       ? `${form.description}\n\n[첨부 문서 내용]\n${docText.trim()}`
       : form.description
@@ -1304,7 +1287,7 @@ export default function NewOrderPage() {
       : marketLangs.length > 1 ? 'all'
       : marketLangs[0]
 
-    await submitOrder({ ...form, description: combinedDesc }, images, setProductLoading, effectiveLang as string)
+    await submitOrder({ ...form, category: form.category || 'other', description: combinedDesc }, images, setProductLoading, effectiveLang as string)
   }
 
   // 양식 모드 제출
@@ -2036,24 +2019,37 @@ export default function NewOrderPage() {
 
             {/* ── URL 자동 분석 (강화) ── */}
             <div className={`rounded-2xl border-2 transition-all overflow-hidden ${
-              urlLoading ? 'border-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50' : scrapedExtra ? 'border-emerald-300 bg-emerald-50/30' : 'border-blue-200 bg-blue-50/50'
+              urlLoading ? 'border-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50'
+              : urlGuidance ? 'border-amber-400 bg-amber-50/50'
+              : scrapedExtra ? 'border-emerald-300 bg-emerald-50/30'
+              : 'border-blue-200 bg-blue-50/50'
             }`}>
               {/* Header */}
               <div className="px-4 pt-4 pb-3">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black ${urlLoading ? 'bg-blue-500 text-white' : scrapedExtra ? 'bg-emerald-500 text-white' : 'bg-blue-100 text-blue-700'}`}>
-                    {urlLoading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin block" /> : scrapedExtra ? '✓' : '🔗'}
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black ${urlLoading ? 'bg-blue-500 text-white' : urlGuidance ? 'bg-amber-500 text-white' : scrapedExtra ? 'bg-emerald-500 text-white' : 'bg-blue-100 text-blue-700'}`}>
+                    {urlLoading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin block" /> : urlGuidance ? '⚠' : scrapedExtra ? '✓' : '🔗'}
                   </div>
                   <div className="flex-1">
-                    <p className={`text-sm font-black ${urlLoading ? 'text-blue-800' : scrapedExtra ? 'text-emerald-800' : 'text-blue-800'}`}>
+                    <p className={`text-sm font-black ${urlLoading ? 'text-blue-800' : urlGuidance ? 'text-amber-800' : scrapedExtra ? 'text-emerald-800' : 'text-blue-800'}`}>
                       {urlLoading
                         ? urlLoadingStep
-                        : scrapedExtra
-                          ? (uiLang === 'ko' ? '✅ 제품 정보 추출 완료!' : '✅ Product info extracted!')
-                          : (uiLang === 'ko' ? '제품 정보 자동 분석' : uiLang === 'ja' ? '商品情報自動分析' : uiLang === 'zh' ? '商品信息自动分析' : 'Auto-Analyze Product')}
+                        : urlGuidance
+                          ? (uiLang === 'ko' ? '이 사이트는 자동 추출이 불가합니다'
+                            : uiLang === 'ja' ? 'このサイトは自動取得できません'
+                            : uiLang === 'zh' ? '该网站不允许自动提取'
+                            : 'This site does not allow automatic extraction')
+                          : scrapedExtra
+                            ? (uiLang === 'ko' ? '✅ 제품 정보 추출 완료!' : '✅ Product info extracted!')
+                            : (uiLang === 'ko' ? '제품 정보 자동 분석' : uiLang === 'ja' ? '商品情報自動分析' : uiLang === 'zh' ? '商品信息自动分析' : 'Auto-Analyze Product')}
                     </p>
-                    <p className="text-[10px] text-gray-400">
-                      {scrapedExtra ? '' : 'Nike · 스마트스토어 · Shopify · Tmall · Amazon'}
+                    <p className={`text-[10px] ${urlGuidance ? 'text-amber-600 font-medium' : 'text-gray-400'}`}>
+                      {urlGuidance
+                        ? (uiLang === 'ko' ? '제품명과 핵심 정보를 복사해서 아래 필드에 붙여넣어 주세요'
+                          : uiLang === 'ja' ? '商品名と主要情報をコピーして下のフィールドに貼り付けてください'
+                          : uiLang === 'zh' ? '请复制商品名称和核心信息并粘贴到下方字段'
+                          : 'Please copy the product name and key details and paste them into the fields below')
+                        : scrapedExtra ? '' : 'Nike · Shopify · Tmall · Amazon · AliExpress'}
                     </p>
                   </div>
                   <span className="text-[10px] font-black bg-blue-200 text-blue-700 px-2 py-0.5 rounded-full shrink-0">AI</span>
@@ -2201,70 +2197,29 @@ export default function NewOrderPage() {
             <div>
               <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">
                 {isDocCat ? L.docNameLabel : L.nameLabel}
+                {urlGuidance && <span className="ml-2 text-blue-600 normal-case font-bold">← {uiLang==='ko'?'여기에 제품명 입력':uiLang==='ja'?'ここに商品名を入力':uiLang==='zh'?'在此输入商品名':'Enter product name here'}</span>}
               </label>
               <input placeholder={isDocCat ? L.docNamePlaceholder : L.namePlaceholder}
-                value={form.product_name} onChange={e => setForm({ ...form, product_name: e.target.value })} required
-                className={`w-full border rounded-xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm min-h-[48px] ${form.product_name ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-50'}`}
+                value={form.product_name} onChange={e => { setForm({ ...form, product_name: e.target.value }); if (urlGuidance) setUrlGuidance(false) }} required
+                className={`w-full border-2 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:border-transparent transition-all text-sm min-h-[48px] ${
+                  urlGuidance ? 'border-blue-400 bg-blue-50 ring-2 ring-blue-200' : form.product_name ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-50'
+                }`}
               />
             </div>
 
-            {/* ── 카테고리 (검색 + 인기 칩 + 전체 드롭다운) ── */}
-            <div>
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">{L.catLabel}</label>
-              {/* Popular chips */}
-              <div className="flex flex-wrap gap-1.5 mb-2.5">
-                {POPULAR.map(cat => (
-                  <button key={cat.value} type="button" onClick={() => setForm({ ...form, category: cat.value })}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
-                      form.category === cat.value ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-sm' : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400 hover:bg-gray-100'
-                    }`}>
-                    {cat.emoji} {cat.label}
-                  </button>
-                ))}
-              </div>
-              {/* Search + select */}
-              <div className="relative">
-                <input type="text" placeholder={uiLang === 'ko' ? '카테고리 검색...' : 'Search category...'}
-                  value={catSearch} onChange={e => setCatSearch(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50 mb-1.5 pr-10"
-                />
-                {catSearch && <button type="button" onClick={() => setCatSearch('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 text-sm">✕</button>}
-              </div>
-              {catSearch && filteredCats && filteredCats.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5">
-                  {filteredCats.slice(0, 12).map(c => (
-                    <button key={c.value} type="button" onClick={() => { setForm({ ...form, category: c.value }); setCatSearch('') }}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${form.category === c.value ? 'bg-[#0F172A] text-white border-[#0F172A]' : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'}`}>
-                      {c.label}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <select value={form.category} onChange={e => { setForm({ ...form, category: e.target.value }); setCatSearch('') }} required
-                  className={`w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50 min-h-[44px] ${form.category ? 'text-gray-900 border-gray-300' : 'text-gray-400 border-gray-200'}`}>
-                  <option value="">{L.catPlaceholder}</option>
-                  {CATEGORIES.map(group => (
-                    <optgroup key={group.group} label={group.group}>
-                      {group.items.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-                    </optgroup>
-                  ))}
-                </select>
-              )}
-              {form.category && (
-                <p className="text-[10px] text-blue-600 font-bold mt-1">
-                  ✓ {allCatItems.find(c => c.value === form.category)?.label ?? form.category}
-                </p>
-              )}
-            </div>
+            {/* 카테고리 — AI가 자동 판단 (숨김) */}
 
             {/* ── 설명 ── */}
             <div>
               <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">
                 {isDocCat ? L.docDescLabel : L.descLabel}
+                {urlGuidance && <span className="ml-2 text-blue-600 normal-case font-bold">← {uiLang==='ko'?'핵심 정보 붙여넣기':uiLang==='ja'?'主要情報を貼り付け':uiLang==='zh'?'粘贴核心信息':'Paste key details here'}</span>}
               </label>
               <textarea placeholder={isDocCat ? L.docDescPlaceholder : L.descPlaceholder}
-                rows={5} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} required
-                className={`w-full border rounded-xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm resize-none ${form.description ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-50'}`}
+                rows={5} value={form.description} onChange={e => { setForm({ ...form, description: e.target.value }); if (urlGuidance && e.target.value.length > 10) setUrlGuidance(false) }} required
+                className={`w-full border-2 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:border-transparent transition-all text-sm resize-none ${
+                  urlGuidance ? 'border-blue-400 bg-blue-50 ring-2 ring-blue-200' : form.description ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-50'
+                }`}
               />
               <p className={`text-[10px] mt-1 text-right ${form.description.length > 50 ? 'text-emerald-600' : 'text-gray-300'}`}>
                 {form.description.length}자 {form.description.length > 50 ? '✓' : ''}
