@@ -59,9 +59,14 @@ export default function HomePage({ lang, isLoggedIn = false }: { lang: HomeLang;
           <div className="flex items-center gap-2 shrink-0">
             <LangSwitcher current={lang} />
             {isLoggedIn ? (
-              <Link href="/dashboard" className="bg-gradient-to-r from-blue-500 to-violet-500 text-white text-sm px-4 py-2 rounded-xl font-bold hover:opacity-90 transition-all hover:scale-105 shadow-lg shadow-blue-500/20 whitespace-nowrap">
-                대시보드
-              </Link>
+              <>
+                <Link href="/login" className="text-sm text-gray-400 hover:text-white font-medium transition-colors hidden sm:block px-3 py-2">
+                  {C.nav.signin}
+                </Link>
+                <Link href="/dashboard" className="bg-gradient-to-r from-blue-500 to-violet-500 text-white text-sm px-4 py-2 rounded-xl font-bold hover:opacity-90 transition-all hover:scale-105 shadow-lg shadow-blue-500/20 whitespace-nowrap">
+                  대시보드
+                </Link>
+              </>
             ) : (
               <>
                 <Link href="/login" className="text-sm text-gray-400 hover:text-white font-medium transition-colors hidden sm:block px-3 py-2">
