@@ -148,16 +148,33 @@ export default function LoginForm({ lang, homeHref }: { lang: UiLang; homeHref: 
     if (error) { toast.error(error.message); setGoogleLoading(false) }
   }
 
-  // ── 회원가입 Step 1: 인증코드 발송 ──────────────────────────
+  // ── 회원가입 Step 1: 이메일+비밀번호 입력 후 signUp → OTP 발송 ──
   async function handleSendCode(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     try {
-      const { error } = await supabase.auth.signInWithOtp({
+      const { data, error } = await supabase.auth.signUp({
         email: signupEmail,
-        options: { shouldCreateUser: true },
+        password: newPassword,
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${redirectTo}` },
       })
-      if (error) throw error
+      if (error) {
+        // 이미 가입된 이메일 처리
+        if (error.message.toLowerCase().includes('already registered') || error.message.toLowerCase().includes('user already')) {
+          setIsSignUp(false)
+          toast.error({ ko: '이미 가입된 이메일입니다. 로그인해주세요.', en: 'Email already registered. Please log in.', ja: 'このメールは登録済みです。ログインしてください。', zh: '该邮箱已注册，请登录。' }[uiLang])
+          return
+        }
+        throw error
+      }
+      // 래퍼럴 코드 저장 (인증 완료 후 처리용)
+      if (refCode && data.user) {
+        await fetch('/api/referral', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refCode, newUserId: data.user.id }),
+        })
+      }
       toast.success(t.codeSent)
       setSignupStep('otp')
     } catch (err: unknown) {
@@ -167,7 +184,7 @@ export default function LoginForm({ lang, homeHref }: { lang: UiLang; homeHref: 
     }
   }
 
-  // ── 회원가입 Step 2: OTP 코드 확인 ──────────────────────────
+  // ── 회원가입 Step 2: OTP 코드 확인 → 가입 완료 ──────────────
   async function handleVerifyOtp(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
@@ -175,40 +192,10 @@ export default function LoginForm({ lang, homeHref }: { lang: UiLang; homeHref: 
       const { error } = await supabase.auth.verifyOtp({
         email: signupEmail,
         token: otpCode,
-        type: 'email',
+        type: 'signup',
       })
       if (error) throw error
-      toast.success(t.codeVerified)
-      setSignupStep('password')
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.err)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // ── 회원가입 Step 3: 비밀번호 설정 ──────────────────────────
-  async function handleSetPassword(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
-    try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword })
-      if (error) throw error
-
-      // 래퍼럴 처리
-      if (refCode) {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          await fetch('/api/referral', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ refCode, newUserId: user.id }),
-          })
-          toast.success(t.toastRef)
-        }
-      } else {
-        toast.success(t.toastUp)
-      }
+      toast.success(refCode ? t.toastRef : t.toastUp)
       router.push(redirectTo)
       router.refresh()
     } catch (err: unknown) {
@@ -217,6 +204,9 @@ export default function LoginForm({ lang, homeHref }: { lang: UiLang; homeHref: 
       setLoading(false)
     }
   }
+
+  // (Step 3 제거 — 비밀번호는 Step 1에서 함께 입력)
+  async function handleSetPassword(_e: React.FormEvent) { /* unused */ }
 
   // ── 로그인 ────────────────────────────────────────────────
   async function handleLogin(e: React.FormEvent) {
@@ -330,7 +320,7 @@ export default function LoginForm({ lang, homeHref }: { lang: UiLang; homeHref: 
           </>
         )}
 
-        {/* ── 회원가입 Step 1: 이메일 입력 ── */}
+        {/* ── 회원가입 Step 1: 이메일 + 비밀번호 입력 ── */}
         {isSignUp && signupStep === 'email' && (
           <>
             {googleBtn}
@@ -341,7 +331,13 @@ export default function LoginForm({ lang, homeHref }: { lang: UiLang; homeHref: 
                   onChange={e => setSignupEmail(e.target.value)} required
                   className="w-full border border-gray-200 rounded-2xl px-4 py-3.5 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm" />
               </div>
-              <button type="submit" disabled={loading}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{t.setPass}</label>
+                <input type="password" placeholder={t.passPh} value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)} required minLength={6}
+                  className="w-full border border-gray-200 rounded-2xl px-4 py-3.5 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm" />
+              </div>
+              <button type="submit" disabled={loading || newPassword.length < 6}
                 className="w-full bg-black text-white py-4 rounded-2xl font-bold text-sm hover:bg-gray-800 disabled:opacity-40 transition-all">
                 {loading ? t.submitWait : t.sendCode}
               </button>
@@ -386,24 +382,6 @@ export default function LoginForm({ lang, homeHref }: { lang: UiLang; homeHref: 
           </form>
         )}
 
-        {/* ── 회원가입 Step 3: 비밀번호 설정 ── */}
-        {isSignUp && signupStep === 'password' && (
-          <form onSubmit={handleSetPassword} className="space-y-4">
-            <div className="bg-green-50 border border-green-100 rounded-2xl px-4 py-3 mb-2 text-center">
-              <p className="text-green-700 text-sm font-bold">✅ {t.codeVerified}</p>
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{t.setPass}</label>
-              <input type="password" placeholder={t.passPh} value={newPassword}
-                onChange={e => setNewPassword(e.target.value)} required minLength={6}
-                className="w-full border border-gray-200 rounded-2xl px-4 py-3.5 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all text-sm" />
-            </div>
-            <button type="submit" disabled={loading || newPassword.length < 6}
-              className="w-full bg-black text-white py-4 rounded-2xl font-bold text-sm hover:bg-gray-800 disabled:opacity-40 transition-all">
-              {loading ? t.submitWait : t.completeSignup}
-            </button>
-          </form>
-        )}
       </div>
     </div>
   )
