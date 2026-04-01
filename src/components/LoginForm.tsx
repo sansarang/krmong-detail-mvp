@@ -162,7 +162,19 @@ export default function LoginForm({ lang, homeHref }: { lang: UiLang; homeHref: 
         router.refresh()
       }
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : t.err)
+      const msg = error instanceof Error ? error.message : ''
+      // 이미 가입된 이메일 → 자동으로 로그인 탭으로 전환
+      if (isSignUp && (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already been registered') || msg.toLowerCase().includes('user already'))) {
+        setIsSignUp(false)
+        toast.error({
+          ko: '이미 가입된 이메일입니다. 로그인해주세요.',
+          en: 'Email already registered. Please log in.',
+          ja: 'このメールは登録済みです。ログインしてください。',
+          zh: '该邮箱已注册，请登录。',
+        }[uiLang] ?? '이미 가입된 이메일입니다. 로그인해주세요.')
+      } else {
+        toast.error(msg || t.err)
+      }
     } finally {
       setLoading(false)
     }
