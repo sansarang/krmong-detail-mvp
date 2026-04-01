@@ -5,7 +5,80 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 
-export default function LoginForm() {
+type Lang = 'ko' | 'en' | 'ja' | 'zh'
+
+const COPY = {
+  ko: {
+    title: '로그인',
+    sub: '계정에 로그인하세요',
+    google: 'Google로 계속하기',
+    or: '또는',
+    emailLabel: '이메일',
+    pwLabel: '비밀번호',
+    pwPlaceholder: '비밀번호 입력',
+    submit: '로그인',
+    submitting: '처리 중...',
+    toastOk: '로그인 성공!',
+    toastErr: '이메일 또는 비밀번호가 올바르지 않습니다.',
+    noAccount: '계정이 없으신가요?',
+    signup: '회원가입',
+    signupHref: '/signup',
+  },
+  en: {
+    title: 'Sign In',
+    sub: 'Sign in to your account',
+    google: 'Continue with Google',
+    or: 'or',
+    emailLabel: 'Email',
+    pwLabel: 'Password',
+    pwPlaceholder: 'Enter password',
+    submit: 'Sign In',
+    submitting: 'Processing...',
+    toastOk: 'Signed in!',
+    toastErr: 'Invalid email or password.',
+    noAccount: "Don't have an account?",
+    signup: 'Sign up',
+    signupHref: '/en/signup',
+  },
+  ja: {
+    title: 'ログイン',
+    sub: 'アカウントにログイン',
+    google: 'Googleで続ける',
+    or: 'または',
+    emailLabel: 'メールアドレス',
+    pwLabel: 'パスワード',
+    pwPlaceholder: 'パスワードを入力',
+    submit: 'ログイン',
+    submitting: '処理中...',
+    toastOk: 'ログインしました！',
+    toastErr: 'メールアドレスまたはパスワードが正しくありません。',
+    noAccount: 'アカウントをお持ちでない方は',
+    signup: '新規登録',
+    signupHref: '/ja/signup',
+  },
+  zh: {
+    title: '登录',
+    sub: '登录您的账户',
+    google: '使用 Google 继续',
+    or: '或',
+    emailLabel: '电子邮件',
+    pwLabel: '密码',
+    pwPlaceholder: '输入密码',
+    submit: '登录',
+    submitting: '处理中...',
+    toastOk: '登录成功！',
+    toastErr: '邮箱或密码不正确。',
+    noAccount: '没有账户？',
+    signup: '注册',
+    signupHref: '/zh/signup',
+  },
+}
+
+interface Props {
+  lang?: Lang
+}
+
+export default function LoginForm({ lang = 'ko' }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
@@ -14,6 +87,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
 
+  const t = COPY[lang]
   const redirectTo = searchParams.get('redirect') || '/dashboard'
 
   async function handleGoogleLogin() {
@@ -31,15 +105,15 @@ export default function LoginForm() {
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw error
-      toast.success('로그인 성공!')
+      toast.success(t.toastOk)
       router.push(redirectTo)
       router.refresh()
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : ''
       if (msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('credentials')) {
-        toast.error('이메일 또는 비밀번호가 올바르지 않습니다.')
+        toast.error(t.toastErr)
       } else {
-        toast.error(msg || '오류가 발생했습니다.')
+        toast.error(msg || t.toastErr)
       }
     } finally {
       setLoading(false)
@@ -51,8 +125,8 @@ export default function LoginForm() {
       <div className="w-full max-w-sm">
 
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-black text-black mb-3 tracking-tight">로그인</h1>
-          <p className="text-gray-400 text-sm">계정에 로그인하세요</p>
+          <h1 className="text-4xl font-black text-black mb-3 tracking-tight">{t.title}</h1>
+          <p className="text-gray-400 text-sm">{t.sub}</p>
         </div>
 
         {/* Google 로그인 */}
@@ -68,18 +142,18 @@ export default function LoginForm() {
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
           </svg>
-          {googleLoading ? '...' : 'Google로 계속하기'}
+          {googleLoading ? '...' : t.google}
         </button>
 
         <div className="relative flex items-center gap-3 mb-5">
           <div className="flex-1 h-px bg-gray-100" />
-          <span className="text-xs text-gray-300 font-medium">또는</span>
+          <span className="text-xs text-gray-300 font-medium">{t.or}</span>
           <div className="flex-1 h-px bg-gray-100" />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">이메일</label>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{t.emailLabel}</label>
             <input
               type="email"
               placeholder="example@email.com"
@@ -90,10 +164,10 @@ export default function LoginForm() {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">비밀번호</label>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{t.pwLabel}</label>
             <input
               type="password"
-              placeholder="비밀번호 입력"
+              placeholder={t.pwPlaceholder}
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
@@ -105,14 +179,14 @@ export default function LoginForm() {
             disabled={loading}
             className="w-full bg-black text-white py-4 rounded-2xl font-bold text-sm hover:bg-gray-800 disabled:opacity-40 transition-all mt-2"
           >
-            {loading ? '처리 중...' : '로그인'}
+            {loading ? t.submitting : t.submit}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-400 mt-6">
-          계정이 없으신가요?{' '}
-          <Link href="/signup" className="text-black font-bold hover:underline">
-            회원가입
+          {t.noAccount}{' '}
+          <Link href={t.signupHref} className="text-black font-bold hover:underline">
+            {t.signup}
           </Link>
         </p>
       </div>

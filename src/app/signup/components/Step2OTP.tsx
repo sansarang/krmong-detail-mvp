@@ -3,27 +3,39 @@ import { useState, useRef, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 
+export interface Step2T {
+  title: string
+  sub: string // {email} placeholder 포함
+  spamNote: string
+  verify: string
+  verifying: string
+  toastErr: string
+  resend: string
+  resendCooldown: string // {n} placeholder 포함
+  toastResent: string
+  back: string
+}
+
 interface Props {
+  t: Step2T
   email: string
   onNext: () => void
   onBack: () => void
 }
 
-export default function Step2OTP({ email, onNext, onBack }: Props) {
+export default function Step2OTP({ t, email, onNext, onBack }: Props) {
   const [digits, setDigits] = useState(['', '', '', '', '', ''])
   const [loading, setLoading] = useState(false)
   const [cooldown, setCooldown] = useState(0)
   const refs = useRef<(HTMLInputElement | null)[]>([])
   const supabase = createClient()
 
-  useEffect(() => {
-    refs.current[0]?.focus()
-  }, [])
+  useEffect(() => { refs.current[0]?.focus() }, [])
 
   useEffect(() => {
     if (cooldown <= 0) return
-    const t = setTimeout(() => setCooldown(c => c - 1), 1000)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setCooldown(c => c - 1), 1000)
+    return () => clearTimeout(timer)
   }, [cooldown])
 
   function handleChange(i: number, val: string) {
@@ -35,17 +47,12 @@ export default function Step2OTP({ email, onNext, onBack }: Props) {
   }
 
   function handleKeyDown(i: number, e: React.KeyboardEvent) {
-    if (e.key === 'Backspace' && !digits[i] && i > 0) {
-      refs.current[i - 1]?.focus()
-    }
+    if (e.key === 'Backspace' && !digits[i] && i > 0) refs.current[i - 1]?.focus()
   }
 
   function handlePaste(e: React.ClipboardEvent) {
     const text = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
-    if (text.length === 6) {
-      setDigits(text.split(''))
-      refs.current[5]?.focus()
-    }
+    if (text.length === 6) { setDigits(text.split('')); refs.current[5]?.focus() }
   }
 
   async function handleVerify(e: React.FormEvent) {
@@ -54,15 +61,11 @@ export default function Step2OTP({ email, onNext, onBack }: Props) {
     if (token.length < 6) return
     setLoading(true)
     try {
-      const { error } = await supabase.auth.verifyOtp({
-        email,
-        token,
-        type: 'email',
-      })
+      const { error } = await supabase.auth.verifyOtp({ email, token, type: 'email' })
       if (error) throw error
       onNext()
-    } catch (err: unknown) {
-      toast.error('인증번호가 올바르지 않습니다.')
+    } catch {
+      toast.error(t.toastErr)
       setDigits(['', '', '', '', '', ''])
       refs.current[0]?.focus()
     } finally {
@@ -74,13 +77,10 @@ export default function Step2OTP({ email, onNext, onBack }: Props) {
     if (cooldown > 0) return
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: {
-        shouldCreateUser: true,
-        emailRedirectTo: undefined,
-      },
+      options: { shouldCreateUser: true, emailRedirectTo: undefined },
     })
     if (error) { toast.error(error.message); return }
-    toast.success('인증번호를 재발송했습니다.')
+    toast.success(t.toastResent)
     setCooldown(60)
     setDigits(['', '', '', '', '', ''])
     refs.current[0]?.focus()
@@ -90,15 +90,14 @@ export default function Step2OTP({ email, onNext, onBack }: Props) {
 
   return (
     <div className="animate-fadeIn">
-      <h2 className="text-2xl font-black text-black mb-2">인증번호 입력</h2>
+      <h2 className="text-2xl font-black text-black mb-2">{t.title}</h2>
       <p className="text-gray-400 text-sm mb-2">
-        <span className="text-black font-bold">{email}</span>로 발송된<br />
-        6자리 인증번호를 입력해주세요.
+        <span className="text-black font-bold">{email}</span><br />
+        {t.sub}
       </p>
-      <p className="text-xs text-gray-300 mb-8">스팸함도 확인해보세요.</p>
+      <p className="text-xs text-gray-300 mb-8">{t.spamNote}</p>
 
       <form onSubmit={handleVerify} className="space-y-6">
-        {/* 6칸 OTP 입력 */}
         <div className="flex gap-2 justify-center" onPaste={handlePaste}>
           {digits.map((d, i) => (
             <input
@@ -122,17 +121,13 @@ export default function Step2OTP({ email, onNext, onBack }: Props) {
           disabled={loading || !filled}
           className="w-full bg-black text-white py-4 rounded-2xl font-bold text-sm hover:bg-gray-800 disabled:opacity-40 transition-all"
         >
-          {loading ? '인증 중...' : '인증하기'}
+          {loading ? '...' : t.verify}
         </button>
       </form>
 
       <div className="flex items-center justify-between mt-5">
-        <button
-          type="button"
-          onClick={onBack}
-          className="text-xs text-gray-400 hover:text-black transition-colors"
-        >
-          ← 이메일 다시 입력
+        <button type="button" onClick={onBack} className="text-xs text-gray-400 hover:text-black transition-colors">
+          {t.back}
         </button>
         <button
           type="button"
@@ -140,7 +135,7 @@ export default function Step2OTP({ email, onNext, onBack }: Props) {
           disabled={cooldown > 0}
           className="text-xs text-gray-400 hover:text-black transition-colors disabled:opacity-40"
         >
-          {cooldown > 0 ? `재발송 (${cooldown}초)` : '인증번호 재발송'}
+          {cooldown > 0 ? t.resendCooldown.replace('{n}', String(cooldown)) : t.resend}
         </button>
       </div>
     </div>

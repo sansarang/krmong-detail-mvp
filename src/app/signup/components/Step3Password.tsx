@@ -3,18 +3,32 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 
+export interface Step3T {
+  title: string
+  sub: string
+  pwLabel: string
+  pwPlaceholder: string
+  confirmLabel: string
+  confirmPlaceholder: string
+  pwInvalid: string
+  pwValid: string
+  confirmMismatch: string
+  confirmMatch: string
+  submit: string
+  submitting: string
+  toastErr: string
+}
+
 interface Props {
+  t: Step3T
   onNext: () => void
 }
 
 function validate(pw: string) {
-  if (pw.length < 8) return false
-  if (!/[a-zA-Z]/.test(pw)) return false
-  if (!/[0-9]/.test(pw)) return false
-  return true
+  return pw.length >= 8 && /[a-zA-Z]/.test(pw) && /[0-9]/.test(pw)
 }
 
-export default function Step3Password({ onNext }: Props) {
+export default function Step3Password({ t, onNext }: Props) {
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [loading, setLoading] = useState(false)
@@ -33,7 +47,7 @@ export default function Step3Password({ onNext }: Props) {
       if (error) throw error
       onNext()
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : '오류가 발생했습니다.')
+      toast.error(err instanceof Error ? err.message : t.toastErr)
     } finally {
       setLoading(false)
     }
@@ -41,15 +55,15 @@ export default function Step3Password({ onNext }: Props) {
 
   return (
     <div className="animate-fadeIn">
-      <h2 className="text-2xl font-black text-black mb-2">비밀번호 설정</h2>
-      <p className="text-gray-400 text-sm mb-8">사용할 비밀번호를 입력해주세요.</p>
+      <h2 className="text-2xl font-black text-black mb-2">{t.title}</h2>
+      <p className="text-gray-400 text-sm mb-8">{t.sub}</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">비밀번호</label>
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{t.pwLabel}</label>
           <input
             type="password"
-            placeholder="8자 이상, 영문+숫자 조합"
+            placeholder={t.pwPlaceholder}
             value={password}
             onChange={e => setPassword(e.target.value)}
             required
@@ -60,19 +74,15 @@ export default function Step3Password({ onNext }: Props) {
                 : 'border-gray-200 focus:border-black'
             }`}
           />
-          {password.length > 0 && !isValid && (
-            <p className="text-xs text-red-400 mt-1.5 ml-1">8자 이상, 영문+숫자 조합이어야 합니다.</p>
-          )}
-          {isValid && (
-            <p className="text-xs text-green-500 mt-1.5 ml-1">✓ 사용 가능한 비밀번호입니다.</p>
-          )}
+          {password.length > 0 && !isValid && <p className="text-xs text-red-400 mt-1.5 ml-1">{t.pwInvalid}</p>}
+          {isValid && <p className="text-xs text-green-500 mt-1.5 ml-1">{t.pwValid}</p>}
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">비밀번호 확인</label>
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{t.confirmLabel}</label>
           <input
             type="password"
-            placeholder="비밀번호를 다시 입력하세요"
+            placeholder={t.confirmPlaceholder}
             value={confirm}
             onChange={e => setConfirm(e.target.value)}
             required
@@ -82,12 +92,8 @@ export default function Step3Password({ onNext }: Props) {
                 : 'border-gray-200 focus:border-black'
             }`}
           />
-          {confirm.length > 0 && !isMatch && (
-            <p className="text-xs text-red-400 mt-1.5 ml-1">비밀번호가 일치하지 않습니다.</p>
-          )}
-          {isMatch && (
-            <p className="text-xs text-green-500 mt-1.5 ml-1">✓ 비밀번호가 일치합니다.</p>
-          )}
+          {confirm.length > 0 && !isMatch && <p className="text-xs text-red-400 mt-1.5 ml-1">{t.confirmMismatch}</p>}
+          {isMatch && <p className="text-xs text-green-500 mt-1.5 ml-1">{t.confirmMatch}</p>}
         </div>
 
         <button
@@ -95,7 +101,7 @@ export default function Step3Password({ onNext }: Props) {
           disabled={loading || !canSubmit}
           className="w-full bg-black text-white py-4 rounded-2xl font-bold text-sm hover:bg-gray-800 disabled:opacity-40 transition-all mt-2"
         >
-          {loading ? '처리 중...' : '완료'}
+          {loading ? t.submitting : t.submit}
         </button>
       </form>
     </div>
