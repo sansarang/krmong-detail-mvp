@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
@@ -730,9 +730,8 @@ function GeneratingProgress({ elapsed, isMultiLang, langCount, uiLang }: {
 }
 
 export default function NewOrderPage() {
-  const router       = useRouter()
-  const searchParams = useSearchParams()
-  const supabase     = createClient()
+  const router   = useRouter()
+  const supabase = createClient()
   const [productLoading, setProductLoading]   = useState(false)
   const [templateLoading, setTemplateLoading] = useState(false)
   const [images, setImages]                 = useState<File[]>([])
@@ -757,9 +756,7 @@ export default function NewOrderPage() {
   } | null>(null)
   const [crossborderMode, setCrossborderMode] = useState(false)
   const [crossborderPlatforms, setCrossborderPlatforms] = useState<string[]>([])
-  const [activeTab, setActiveTab] = useState<'product' | 'template'>(
-    searchParams.get('tab') === 'template' ? 'template' : 'product'
-  )
+  const [activeTab, setActiveTab] = useState<'product' | 'template'>('product')
   const [catSearch, setCatSearch] = useState('')
   const [selectedMarkets, setSelectedMarkets] = useState<string[]>([])
   const [customInstructions, setCustomInstructions] = useState('')
@@ -814,6 +811,12 @@ export default function NewOrderPage() {
     const detected = supported.includes(lang as UiLang) ? (lang as UiLang) : 'en'
     setUiLang(detected)
     setOutputLang(detected)
+  }, [])
+
+  // URL ?tab=template 파라미터로 초기 탭 설정
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('tab') === 'template') setActiveTab('template')
   }, [])
 
   // 이번 달 사용량 + 관리자 여부 로드
