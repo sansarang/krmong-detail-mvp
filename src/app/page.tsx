@@ -107,7 +107,12 @@ const faqSchema = {
   ],
 }
 
-export default function Home() {
+import { createServerSupabaseClient } from '@/lib/supabase/server'
+
+export default async function Home() {
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
   return (
     <>
       <script
@@ -118,7 +123,7 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
-      <HomePage lang="ko" />
+      <HomePage lang="ko" isLoggedIn={!!user} />
     </>
   )
 }

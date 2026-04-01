@@ -49,4 +49,9 @@ export const metadata: Metadata = {
   },
 }
 
-export default function EnHome() { return <HomePage lang="en" /> }
+import { createServerSupabaseClient } from '@/lib/supabase/server'
+export default async function EnHome() {
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  return <HomePage lang="en" isLoggedIn={!!user} />
+}

@@ -11,7 +11,7 @@ import Logo from '@/components/Logo'
 import HomeJsonLd from '@/components/HomeJsonLd'
 import { PLATFORMS, LANG_TABS, HOME_COPY, USE_CASE_META, type HomeLang } from '@/lib/homeData'
 
-export default function HomePage({ lang }: { lang: HomeLang }) {
+export default function HomePage({ lang, isLoggedIn = false }: { lang: HomeLang; isLoggedIn?: boolean }) {
   const C = HOME_COPY[lang]
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [activeLang, setActiveLang] = useState(0)
@@ -58,10 +58,18 @@ export default function HomePage({ lang }: { lang: HomeLang }) {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <LangSwitcher current={lang} />
-            <Link href="/login" className="text-sm text-gray-400 hover:text-white font-medium transition-colors hidden sm:block">{C.nav.signin}</Link>
-            <Link href="/login" className="bg-gradient-to-r from-blue-500 to-violet-500 text-white text-sm px-4 py-2 rounded-xl font-bold hover:opacity-90 transition-all hover:scale-105 shadow-lg shadow-blue-500/20 whitespace-nowrap">
-              {C.nav.startFree}
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/dashboard" className="bg-gradient-to-r from-blue-500 to-violet-500 text-white text-sm px-4 py-2 rounded-xl font-bold hover:opacity-90 transition-all hover:scale-105 shadow-lg shadow-blue-500/20 whitespace-nowrap">
+                대시보드
+              </Link>
+            ) : (
+              <>
+                <Link href="/login" className="text-sm text-gray-400 hover:text-white font-medium transition-colors hidden sm:block">{C.nav.signin}</Link>
+                <Link href="/login" className="bg-gradient-to-r from-blue-500 to-violet-500 text-white text-sm px-4 py-2 rounded-xl font-bold hover:opacity-90 transition-all hover:scale-105 shadow-lg shadow-blue-500/20 whitespace-nowrap">
+                  {C.nav.startFree}
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
