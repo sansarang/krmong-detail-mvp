@@ -1,10 +1,13 @@
 export type UiLang = 'ko' | 'en' | 'ja' | 'zh'
 
 const STORAGE_KEY = 'pageai-ui-lang'
+export const LANG_COOKIE = 'pageai-lang'
 
 export function persistUiLang(lang: UiLang) {
   try {
     localStorage.setItem(STORAGE_KEY, lang)
+    // 서버에서도 읽을 수 있도록 쿠키에도 저장
+    document.cookie = `${LANG_COOKIE}=${lang};path=/;max-age=31536000;SameSite=Lax`
   } catch {
     /* ignore */
   }
