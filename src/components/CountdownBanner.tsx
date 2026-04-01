@@ -39,7 +39,18 @@ export default function CountdownBanner() {
     return () => clearInterval(timer)
   }, [])
 
-  if (expired || !timeLeft) return null
+  if (!timeLeft && !expired) return null
+
+  if (expired) {
+    return (
+      <div className="bg-black text-white text-center py-2.5 px-4 text-sm font-medium">
+        <span>🎉 얼리버드 마감! 지금 가입하면 첫 달 50% 할인</span>
+        <Link href="/#pricing" className="ml-3 underline underline-offset-2 text-yellow-400 font-bold hover:text-yellow-300 transition-colors">
+          지금 시작 →
+        </Link>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-black text-white text-center py-2.5 px-4 text-sm font-medium">
@@ -48,11 +59,11 @@ export default function CountdownBanner() {
       <span className="line-through text-gray-500">₩29,000</span>{' '}
       <span className="font-black">₩14,500</span>
       <span className="inline-flex items-center gap-1 mx-2 bg-white/10 border border-white/20 rounded-lg px-2 py-0.5 font-black tabular-nums text-xs">
-        <span>{timeLeft.h}</span>
+        <span>{timeLeft!.h}</span>
         <span className="opacity-50">:</span>
-        <span>{timeLeft.m}</span>
+        <span>{timeLeft!.m}</span>
         <span className="opacity-50">:</span>
-        <span>{timeLeft.s}</span>
+        <span>{timeLeft!.s}</span>
       </span>
       남음
       <Link href="/#pricing" className="ml-3 underline underline-offset-2 text-yellow-400 font-bold hover:text-yellow-300 transition-colors">

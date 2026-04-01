@@ -23,6 +23,9 @@ const COPY = {
     noAccount: '계정이 없으신가요?',
     signup: '회원가입',
     signupHref: '/signup',
+    nudgeText: '처음이세요?',
+    nudgeCta: '무료로 시작하기 (카드 불필요)',
+    nudgeHref: '/signup',
   },
   en: {
     title: 'Sign In',
@@ -39,6 +42,9 @@ const COPY = {
     noAccount: "Don't have an account?",
     signup: 'Sign up',
     signupHref: '/en/signup',
+    nudgeText: 'New here?',
+    nudgeCta: 'Start for free — no credit card required',
+    nudgeHref: '/en/signup',
   },
   ja: {
     title: 'ログイン',
@@ -55,6 +61,9 @@ const COPY = {
     noAccount: 'アカウントをお持ちでない方は',
     signup: '新規登録',
     signupHref: '/ja/signup',
+    nudgeText: '初めての方は',
+    nudgeCta: '無料で始める（クレジットカード不要）',
+    nudgeHref: '/ja/signup',
   },
   zh: {
     title: '登录',
@@ -71,6 +80,9 @@ const COPY = {
     noAccount: '没有账户？',
     signup: '注册',
     signupHref: '/zh/signup',
+    nudgeText: '首次使用？',
+    nudgeCta: '免费开始（无需信用卡）',
+    nudgeHref: '/zh/signup',
   },
 }
 
@@ -183,7 +195,17 @@ export default function LoginForm({ lang = 'ko' }: Props) {
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-400 mt-6">
+        {/* Signup nudge */}
+        <div className="mt-4 rounded-2xl border border-purple-100 bg-purple-50 px-4 py-3 text-center">
+          <p className="text-sm text-gray-500">
+            {t.nudgeText}{' '}
+            <Link href={t.nudgeHref} className="text-purple-600 font-semibold hover:underline">
+              {t.nudgeCta}
+            </Link>
+          </p>
+        </div>
+
+        <p className="text-center text-sm text-gray-400 mt-4">
           {t.noAccount}{' '}
           <Link href={t.signupHref} className="text-black font-bold hover:underline">
             {t.signup}

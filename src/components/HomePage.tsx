@@ -85,22 +85,28 @@ export default function HomePage({ lang, isLoggedIn = false }: { lang: HomeLang;
 
         <div className="relative z-10 w-full max-w-5xl mx-auto px-5 py-20 md:py-32 text-center">
 
-          {/* Social proof badge */}
-          <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 text-gray-300 text-xs font-bold px-4 py-2.5 rounded-full backdrop-blur-md mb-10 hover:bg-white/8 transition-colors">
-            <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shrink-0" />
-            {C.hero.badge}
+          {/* Social proof badges */}
+          <div className="flex flex-wrap justify-center gap-3 mb-10">
+            <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 text-gray-300 text-xs font-bold px-4 py-2.5 rounded-full backdrop-blur-md hover:bg-white/8 transition-colors">
+              <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shrink-0" />
+              {C.hero.badge}
+            </div>
+            <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 text-gray-300 text-xs font-bold px-4 py-2.5 rounded-full backdrop-blur-md hover:bg-white/8 transition-colors">
+              <span className="w-2 h-2 bg-orange-400 rounded-full animate-pulse shrink-0" />
+              {C.hero.badge2}
+            </div>
           </div>
 
-          {/* Headline — 3 lines, strong hierarchy */}
-          <h1 className="font-black tracking-[-0.04em] mb-6 md:mb-8 leading-[0.9]"
+          {/* Headline — pain-point first */}
+          <h1 className="font-black tracking-[-0.04em] mb-6 md:mb-8 leading-[0.95]"
             style={{ fontFamily: "'Satoshi','Pretendard','Inter',sans-serif" }}>
-            <span className="block text-white text-[36px] sm:text-[52px] md:text-[68px] lg:text-[78px]">
+            <span className="block text-gray-400 text-[28px] sm:text-[40px] md:text-[54px] lg:text-[62px]">
               {C.hero.h1a}
             </span>
-            <span className="block bg-gradient-to-r from-blue-400 via-violet-400 to-pink-400 bg-clip-text text-transparent text-[40px] sm:text-[56px] md:text-[74px] lg:text-[86px]">
+            <span className="block bg-gradient-to-r from-blue-400 via-violet-400 to-pink-400 bg-clip-text text-transparent text-[38px] sm:text-[54px] md:text-[70px] lg:text-[82px]">
               {C.hero.h1b}
             </span>
-            <span className="block text-gray-500 text-[32px] sm:text-[44px] md:text-[58px] lg:text-[68px]">
+            <span className="block text-white text-[22px] sm:text-[30px] md:text-[40px] lg:text-[46px] font-bold mt-3">
               {C.hero.h1c}
             </span>
           </h1>
@@ -144,13 +150,26 @@ export default function HomePage({ lang, isLoggedIn = false }: { lang: HomeLang;
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center mb-10 px-4 sm:px-0">
             <Link href="/login"
-              className="bg-gradient-to-r from-blue-500 to-violet-600 text-white px-10 md:px-16 py-4 md:py-5 rounded-2xl text-base md:text-lg font-black hover:opacity-92 transition-all hover:scale-[1.03] hover:shadow-2xl hover:shadow-blue-500/35 text-center shadow-lg shadow-blue-500/20">
+              className="bg-gradient-to-r from-blue-500 to-violet-600 text-white px-8 md:px-12 py-4 md:py-5 rounded-2xl text-base md:text-lg font-black hover:opacity-92 transition-all hover:scale-[1.03] hover:shadow-2xl hover:shadow-blue-500/35 text-center shadow-lg shadow-blue-500/20 w-full sm:w-auto">
               {C.hero.cta1}
             </Link>
             <Link href="/order/new"
               className="border border-white/20 bg-white/4 text-white px-7 md:px-10 py-4 rounded-2xl text-base font-bold hover:bg-white/10 hover:border-white/30 transition-all text-center flex items-center justify-center gap-2">
               {C.hero.cta2}
             </Link>
+          </div>
+
+          {/* Autoplay demo video */}
+          <div className="w-full max-w-2xl mx-auto mt-8 mb-8">
+            <video
+              src="/demo/pageai-demo.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="rounded-xl border border-white/10 shadow-2xl w-full"
+              onError={e => { (e.currentTarget as HTMLVideoElement).style.display = 'none' }}
+            />
           </div>
 
           {/* Stats row */}

@@ -15,6 +15,7 @@ const CURRENCY: Record<Lang, { symbol: string; pro: number; proY: number; biz: n
 const LABELS: Record<Lang, {
   title: string; subtitle: string; monthly: string; yearly: string; free2mo: string;
   free: string; perMonth: string; yearlyNote: string; guarantee: string; noCard: string; cancel: string;
+  proFraming: string;
   plans: { name: string; desc: string; cta: string; badge?: string; features: string[] }[]
 }> = {
   ko: {
@@ -22,6 +23,7 @@ const LABELS: Record<Lang, {
     monthly: '월간', yearly: '연간', free2mo: '2개월 무료',
     free: '무료', perMonth: '/월', yearlyNote: '연간 결제 시',
     guarantee: '30일 환불 보장', noCard: 'Visa · Mastercard · Apple Pay · Samsung Pay 지원', cancel: '언제든지 해지 가능',
+    proFraming: '아메리카노 5잔 가격으로 외주비 95% 절약',
     plans: [
       { name: '무료', desc: '시작해보고 싶은 분', cta: '무료로 시작',
         features: ['월 5회 생성', 'PDF 다운로드', '인라인 편집', 'SEO 분석 ✗', '블로그 발행 ✗', 'A/B 자동 생성 ✗'] },
@@ -36,6 +38,7 @@ const LABELS: Record<Lang, {
     monthly: 'Monthly', yearly: 'Yearly', free2mo: '2 months free',
     free: 'Free', perMonth: '/mo', yearlyNote: 'billed annually',
     guarantee: '30-day refund', noCard: 'Visa · Mastercard · Apple Pay · Samsung Pay', cancel: 'Cancel anytime',
+    proFraming: 'Less than 5 coffees. Save 95% vs. freelancer cost.',
     plans: [
       { name: 'Free', desc: 'Try it out', cta: 'Start Free',
         features: ['5 generations/month', 'PDF download', 'Inline editing', 'SEO analysis ✗', 'Blog publishing ✗', 'A/B auto-generate ✗'] },
@@ -50,6 +53,7 @@ const LABELS: Record<Lang, {
     monthly: '月払い', yearly: '年払い', free2mo: '2ヶ月無料',
     free: '無料', perMonth: '/月', yearlyNote: '年払いの場合',
     guarantee: '30日間返金保証', noCard: 'Visa · Mastercard · Apple Pay · Samsung Pay対応', cancel: 'いつでもキャンセル可',
+    proFraming: 'コーヒー5杯分で外注費95%削減',
     plans: [
       { name: '無料', desc: 'まずお試しに', cta: '無料で始める',
         features: ['月5回生成', 'PDFダウンロード', 'インライン編集', 'SEO分析 ✗', 'ブログ投稿 ✗', 'A/B自動生成 ✗'] },
@@ -64,6 +68,7 @@ const LABELS: Record<Lang, {
     monthly: '按月付', yearly: '按年付', free2mo: '赠2个月',
     free: '免费', perMonth: '/月', yearlyNote: '按年计费',
     guarantee: '30天退款保证', noCard: 'Visa · Mastercard · Apple Pay · Samsung Pay', cancel: '随时取消',
+    proFraming: '5杯咖啡的价格，节省95%的外包费用',
     plans: [
       { name: '免费版', desc: '先体验一下', cta: '免费开始',
         features: ['每月5次生成', 'PDF下载', '在线编辑', 'SEO分析 ✗', '博客发布 ✗', 'A/B自动生成 ✗'] },
@@ -123,6 +128,9 @@ export default function PricingSection({ lang = 'ko' }: { lang?: Lang }) {
               )}
               <div className="mb-6">
                 <p className="text-xs font-black uppercase tracking-widest mb-2 text-gray-400">{plan.name}</p>
+                {featured && (
+                  <p className="text-xs text-gray-400 mb-1.5">{L.proFraming}</p>
+                )}
                 <div className="flex items-end gap-1 mb-2">
                   <span className={`text-4xl md:text-5xl font-black tracking-[-0.04em] ${featured ? 'text-white' : 'text-black'}`}>
                     {fmt(prices[i])}

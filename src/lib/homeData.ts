@@ -35,12 +35,13 @@ export const HOME_COPY = {
   ko: {
     nav: { how: '작동 방식', features: '주요 기능', reviews: '후기', pricing: '가격', blog: '블로그', signin: '로그인', startFree: '무료 시작' },
     hero: {
-      badge: '🔥 1,200+ 글로벌 셀러 & 전문가 사용 중',
-      h1a: '양식·URL만 올리면', h1b: 'AI가 5분 안에 완성', h1c: '4개 언어, 글로벌 플랫폼 최적화까지.',
+      badge: '🔥 1,200+ 글로벌 셀러 사용 중',
+      badge2: '📄 32,800+ 상세페이지 생성 완료',
+      h1a: '상세페이지 1개에', h1b: '3시간 쓰고 계신가요?', h1c: 'AI가 5분 만에 4개국어 상세페이지를 완성합니다.',
       sub1: '상세페이지 · 사업계획서 · 제안서 · 보고서 · 과제 — PDF·DOCX 어떤 양식이든.',
       sub1b: '',
       sub2: 'Amazon JP · Tmall · Rakuten · Shopify · Smartstore — 플랫폼별 완벽 최적화.',
-      cta1: '무료로 시작하기', cta2: '데모 보기 ▶',
+      cta1: '지금 무료로 상세페이지 만들어보기 →', cta2: '데모 보기 ▶',
       stats: [['5분', '전문가 수준 완성'], ['4개 언어', '동시 생성'], ['95%', '외주 비용 절감'], ['무료', '시작 가능']],
     },
     crossborder: {
@@ -185,12 +186,13 @@ export const HOME_COPY = {
   en: {
     nav: { how: 'How it works', features: 'Features', reviews: 'Reviews', pricing: 'Pricing', blog: 'Blog', signin: 'Sign in', startFree: 'Start Free' },
     hero: {
-      badge: '🔥 #1 AI Product Description Generator for Cross-Border eCommerce · 1,200+ Global Sellers',
-      h1a: 'Create Perfect Product Pages', h1b: 'in 4 Languages in 5 Minutes —', h1c: 'AI-Optimized for Every Global Platform.',
+      badge: '🔥 1,200+ Global Sellers Using PageAI',
+      badge2: '📄 32,800+ Product Pages Generated',
+      h1a: 'Spending 3 hours on', h1b: 'a single product page?', h1c: 'PageAI generates 4-language listings in under 5 minutes.',
       sub1: 'Amazon JP · Tmall · Rakuten · Shopify · Smartstore product pages,',
       sub1b: 'plus business plans, proposals & reports — AI auto-fills any form at expert level.',
       sub2: 'The only AI tool that generates culturally-localized content for KR · EN · JP · CN simultaneously.',
-      cta1: 'Start Free Now', cta2: 'See How It Works ▶',
+      cta1: 'Generate My First Page Free →', cta2: 'See How It Works ▶',
       stats: [['5 min', 'expert-level content'], ['4 languages', 'simultaneously'], ['95%', 'cost vs outsourcing'], ['Free', 'to start']],
     },
     crossborder: {
@@ -335,12 +337,13 @@ export const HOME_COPY = {
   ja: {
     nav: { how: '仕組み', features: '機能', reviews: 'レビュー', pricing: '料金', blog: 'ブログ', signin: 'ログイン', startFree: '無料で開始' },
     hero: {
-      badge: '🔥 1,200人以上のグローバルセラー・プロが利用中',
-      h1a: '書類・URLをアップロード。', h1b: 'AIが5分以内に完成させます。', h1c: '4言語対応、グローバル最適化。',
+      badge: '🔥 1,200人以上のグローバルセラーが利用中',
+      badge2: '📄 32,800件以上の商品ページ生成完了',
+      h1a: '商品ページ1つに', h1b: '3時間かけていませんか？', h1c: 'AIが5分で4言語の商品ページを自動生成します。',
       sub1: '商品ページ・事業計画書・提案書・レポート・課題 — PDF·DOCX問わず。',
       sub1b: '',
       sub2: 'Amazon JP · Tmall · 楽天 · Shopify — プラットフォーム別に完璧に最適化。',
-      cta1: '無料で始める', cta2: 'デモを見る ▶',
+      cta1: '今すぐ無料で商品ページを作る →', cta2: 'デモを見る ▶',
       stats: [['5分', 'プロレベルの完成'], ['4言語', '同時生成'], ['95%', '外注コスト削減'], ['無料', 'スタート']],
     },
     crossborder: {
@@ -485,12 +488,13 @@ export const HOME_COPY = {
   zh: {
     nav: { how: '工作原理', features: '核心功能', reviews: '用户评价', pricing: '定价', blog: '博客', signin: '登录', startFree: '免费开始' },
     hero: {
-      badge: '🔥 全球1,200+卖家与专业人士信赖使用',
-      h1a: '上传表格或链接。', h1b: 'AI在5分钟内完成，', h1c: '支持4种语言。',
+      badge: '🔥 全球1,200+卖家信赖使用',
+      badge2: '📄 已生成32,800+商品详情页',
+      h1a: '一个商品详情页', h1b: '要花3小时？', h1c: 'AI在5分钟内自动生成4种语言的详情页。',
       sub1: '商品详情页·商业计划书·提案书·报告·作业 — PDF·DOCX任意格式。',
       sub1b: '',
       sub2: '天猫 · Amazon JP · 楽天 · Shopify — 按平台完美优化。',
-      cta1: '立即免费开始', cta2: '观看演示 ▶',
+      cta1: '立即免费生成第一个详情页 →', cta2: '观看演示 ▶',
       stats: [['5分钟', '专家级文档'], ['4种语言', '同时生成'], ['95%', '外包成本节省'], ['免费', '即可开始']],
     },
     crossborder: {
