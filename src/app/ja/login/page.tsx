@@ -17,7 +17,7 @@ export default function JaLoginPage() {
           <div className="w-8 h-8 border-2 border-gray-200 border-t-black rounded-full animate-spin" />
         </div>
       }>
-        <LoginForm lang="ja" homeHref="/ja" />
+        <LoginForm />
       </Suspense>
     </main>
   )
