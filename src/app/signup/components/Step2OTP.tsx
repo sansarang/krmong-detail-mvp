@@ -74,7 +74,10 @@ export default function Step2OTP({ email, onNext, onBack }: Props) {
     if (cooldown > 0) return
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: true },
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: undefined,
+      },
     })
     if (error) { toast.error(error.message); return }
     toast.success('인증번호를 재발송했습니다.')

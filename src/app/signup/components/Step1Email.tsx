@@ -19,7 +19,10 @@ export default function Step1Email({ onNext }: Props) {
       // OTP 발송 (shouldCreateUser: true — 신규 유저 허용)
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { shouldCreateUser: true },
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo: undefined,
+        },
       })
       if (error) {
         // 이미 비밀번호로 가입된 유저는 로그인 유도
