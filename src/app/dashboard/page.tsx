@@ -375,7 +375,11 @@ export default async function DashboardPage() {
               <div className="bg-white border border-gray-100 rounded-3xl p-16 text-center">
                 <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">✨</div>
                 <p className="font-bold text-gray-700 mb-1">{t.emptyTitle}</p>
-                <p className="text-gray-400 text-sm mb-6">{t.emptySub}</p>
+                <p className="text-gray-400 text-sm mb-4">{t.emptySub}</p>
+                <Link href="/order/new"
+                  className="inline-block bg-black text-white px-8 py-3 rounded-2xl text-sm font-black hover:bg-gray-800 transition-all hover:scale-[1.02] mb-6">
+                  {t.newPage}
+                </Link>
                 <p className="text-xs font-black text-gray-300 uppercase tracking-widest mb-3">{t.quickStart}</p>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {t.quickCats.map((c, i) => (
