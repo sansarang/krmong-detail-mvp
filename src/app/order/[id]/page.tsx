@@ -33,6 +33,7 @@ import { buildListingEvidencePack, type ListingEvidencePack } from '@/lib/listin
 import { buildListingAssetKit, type ListingAssetKit } from '@/lib/listingAssetKit'
 import { buildMarketIntelHeuristics } from '@/lib/marketIntelCopy'
 import OrderWritingWidgets from '@/components/OrderWritingWidgets'
+import PlatformPreviewPanel from '@/components/PlatformPreviewPanel'
 
 interface Section {
   id: number
@@ -2321,6 +2322,16 @@ export default function OrderResultPage() {
               </div>
               <p className="text-[10px] text-gray-400 mt-2">{p.imageHint}</p>
             </div>
+          )}
+
+          {/* ── 플랫폼 미리보기 패널 ─────────────────────────────── */}
+          {sections.length > 0 && !order.result_json?.template_mode && (
+            <PlatformPreviewPanel
+              sections={sections}
+              productName={order.product_name}
+              defaultPlatformKey={order.result_json?.platform_cvr?.market}
+              uiLang={uiLang}
+            />
           )}
 
           {/* Multi-lang tabs */}

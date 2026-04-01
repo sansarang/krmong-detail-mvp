@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     orderId = body.orderId
-    const { outputLang = 'ko', customInstructions = '' } = body as { outputLang?: string; customInstructions?: string }
+    const { outputLang = 'ko', customInstructions = '', platform = '' } = body as { outputLang?: string; customInstructions?: string; platform?: string }
     const supabase = createAdminClient()
 
     // 주문 조회
@@ -488,7 +488,7 @@ Write a complete, professional document based on the above form/data.
     const marketsMatch = (order.description ?? '').match(/\[MARKETS:([^\]]+)\]/)
     const selectedMarkets = marketsMatch
       ? marketsMatch[1].split(',').map((s: string) => s.trim()).filter(Boolean)
-      : []
+      : platform ? [platform] : []
     const crossborderMatch = (order.description ?? '').match(/\[CROSSBORDER:([^\]]+)\]/)
     const crossborderPlatforms = crossborderMatch
       ? crossborderMatch[1].split(',').map((s: string) => s.trim()).filter(Boolean)
