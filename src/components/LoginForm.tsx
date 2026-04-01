@@ -105,8 +105,8 @@ export default function LoginForm({ lang, homeHref }: { lang: UiLang; homeHref: 
   }
 
   useEffect(() => {
-    if (refCode) setIsSignUp(true)
-  }, [refCode])
+    if (refCode || searchParams.get('mode') === 'signup') setIsSignUp(true)
+  }, [refCode, searchParams])
 
   async function handleGoogleLogin() {
     setGoogleLoading(true)
