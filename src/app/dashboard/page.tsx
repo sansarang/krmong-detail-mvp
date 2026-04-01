@@ -339,8 +339,31 @@ export default async function DashboardPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-          {/* 왼쪽: 주문 목록 */}
+          {/* 왼쪽: 주문 목록 + 양식 섹션 */}
           <div className="lg:col-span-2 space-y-4">
+
+            {/* ── 자동 양식 작성 섹션 (상단 배치) ── */}
+            <div className="bg-white border border-gray-100 rounded-3xl p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-violet-50 rounded-xl flex items-center justify-center text-xl shrink-0">📋</div>
+                <div>
+                  <h3 className="font-black text-gray-900 text-sm mb-0.5">{t.formSection}</h3>
+                  <p className="text-gray-400 text-xs">{t.formSectionSub}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-1.5 mb-4">
+                {t.formExamples.map((ex, i) => (
+                  <span key={i} className="text-xs font-bold px-2.5 py-1 bg-gray-50 border border-gray-100 rounded-full text-gray-500">
+                    {ex}
+                  </span>
+                ))}
+              </div>
+              <Link href="/order/new?tab=template"
+                className="flex items-center justify-center gap-2 w-full bg-black text-white py-3 rounded-2xl font-bold text-sm hover:bg-gray-800 transition-all">
+                {t.formStart}
+              </Link>
+            </div>
+
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-black text-black">{t.myPages}</h2>
               <Link href="/order/new" className="text-xs font-bold text-gray-400 hover:text-black transition-colors">
@@ -405,27 +428,6 @@ export default async function DashboardPage() {
               </div>
             )}
 
-            {/* ── 자동 양식 작성 섹션 ── */}
-            <div className="bg-white border border-gray-100 rounded-3xl p-8">
-              <div className="flex items-start gap-4 mb-5">
-                <div className="w-12 h-12 bg-violet-50 rounded-2xl flex items-center justify-center text-2xl shrink-0">📋</div>
-                <div>
-                  <h3 className="font-black text-gray-900 text-base mb-1">{t.formSection}</h3>
-                  <p className="text-gray-400 text-sm">{t.formSectionSub}</p>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2 mb-5">
-                {t.formExamples.map((ex, i) => (
-                  <span key={i} className="text-xs font-bold px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-full text-gray-500">
-                    {ex}
-                  </span>
-                ))}
-              </div>
-              <Link href="/order/new?tab=template"
-                className="flex items-center justify-center gap-2 w-full bg-black text-white py-3.5 rounded-2xl font-bold text-sm hover:bg-gray-800 transition-all">
-                {t.formStart}
-              </Link>
-            </div>
           </div>
 
           {/* 오른쪽 사이드바 */}
