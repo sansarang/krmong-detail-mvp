@@ -24,7 +24,7 @@ interface Props {
 }
 
 export default function Step2OTP({ t, email, onNext, onBack }: Props) {
-  const [digits, setDigits] = useState(['', '', '', '', '', ''])
+  const [digits, setDigits] = useState(['', '', '', '', '', '', '', ''])
   const [loading, setLoading] = useState(false)
   const [cooldown, setCooldown] = useState(0)
   const refs = useRef<(HTMLInputElement | null)[]>([])
@@ -43,7 +43,7 @@ export default function Step2OTP({ t, email, onNext, onBack }: Props) {
     const next = [...digits]
     next[i] = v
     setDigits(next)
-    if (v && i < 5) refs.current[i + 1]?.focus()
+    if (v && i < 7) refs.current[i + 1]?.focus()
   }
 
   function handleKeyDown(i: number, e: React.KeyboardEvent) {
@@ -51,14 +51,14 @@ export default function Step2OTP({ t, email, onNext, onBack }: Props) {
   }
 
   function handlePaste(e: React.ClipboardEvent) {
-    const text = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
-    if (text.length === 6) { setDigits(text.split('')); refs.current[5]?.focus() }
+    const text = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 8)
+    if (text.length === 8) { setDigits(text.split('')); refs.current[7]?.focus() }
   }
 
   async function handleVerify(e: React.FormEvent) {
     e.preventDefault()
     const token = digits.join('')
-    if (token.length < 6) return
+    if (token.length < 8) return
     setLoading(true)
     try {
       const { error } = await supabase.auth.verifyOtp({ email, token, type: 'email' })
@@ -66,7 +66,7 @@ export default function Step2OTP({ t, email, onNext, onBack }: Props) {
       onNext()
     } catch {
       toast.error(t.toastErr)
-      setDigits(['', '', '', '', '', ''])
+      setDigits(['', '', '', '', '', '', '', ''])
       refs.current[0]?.focus()
     } finally {
       setLoading(false)
@@ -82,11 +82,11 @@ export default function Step2OTP({ t, email, onNext, onBack }: Props) {
     if (error) { toast.error(error.message); return }
     toast.success(t.toastResent)
     setCooldown(60)
-    setDigits(['', '', '', '', '', ''])
+    setDigits(['', '', '', '', '', '', '', ''])
     refs.current[0]?.focus()
   }
 
-  const filled = digits.join('').length === 6
+  const filled = digits.join('').length === 8
 
   return (
     <div className="animate-fadeIn">
@@ -109,7 +109,7 @@ export default function Step2OTP({ t, email, onNext, onBack }: Props) {
               value={d}
               onChange={e => handleChange(i, e.target.value)}
               onKeyDown={e => handleKeyDown(i, e)}
-              className={`w-12 h-14 text-center text-xl font-black border-2 rounded-2xl focus:outline-none transition-all ${
+              className={`w-10 h-12 text-center text-lg font-black border-2 rounded-xl focus:outline-none transition-all ${
                 d ? 'border-black bg-gray-50' : 'border-gray-200'
               } focus:border-black`}
             />
