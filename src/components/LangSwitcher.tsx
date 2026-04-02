@@ -5,11 +5,9 @@ import { persistUiLang, type UiLang } from '@/lib/uiLocale'
 const LANGS = [
   { code: 'ko', flag: '🇰🇷', label: 'KR', href: '/' },
   { code: 'en', flag: '🇺🇸', label: 'EN', href: '/en' },
-  { code: 'ja', flag: '🇯🇵', label: 'JP', href: '/ja' },
-  { code: 'zh', flag: '🇨🇳', label: 'CN', href: '/zh' },
 ]
 
-export default function LangSwitcher({ current }: { current: 'ko' | 'en' | 'ja' | 'zh' }) {
+export default function LangSwitcher({ current }: { current: 'ko' | 'en' }) {
   return (
     <div className="flex items-center gap-1">
       {LANGS.map(lang => (
